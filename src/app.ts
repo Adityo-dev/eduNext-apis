@@ -1,6 +1,7 @@
 import express from "express";
 import createHttpError from "http-errors";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
+import userRouter from "./user/userRouter.js";
 
 const app = express();
 
@@ -10,6 +11,9 @@ app.get("/", (req, res, next) => {
   throw error;
   res.json({ message: "Welcome to Edu Next API " });
 });
+
+// user routes ->
+app.use("/api/users", userRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);
