@@ -9,13 +9,15 @@
   ],
   "license": "ISC",
   "author": "aditto",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.ts"
+    "dev": "NODE_OPTIONS='--loader ts-node/esm --no-warnings' nodemon server.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.6",
     "@types/node": "^25.6.2",
     "eslint": "^10.3.0",
     "globals": "^17.6.0",
@@ -23,5 +25,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
   }
 }
