@@ -5,11 +5,13 @@ import userRouter from "./user/userRouter.js";
 
 const app = express();
 
+// JSON Body Middleware ->
+app.use(express.json());
+
 // Routes ->
 app.get("/", (req, res, next) => {
   const error = createHttpError(400, "Something went wrong");
   throw error;
-  res.json({ message: "Welcome to Edu Next API " });
 });
 
 // user routes ->
