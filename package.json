@@ -12,7 +12,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "NODE_OPTIONS='--loader ts-node/esm --no-warnings' nodemon server.ts"
+    "dev": "nodemon --exec tsx server.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -25,6 +25,7 @@
     "mongoose": "^9.6.2",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2"
   },
