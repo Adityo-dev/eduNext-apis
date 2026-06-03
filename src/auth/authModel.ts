@@ -43,6 +43,10 @@ const authSchema = new Schema<IUserDocument>(
       enum: ["student", "instructor", "admin"],
       default: "student",
     },
+    areaOfExpertise: {
+      type: [String],
+      default: [],
+    },
     isVerified: {
       type: Boolean,
       default: false,

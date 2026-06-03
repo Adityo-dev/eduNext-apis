@@ -12,6 +12,7 @@ export interface IUser {
   phone: string;
   password: string;
   role: UserRole;
+  areaOfExpertise: string[];
   isVerified: boolean;
   isSuspended: boolean;
   createdAt: Date;

@@ -12,11 +12,11 @@ import {
 
 const courseRouter = Router();
 
-// ─── Public Routes ────────────────────────────────────────────────────────────
+// ─── Public Routes
 courseRouter.get("/", getAllCourses);
 courseRouter.get("/:slug", getCourseBySlug);
 
-// ─── Instructor Routes ────────────────────────────────────────────────────────
+// ─── Instructor Routes
 courseRouter.post("/", authenticate, authorize(["instructor"]), createCourse);
 courseRouter.get(
   "/instructor/my-courses",
@@ -37,7 +37,7 @@ courseRouter.delete(
   deleteCourse,
 );
 
-// ─── Admin Routes ─────────────────────────────────────────────────────────────
+// ─── Admin Routes
 courseRouter.patch(
   "/:id/status",
   authenticate,

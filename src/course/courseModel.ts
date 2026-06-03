@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import type { ICourseDocument } from "./courseType.js";
 
-// ─── Lesson Schema ────────────────────────────────────────────────────────────
+// ─── Lesson Schema ─
 const lessonSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -13,7 +13,7 @@ const lessonSchema = new Schema(
   { _id: true },
 );
 
-// ─── Section Schema ───────────────────────────────────────────────────────────
+// ─── Section Schema
 const sectionSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -23,7 +23,7 @@ const sectionSchema = new Schema(
   { _id: true },
 );
 
-// ─── Course Schema ────────────────────────────────────────────────────────────
+// ─── Course Schema ─
 const courseSchema = new Schema<ICourseDocument>(
   {
     title: {
@@ -149,7 +149,7 @@ const courseSchema = new Schema<ICourseDocument>(
 
 // ─── Mongoose Hooks (Pre-save Middleware) ─────────────────────────────────────
 courseSchema.pre("save", function () {
-  // ১. অটো স্লাগ জেনারেশন
+  // auto generate slug
   if (this.isModified("title")) {
     this.slug = this.title
       .toLowerCase()
@@ -157,7 +157,7 @@ courseSchema.pre("save", function () {
       .replace(/(^-|-$)+/g, "");
   }
 
-  // ২. অটো লেসন কাউন্টার আপডেট
+  //  auto calculate lessons count
   if (this.isModified("sections")) {
     this.lessonsCount = this.sections.reduce(
       (total, section) => total + (section.lessons?.length || 0),
