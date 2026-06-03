@@ -1,0 +1,170 @@
+import { Schema, model } from "mongoose";
+import type { ICourseDocument } from "./courseType.js";
+
+// ─── Lesson Schema ────────────────────────────────────────────────────────────
+const lessonSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    duration: { type: String, default: "00:00" },
+    videoUrl: { type: String },
+    isFree: { type: Boolean, default: false },
+    order: { type: Number, required: true },
+  },
+  { _id: true },
+);
+
+// ─── Section Schema ───────────────────────────────────────────────────────────
+const sectionSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    order: { type: Number, required: true },
+    lessons: [lessonSchema],
+  },
+  { _id: true },
+);
+
+// ─── Course Schema ────────────────────────────────────────────────────────────
+const courseSchema = new Schema<ICourseDocument>(
+  {
+    title: {
+      type: String,
+      required: [true, "Course title is required"],
+      trim: true,
+    },
+    slug: {
+      type: String,
+      lowercase: true,
+      unique: true,
+    },
+    subtitle: {
+      type: String,
+      required: [true, "Course subtitle is required"],
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: [true, "Course description is required"],
+    },
+
+    // Pricing
+    price: {
+      type: Number,
+      required: [true, "Course price is required"],
+      min: [0, "Price cannot be negative"],
+    },
+    estimatedPrice: {
+      type: Number,
+      min: [0, "Estimated price cannot be negative"],
+    },
+
+    // Media
+    thumbnail: {
+      type: String,
+      default: "https://placeholder.com/course-thumbnail.png",
+    },
+
+    // Classification
+    category: {
+      type: String,
+      required: [true, "Course category is required"],
+      trim: true,
+    },
+    level: {
+      type: String,
+      enum: ["Beginner", "Intermediate", "Advanced"],
+      default: "Beginner",
+    },
+    language: {
+      type: String,
+      enum: ["বাংলা", "English"],
+      default: "বাংলা",
+    },
+    tags: [{ type: String }],
+
+    // Instructor
+    instructor: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Instructor ID is required"],
+    },
+
+    // Curriculum
+    sections: [sectionSchema],
+    lessonsCount: {
+      type: Number,
+      default: 0,
+    },
+    totalDuration: {
+      type: String,
+      default: "0 hrs",
+    },
+
+    // Stats
+    enrolledCount: {
+      type: Number,
+      default: 0,
+    },
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
+
+    // Certificate
+    hasCertificate: {
+      type: Boolean,
+      default: true,
+    },
+
+    // Status
+    status: {
+      type: String,
+      enum: ["draft", "pending", "published", "rejected"],
+      default: "draft",
+    },
+    rejectedReason: {
+      type: String,
+      default: null,
+    },
+    badge: {
+      type: String,
+      enum: ["Best Seller", "Top Rated", "New", null],
+      default: null,
+    },
+
+    // Requirements
+    requirements: [{ type: String }],
+    whatYouLearn: [{ type: String }],
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  },
+);
+
+// ─── Mongoose Hooks (Pre-save Middleware) ─────────────────────────────────────
+courseSchema.pre("save", function () {
+  // ১. অটো স্লাগ জেনারেশন
+  if (this.isModified("title")) {
+    this.slug = this.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+  }
+
+  // ২. অটো লেসন কাউন্টার আপডেট
+  if (this.isModified("sections")) {
+    this.lessonsCount = this.sections.reduce(
+      (total, section) => total + (section.lessons?.length || 0),
+      0,
+    );
+  }
+});
+
+const CourseModel = model<ICourseDocument>("Course", courseSchema);
+export default CourseModel;
