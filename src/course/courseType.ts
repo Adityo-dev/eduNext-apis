@@ -1,22 +1,22 @@
 import { Document, Types } from "mongoose";
 
-// ─── Lesson Interface ───────────────────────────────────────────────────────────
+// ─── Lesson Interface
 export interface ILesson {
   title: string;
-  duration: string; // e.g. "10:30"
+  duration: string;
   videoUrl?: string;
   isFree: boolean;
   order: number;
 }
 
-// ─── Section Interface ──────────────────────────────────────────────────────────
+// ─── Section Interface
 export interface ISection {
   title: string;
   order: number;
   lessons: ILesson[];
 }
 
-// ─── Course Interface ───────────────────────────────────────────────────────────
+// ─── Course Interface
 export interface ICourse {
   title: string;
   slug: string;
@@ -25,7 +25,7 @@ export interface ICourse {
 
   // Pricing
   price: number;
-  estimatedPrice?: number; // original price (before discount)
+  estimatedPrice?: number;
 
   // Media
   thumbnail: string;
@@ -42,7 +42,7 @@ export interface ICourse {
   // Curriculum
   sections: ISection[];
   lessonsCount: number;
-  totalDuration: string; // e.g. "24 hrs"
+  totalDuration: string;
 
   // Stats
   enrolledCount: number;
@@ -54,7 +54,7 @@ export interface ICourse {
 
   // Status
   status: "draft" | "pending" | "published" | "rejected";
-  rejectedReason?: string | null; // Admin rejection reason
+  rejectedReason?: string | null;
   badge?: "Best Seller" | "Top Rated" | "New" | null;
 
   // Requirements

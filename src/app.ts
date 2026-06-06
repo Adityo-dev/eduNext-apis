@@ -6,6 +6,8 @@ import YAML from "yamljs";
 import adminRouter from "./admin/adminRoutes.js";
 import authRouter from "./auth/authRoutes.js";
 import courseRouter from "./course/courseRoutes.js";
+import enrollmentRouter from "./enrollment/enrollmentRoutes.js";
+import liveSessionRouter from "./liveSession/liveSessionRoutes.js";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
 
 const app = express();
@@ -36,6 +38,12 @@ app.use("/api/v1/admin", adminRouter);
 
 // Course routes ->
 app.use("/api/v1/courses", courseRouter);
+
+// Enrollment routes ->
+app.use("/api/v1/enrollments", enrollmentRouter);
+
+// Live Session routes ->
+app.use("/api/v1/live-sessions", liveSessionRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);
