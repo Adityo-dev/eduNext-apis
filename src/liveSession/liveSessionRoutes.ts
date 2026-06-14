@@ -8,7 +8,7 @@ import {
 
 const liveSessionRouter = Router();
 
-liveSessionRouter.use(authenticate, authorize(["instructor"]));
+liveSessionRouter.use(authenticate, authorize(["instructor", "student"]));
 
 liveSessionRouter.post("/", createLiveSession);
 

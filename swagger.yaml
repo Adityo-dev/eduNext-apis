@@ -7,7 +7,7 @@ servers:
   - url: http://localhost:5000/api/v1
     description: Local Development Server
 
-# ── গ্লোবাল সিকিউরিটি লেয়ার (টোকেন বাটন সচল করবে) ──
+# ── global security ──
 security:
   - bearerAuth: []
 
@@ -102,7 +102,44 @@ paths:
         401:
           description: Invalid email or password
 
-  # 👑 ──────────────── ADMIN ROUTES ────────────────
+  # 👑 ──────────────── SUPER ADMIN ROUTES ────────────────
+  /admin/user-stats:
+    get:
+      summary: Get user management stats cards data (Admin Only)
+      tags:
+        - Super Admin Actions
+      responses:
+        200:
+          description: Stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User management stats fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      totalUsers:
+                        type: number
+                        example: 7
+                      totalStudents:
+                        type: number
+                        example: 4
+                      totalInstructors:
+                        type: number
+                        example: 3
+                      totalSuspended:
+                        type: number
+                        example: 2
+        403:
+          description: Forbidden - Admin access required
+
   /admin/users:
     get:
       summary: Get all registered users (Admin Only)
@@ -220,10 +257,10 @@ paths:
                   example: "Mastering Next.js 15 & TypeScript"
                 subtitle:
                   type: string
-                  example: "Build production-ready pixel-perfect web apps with modern tech stack."
+                  example: "Build production-ready web apps with modern tech stack."
                 description:
                   type: string
-                  example: "Comprehensive guide to Next.js App Router, Server Actions, and Advanced Type Safety."
+                  example: "Comprehensive guide to Next.js App Router and Advanced Type Safety."
                 price:
                   type: number
                   example: 49.99
@@ -311,12 +348,12 @@ paths:
         201:
           description: Course created successfully as a draft
         400:
-          description: Please provide all required fields (title, subtitle, description, price, category)
+          description: Please provide all required fields
         401:
           description: Instructor authentication failed
 
     get:
-      summary: Get all published courses with advanced filtering, search & pagination (Public)
+      summary: Get all published courses with advanced filtering (Public)
       tags:
         - Course Management
       security: [] # Public
@@ -362,8 +399,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            enum: ["true", "false"]
+            type: boolean # ফিক্সড: স্ট্রিং থেকে বোলোয়ানে পরিবর্তন করা হয়েছে
         - name: sort
           in: query
           required: false
@@ -409,6 +445,10 @@ paths:
       responses:
         200:
           description: Course fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
         404:
           description: Course not found
 
@@ -502,10 +542,8 @@ paths:
                     properties:
                       title:
                         type: string
-                        example: "Getting Started with Next.js"
                       order:
                         type: number
-                        example: 1
                       lessons:
                         type: array
                         items:
@@ -513,19 +551,14 @@ paths:
                           properties:
                             title:
                               type: string
-                              example: "Installation & Setup"
                             duration:
                               type: string
-                              example: "08:45"
                             videoUrl:
                               type: string
-                              example: "https://vimeo.com/xyz123"
                             isFree:
                               type: boolean
-                              example: true
                             order:
                               type: number
-                              example: 1
       responses:
         200:
           description: Course updated successfully
@@ -533,7 +566,7 @@ paths:
           description: Course not found or unauthorized
 
     delete:
-      summary: Delete a course account (Own Instructor or Admin Only)
+      summary: Delete a course entirely (Own Instructor or Admin Only)
       tags:
         - Course Management
       parameters:
@@ -588,6 +621,7 @@ paths:
           description: Rejection reason is required or invalid status
         404:
           description: Course not found
+
   # 💳 ──────────────── ENROLLMENT ROUTES ────────────────
   /enrollments/enroll:
     post:
@@ -673,6 +707,7 @@ paths:
       responses:
         200:
           description: Reviews fetched successfully
+
   # 🎥 ──────────────── LIVE SESSIONS ROUTES ────────────────
   /live-sessions:
     post:

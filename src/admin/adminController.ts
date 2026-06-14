@@ -1,7 +1,37 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import AuthModel from "../auth/authModel.js";
 
-// ১. Get all users with optional filters (Get All Users)
+// 1.Get User Management Stats
+export const getUserManagementStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const [totalUsers, totalStudents, totalInstructors, totalSuspended] =
+      await Promise.all([
+        AuthModel.countDocuments(),
+        AuthModel.countDocuments({ role: "student" }),
+        AuthModel.countDocuments({ role: "instructor" }),
+        AuthModel.countDocuments({ isSuspended: true }),
+      ]);
+
+    res.status(200).json({
+      success: true,
+      message: "User management stats fetched successfully",
+      data: {
+        totalUsers,
+        totalStudents,
+        totalInstructors,
+        totalSuspended,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 2. Get all users with optional filters (Get All Users)
 export const getAllUsers = async (
   req: Request,
   res: Response,
@@ -13,7 +43,7 @@ export const getAllUsers = async (
   if (role) filter.role = role;
   if (isVerified) filter.isVerified = isVerified === "true";
 
-  // status: "active" | "suspended" কে ডেটাবেজের isSuspended বুলিয়ানের সাথে ম্যাপ করা হলো
+  // status: "active" | "suspended"
   if (status) {
     if (status === "suspended") filter.isSuspended = true;
     if (status === "active") filter.isSuspended = false;
@@ -28,7 +58,7 @@ export const getAllUsers = async (
   });
 };
 
-// Update User Status / Suspend & Activate User
+// 3. Update User Status / Suspend & Activate User
 export const updateUserStatus = async (
   req: Request,
   res: Response,
@@ -41,7 +71,7 @@ export const updateUserStatus = async (
     throw new Error("Please provide a valid status (active or suspended)");
   }
 
-  // ১. প্রথমে ইউজারকে খুঁজে বের করুন
+  // find user
   const user = await AuthModel.findById(id);
 
   if (!user) {
@@ -49,10 +79,8 @@ export const updateUserStatus = async (
     throw new Error("User not found");
   }
 
-  // ২. ডাইরেক্ট স্কিমার প্রপার্টিতে ভ্যালু সেট করুন
   user.isSuspended = status === "suspended";
 
-  // ৩. ডাটাবেজে সেভ করুন (এতে স্কিমা ভ্যালিডেশন ১০০% কাজ করবে)
   await user.save();
 
   res.status(200).json({
@@ -62,7 +90,7 @@ export const updateUserStatus = async (
   });
 };
 
-// ৩. নতুন শিক্ষকদের প্রোফাইল যাচাই করে অ্যাপ্রুভ বা রিজেক্ট করা (Instructor Verification)
+// 4.  (Instructor Verification)
 export const verifyInstructor = async (
   req: Request,
   res: Response,
@@ -77,7 +105,6 @@ export const verifyInstructor = async (
     );
   }
 
-  // শিক্ষককে খুঁজে বের করা এবং তিনি আসলেই ইনস্ট্রাক্টর কিনা তা চেক করা
   const instructor = await AuthModel.findById(id);
   if (!instructor) {
     res.status(404);
@@ -89,7 +116,6 @@ export const verifyInstructor = async (
     throw new Error("This user is not an instructor");
   }
 
-  // ভেরিফিকেশন স্ট্যাটাস এবং 'isVerified' আপডেট করা
   instructor.isVerified = status === "approved";
   await instructor.save();
 
@@ -100,7 +126,7 @@ export const verifyInstructor = async (
   });
 };
 
-// ৪. Permanently Delete a User
+// 5. Permanently Delete a User
 export const deleteUser = async (
   req: Request,
   res: Response,

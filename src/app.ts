@@ -9,6 +9,7 @@ import courseRouter from "./course/courseRoutes.js";
 import enrollmentRouter from "./enrollment/enrollmentRoutes.js";
 import liveSessionRouter from "./liveSession/liveSessionRoutes.js";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
+import ReviewRouter from "./review/reviewRoutes.js";
 
 const app = express();
 
@@ -17,7 +18,7 @@ const swaggerDocument = YAML.load(path.join(process.cwd(), "swagger.yaml"));
 
 //  middleware ->
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3005/", credentials: true }));
+app.use(cors({ origin: "http://localhost:5000/", credentials: true }));
 
 // Swagger API Docs UI Route ->
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -44,6 +45,9 @@ app.use("/api/v1/enrollments", enrollmentRouter);
 
 // Live Session routes ->
 app.use("/api/v1/live-sessions", liveSessionRouter);
+
+// review router
+app.use("/api/v1/reviews", ReviewRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);

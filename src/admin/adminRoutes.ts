@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   deleteUser,
   getAllUsers,
+  getUserManagementStats,
   updateUserStatus,
   verifyInstructor,
 } from "./adminController.js";
@@ -10,6 +11,7 @@ import {
 const adminRouter = Router();
 
 // adminRouter.use(authenticate, authorize(["admin"]));
+adminRouter.get("/user-stats", getUserManagementStats);
 adminRouter.get("/users", getAllUsers);
 adminRouter.patch("/users/:id/status", updateUserStatus);
 adminRouter.patch("/instructors/:id/verify", verifyInstructor);
