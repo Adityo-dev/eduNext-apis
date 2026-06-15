@@ -13,7 +13,36 @@ const sendResponse = (
   res.status(statusCode).json({ success, message, data });
 };
 
-// ─── 1. Create Course
+// ─── 1. get Courses Management Stats
+export const getCoursesManagementStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const [totalCourses, published, pending, rejected] = await Promise.all([
+      CourseModel.countDocuments(),
+      CourseModel.countDocuments({ status: "published" }),
+      CourseModel.countDocuments({ status: "pending" }),
+      CourseModel.countDocuments({ status: "rejected" }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "User management stats fetched successfully",
+      data: {
+        totalCourses,
+        published,
+        pending,
+        rejected,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 2. Create Course
 export const createCourse = async (
   req: Request,
   res: Response,
@@ -95,7 +124,7 @@ export const createCourse = async (
   }
 };
 
-// ─── 2. Get All Courses (Public)
+// ─── 3. Get All Courses (Public)
 export const getAllCourses = async (
   req: Request,
   res: Response,
@@ -176,7 +205,7 @@ export const getAllCourses = async (
   }
 };
 
-// ─── 3. Get Single Course by Slug (Public)
+// ─── 4. Get Single Course by Slug (Public)
 export const getCourseBySlug = async (
   req: Request,
   res: Response,
@@ -219,7 +248,7 @@ export const getCourseBySlug = async (
   }
 };
 
-// ─── 4. Get Instructor's Own Courses
+// ─── 5. Get Instructor's Own Courses
 export const getInstructorCourses = async (
   req: Request,
   res: Response,
@@ -259,7 +288,7 @@ export const getInstructorCourses = async (
   }
 };
 
-// ─── 5. Update Course
+// ─── 6. Update Course
 export const updateCourse = async (
   req: Request,
   res: Response,
@@ -324,7 +353,7 @@ export const updateCourse = async (
   }
 };
 
-// ─── 6. Delete Course
+// ─── 7. Delete Course
 export const deleteCourse = async (
   req: Request,
   res: Response,
@@ -350,7 +379,7 @@ export const deleteCourse = async (
   }
 };
 
-// ─── 7. Update Course Status (Admin Only)
+// ─── 8. Update Course Status (Admin Only)
 export const updateCourseStatus = async (
   req: Request,
   res: Response,

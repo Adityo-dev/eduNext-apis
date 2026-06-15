@@ -5,6 +5,7 @@ import {
   deleteCourse,
   getAllCourses,
   getCourseBySlug,
+  getCoursesManagementStats,
   getInstructorCourses,
   updateCourse,
   updateCourseStatus,
@@ -43,6 +44,13 @@ courseRouter.patch(
   authenticate,
   authorize(["admin"]),
   updateCourseStatus,
+);
+
+courseRouter.get(
+  "/admin/course-stats",
+  // authenticate,
+  // authorize(["admin"]),
+  getCoursesManagementStats,
 );
 
 export default courseRouter;
