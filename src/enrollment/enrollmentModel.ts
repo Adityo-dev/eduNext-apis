@@ -22,7 +22,6 @@ const enrollmentSchema = new Schema<IEnrollment>(
   { timestamps: true, versionKey: false },
 );
 
-// একজন স্টুডেন্ট একটা কোর্স একবারই এনরোল করতে পারবে
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
 
 export const EnrollmentModel = model<IEnrollment>(

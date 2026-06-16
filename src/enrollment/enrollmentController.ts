@@ -3,7 +3,7 @@ import createHttpError from "http-errors";
 import CourseModel from "../course/courseModel.js";
 import { EnrollmentModel } from "./enrollmentModel.js";
 
-// ─── ১. কোর্স এনরোল করা (Enroll/Buy Course)
+// ─── 1. Enroll In Course
 export const enrollInCourse = async (
   req: Request,
   res: Response,
@@ -17,7 +17,7 @@ export const enrollInCourse = async (
       return next(createHttpError(401, "Student authentication failed"));
     }
 
-    // কোর্সটি আসলেই এক্সিস্ট করে কিনা চেক করা
+    // check course Published
     const course = await CourseModel.findById(courseId);
     if (!course || course.status !== "published") {
       return next(
@@ -25,7 +25,7 @@ export const enrollInCourse = async (
       );
     }
 
-    // অলরেডি এনরোলড কিনা চেক করা
+    // Check Already Enrolled Or not
     const alreadyEnrolled = await EnrollmentModel.findOne({
       student: studentId,
       course: courseId,
@@ -36,7 +36,7 @@ export const enrollInCourse = async (
       );
     }
 
-    // এনরোলমেন্ট তৈরি করা (এখানে পেমেন্ট গেটওয়ের সাকসেস রেসপন্সের পর এই ডেটা সেভ হবে)
+    // enrollment
     const enrollment = await EnrollmentModel.create({
       student: studentId,
       course: courseId,
@@ -44,7 +44,6 @@ export const enrollInCourse = async (
       paymentStatus: "completed",
     });
 
-    // কোর্সের enrolledCount ১ বাড়িয়ে দেওয়া
     await CourseModel.findByIdAndUpdate(courseId, {
       $inc: { enrolledCount: 1 },
     });
@@ -59,7 +58,7 @@ export const enrollInCourse = async (
   }
 };
 
-// ─── ২. স্টুডেন্টের নিজের এনরোল করা কোর্সগুলোর লিস্ট
+// ─── 2. Get My Enrolled Courses
 export const getMyEnrolledCourses = async (
   req: Request,
   res: Response,
@@ -80,7 +79,7 @@ export const getMyEnrolledCourses = async (
     res.status(200).json({
       success: true,
       message: "Enrolled courses fetched successfully",
-      data: enrollments.map((e) => e.course), // শুধু কোর্সের ডিটেইলস ফ্রন্টএন্ডে পাঠানোর জন্য
+      data: enrollments.map((e) => e.course),
     });
   } catch (error) {
     next(error);
