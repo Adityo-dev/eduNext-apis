@@ -521,7 +521,7 @@ paths:
 
   /courses/{id}:
     patch:
-      summary: Update course content (Own Course Only)
+      summary: Update course content or Submit a Publish Request (Own Course Only)
       tags:
         - Course Management
       parameters:
@@ -574,6 +574,11 @@ paths:
                     type: string
                 totalDuration:
                   type: string
+                status:
+                  type: string
+                  enum: [draft, pending]
+                  description: Pass 'pending' to request admin approval (Publish Request). Directly setting 'published' is forbidden.
+                  example: pending
                 sections:
                   type: array
                   items:
@@ -600,7 +605,11 @@ paths:
                               type: number
       responses:
         200:
-          description: Course updated successfully
+          description: Course updated / Publish request submitted successfully
+        400:
+          description: Invalid status update request
+        403:
+          description: Forbidden - Instructors cannot publish courses directly
         404:
           description: Course not found or unauthorized
 
@@ -748,6 +757,234 @@ paths:
           description: Reviews fetched successfully
 
   # 🎥 ──────────────── LIVE SESSIONS ROUTES ────────────────
+  paths:
+  # 📊 ──────────────── LIVE SESSIONS ANALYTICS (STATS) ────────────────
+  /live-sessions/student/stats:
+    get:
+      summary: Get live session analytics for student dashboard
+      description: Returns separate total counts for Live Now, Upcoming, and Attended live sessions based on courses the authenticated student is enrolled in.
+      tags:
+        - Live Sessions Management
+      responses:
+        200:
+          description: Student live session stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Student live session stats fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      liveNow:
+                        type: number
+                        example: 1
+                      upcoming:
+                        type: number
+                        example: 2
+                      attended:
+                        type: number
+                        example: 2
+
+  /live-sessions/instructor/stats:
+    get:
+      summary: Get live session analytics for instructor dashboard
+      description: Returns separate total counts for Live Now, Upcoming, and Completed live sessions managed by the authenticated instructor.
+      tags:
+        - Live Sessions Management
+      responses:
+        200:
+          description: Instructor live session stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Instructor live session stats fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      liveNow:
+                        type: number
+                        example: 1
+                      upcoming:
+                        type: number
+                        example: 2
+                      completed:
+                        type: number
+                        example: 1
+
+  # 🎥 ──────────────── DASHBOARD SESSION LISTINGS ────────────────
+  /live-sessions/student/dashboard:
+    get:
+      summary: Get all filtered live sessions for enrolled student dashboard
+      description: Fetches a dynamic list of live sessions belonging to student's enrolled courses, filtered by tab state.
+      tags:
+        - Live Sessions Management
+      parameters:
+        - name: status
+          in: query
+          description: Filter data based on active tab selection (all, live, upcoming, completed)
+          required: false
+          schema:
+            type: string
+            enum: [all, live, upcoming, completed]
+            default: all
+      responses:
+        200:
+          description: Enrolled student sessions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Student dashboard live sessions fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "65f8a1b2c3d4e5f6a7b8c9d9"
+                        title:
+                          type: string
+                          example: "React Advanced Patterns & Hooks"
+                        description:
+                          type: string
+                          example: "Deep dive into context optimization and custom hooks."
+                        meetingLink:
+                          type: string
+                          example: "https://zoom.us/j/12345678"
+                        meetingPlatform:
+                          type: string
+                          enum: [Zoom, Google Meet, Custom]
+                          example: "Zoom"
+                        startTime:
+                          type: string
+                          format: date-time
+                          example: "2026-06-16T19:00:00.000Z"
+                        durationInMins:
+                          type: number
+                          example: 90
+                        status:
+                          type: string
+                          enum: [live, upcoming, completed]
+                          example: "live"
+                        course:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "65f8a1b2c3d4e5f6a7b8c9d0"
+                            title:
+                              type: string
+                              example: "Complete Web Development Bootcamp"
+                        instructor:
+                          type: object
+                          properties:
+                            firstName:
+                              type: string
+                              example: "Md. Rafiqul"
+                            lastName:
+                              type: string
+                              example: "Islam"
+                            avatar:
+                              type: string
+                              example: "https://placeholder.com/avatar.png"
+
+  /live-sessions/instructor/dashboard:
+    get:
+      summary: Get all filtered live sessions created by the instructor
+      description: Fetches a dynamic list of live sessions created by the instructor, including total dynamic registered users.
+      tags:
+        - Live Sessions Management
+      parameters:
+        - name: status
+          in: query
+          description: Filter data based on active tab selection (all, live, upcoming, completed)
+          required: false
+          schema:
+            type: string
+            enum: [all, live, upcoming, completed]
+            default: all
+      responses:
+        200:
+          description: Instructor sessions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Instructor dashboard live sessions fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "65f8a1b2c3d4e5f6a7b8c9d9"
+                        title:
+                          type: string
+                          example: "Node.js Architecture & Streams"
+                        description:
+                          type: string
+                          example: "Understanding Event Loop and handling heavy server data streams."
+                        meetingLink:
+                          type: string
+                          example: "https://meet.google.com/abc-defg-hij"
+                        meetingPlatform:
+                          type: string
+                          enum: [Zoom, Google Meet, Custom]
+                          example: "Google Meet"
+                        startTime:
+                          type: string
+                          format: date-time
+                          example: "2026-06-17T15:00:00.000Z"
+                        durationInMins:
+                          type: number
+                          example: 60
+                        status:
+                          type: string
+                          enum: [live, upcoming, completed]
+                          example: "upcoming"
+                        totalUsersRegistered:
+                          type: number
+                          description: Total count of users enrolled in the session's parent course
+                          example: 45
+                        course:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "65f8a1b2c3d4e5f6a7b8c9d0"
+                            title:
+                              type: string
+                              example: "Complete Web Development Bootcamp"
+
+  # 🛠️ ──────────────── CRUD OPERATIONS & COURSE LISTINGS ────────────────
   /live-sessions:
     post:
       summary: Schedule a new live session (Instructor Only)
@@ -762,43 +999,45 @@ paths:
               required:
                 - courseId
                 - title
+                - description
                 - meetingLink
+                - meetingPlatform
                 - startTime
+                - durationInMins
               properties:
                 courseId:
                   type: string
                   example: "65f8a1b2c3d4e5f6a7b8c9d0"
                 title:
                   type: string
-                  example: "Special Q&A on Next.js Server Actions"
+                  example: "React Advanced Patterns & Hooks"
                 description:
                   type: string
-                  example: "Bring your doubts regarding server-side state mutation and security constraints."
+                  example: "Deep dive into context optimization and custom hooks."
                 meetingLink:
                   type: string
-                  example: "https://meet.google.com/abc-defg-hij"
+                  example: "https://zoom.us/j/1234567890"
                 meetingPlatform:
                   type: string
                   enum: [Zoom, Google Meet, Custom]
-                  example: "Google Meet"
+                  example: "Zoom"
                 startTime:
                   type: string
                   format: date-time
-                  example: "2026-06-15T20:00:00.000Z"
+                  example: "2026-06-16T19:00:00.000Z"
                 durationInMins:
                   type: number
-                  example: 60
+                  example: 90
       responses:
         201:
           description: Live session scheduled successfully
         400:
-          description: Missing required fields
-        403:
-          description: Unauthorized or not your course
+          description: Missing required fields or invalid data
 
   /live-sessions/course/{courseId}:
     get:
-      summary: Get all live sessions for a specific course (Enrolled Students/Instructors)
+      summary: Get all live sessions assigned to a specific course
+      description: Verifies roles and access configurations before populating all sessions matching a target course ID.
       tags:
         - Live Sessions Management
       parameters:
@@ -810,13 +1049,11 @@ paths:
             example: "65f8a1b2c3d4e5f6a7b8c9d0"
       responses:
         200:
-          description: Live sessions fetched successfully
-        403:
-          description: You must enroll in this course to see live sessions
+          description: Course specific live sessions fetched successfully
 
   /live-sessions/{sessionId}:
     patch:
-      summary: Update scheduled live session or status (Instructor Only)
+      summary: Update details, meeting credentials, or status of a session
       tags:
         - Live Sessions Management
       parameters:
@@ -833,13 +1070,27 @@ paths:
             schema:
               type: object
               properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                meetingLink:
+                  type: string
+                  example: "https://zoom.us/j/1234567890"
+                meetingPlatform:
+                  type: string
+                  enum: [Zoom, Google Meet, Custom]
+                startTime:
+                  type: string
+                  format: date-time
+                durationInMins:
+                  type: number
                 status:
                   type: string
                   enum: [upcoming, live, completed]
                   example: "live"
-                meetingLink:
-                  type: string
-                  example: "https://zoom.us/j/1234567890"
       responses:
         200:
           description: Live session updated successfully
+        404:
+          description: Session not found or instructor unauthorized

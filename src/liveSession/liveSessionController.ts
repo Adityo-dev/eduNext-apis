@@ -4,7 +4,90 @@ import CourseModel from "../course/courseModel.js";
 import { EnrollmentModel } from "../enrollment/enrollmentModel.js";
 import LiveSessionModel from "./liveSessionModel.js";
 
-// ─── ১. লাইভ সেশন তৈরি করা (Instructor Only) ──────────────────────────────
+// ─── GET STUDENT LIVE SESSIONS STATS (Dedicated) ───────────────────────────
+export const getStudentLiveSessionsStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const studentId = (req as any).user?._id || (req as any).user?.id;
+
+    const enrollments = await EnrollmentModel.find({
+      student: studentId,
+    }).select("course");
+    const enrolledCourseIds = enrollments.map(
+      (enrollment) => enrollment.course,
+    );
+
+    const [liveNow, upcoming, attended] = await Promise.all([
+      LiveSessionModel.countDocuments({
+        course: { $in: enrolledCourseIds },
+        status: "live",
+      }),
+      LiveSessionModel.countDocuments({
+        course: { $in: enrolledCourseIds },
+        status: "upcoming",
+      }),
+      LiveSessionModel.countDocuments({
+        course: { $in: enrolledCourseIds },
+        status: "completed",
+      }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Student live session stats fetched successfully",
+      data: {
+        liveNow,
+        upcoming,
+        attended,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── GET INSTRUCTOR LIVE SESSIONS STATS
+export const getInstructorLiveSessionsStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const instructorId = (req as any).user?._id || (req as any).user?.id;
+
+    const [liveNow, upcoming, completed] = await Promise.all([
+      LiveSessionModel.countDocuments({
+        instructor: instructorId,
+        status: "live",
+      }),
+      LiveSessionModel.countDocuments({
+        instructor: instructorId,
+        status: "upcoming",
+      }),
+      LiveSessionModel.countDocuments({
+        instructor: instructorId,
+        status: "completed",
+      }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor live session stats fetched successfully",
+      data: {
+        liveNow,
+        upcoming,
+        completed,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 1. Create Live session (Instructor Only) ──────────────────────────────
 export const createLiveSession = async (
   req: Request,
   res: Response,
@@ -22,16 +105,15 @@ export const createLiveSession = async (
       durationInMins,
     } = req.body;
 
-    if (!courseId || !title || !meetingLink || !startTime) {
+    if (!courseId || !title || !meetingLink || !startTime || !description) {
       return next(
         createHttpError(
           400,
-          "Please fill out all required fields (courseId, title, meetingLink, startTime)",
+          "Please fill out all required fields (courseId, title, description, meetingLink, startTime)",
         ),
       );
     }
 
-    // চেক করা: কোর্সটি এই ইনস্ট্রাক্টরের নিজের কিনা
     const course = await CourseModel.findOne({
       _id: courseId,
       instructor: instructorId,
@@ -61,7 +143,88 @@ export const createLiveSession = async (
   }
 };
 
-// ─── ২. কোর্সের সব লাইভ সেশন দেখা (Enrolled Students & Instructor Only) ───
+// ─── 2. Get All Live Sessions For Enrolled Student Dashboard ────────────────
+export const getStudentDashboardLiveSessions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const studentId = (req as any).user?._id || (req as any).user?.id;
+    const { status } = req.query;
+
+    const enrollments = await EnrollmentModel.find({
+      student: studentId,
+    }).select("course");
+    const enrolledCourseIds = enrollments.map(
+      (enrollment) => enrollment.course,
+    );
+
+    const query: any = { course: { $in: enrolledCourseIds } };
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    const sessions = await LiveSessionModel.find(query)
+      .sort({ startTime: 1 })
+      .populate("course", "title")
+      .populate("instructor", "firstName lastName avatar");
+
+    res.status(200).json({
+      success: true,
+      message: "Student dashboard live sessions fetched successfully",
+      data: sessions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 3. Get All Live Sessions For Instructor Dashboard ─────────────────────
+export const getInstructorDashboardLiveSessions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const instructorId = (req as any).user?._id || (req as any).user?.id;
+    const { status } = req.query;
+
+    const query: any = { instructor: instructorId };
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    const sessions = await LiveSessionModel.find(query)
+      .sort({ startTime: 1 })
+      .populate("course", "title");
+
+    // UI-তে "X Students Registered" দেখানোর জন্য এনরোলমেন্ট কাউন্ট পুশ করা হলো
+    const sessionsWithEnrollmentCount = await Promise.all(
+      sessions.map(async (session) => {
+        const totalUsersRegistered = await EnrollmentModel.countDocuments({
+          course: session.course?._id,
+        });
+        return {
+          ...session.toObject(),
+          totalUsersRegistered,
+        };
+      }),
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor dashboard live sessions fetched successfully",
+      data: sessionsWithEnrollmentCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 4. Get Course Specific Live Sessions ──────────────────────────────────
 export const getCourseLiveSessions = async (
   req: Request,
   res: Response,
@@ -72,7 +235,6 @@ export const getCourseLiveSessions = async (
     const userId = (req as any).user?._id || (req as any).user?.id;
     const userRole = (req as any).user?.role;
 
-    // সিকিউরিটি চেক: ইউজার যদি ইনস্ট্রাক্টর না হয়, তবে সে এই কোর্সে এনরোলড কিনা চেক করা
     if (userRole !== "admin") {
       const isInstructor = await CourseModel.findOne({
         _id: courseId,
@@ -94,8 +256,11 @@ export const getCourseLiveSessions = async (
         }
       }
     }
+    // validate sessionId to satisfy mongoose filter types
+    if (!courseId || Array.isArray(courseId)) {
+      return next(createHttpError(400, "Invalid courseId parameter"));
+    }
 
-    // সেশনগুলো ডেট অনুযায়ী সিরিয়ালি আনা (সামনের সেশন আগে দেখাবে)
     const sessions = await LiveSessionModel.find({ course: courseId })
       .sort({ startTime: 1 })
       .populate("instructor", "firstName lastName avatar");
@@ -110,7 +275,7 @@ export const getCourseLiveSessions = async (
   }
 };
 
-// ─── ৩. লাইভ সেশনের স্ট্যাটাস/লিংক আপডেট করা (Instructor Only) ──────────────
+// ─── 5. Update Live session Stats And Link (Instructor Only) ───────────────
 export const updateLiveSession = async (
   req: Request,
   res: Response,
@@ -120,8 +285,13 @@ export const updateLiveSession = async (
     const { sessionId } = req.params;
     const instructorId = (req as any).user?._id || (req as any).user?.id;
 
+    // validate sessionId to satisfy mongoose filter types
+    if (!sessionId || Array.isArray(sessionId)) {
+      return next(createHttpError(400, "Invalid sessionId parameter"));
+    }
+
     const session = await LiveSessionModel.findOne({
-      _id: sessionId,
+      _id: sessionId as unknown as import("mongodb").ObjectId,
       instructor: instructorId,
     });
     if (!session) {

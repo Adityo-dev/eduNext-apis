@@ -13,7 +13,7 @@ const sendResponse = (
   res.status(statusCode).json({ success, message, data });
 };
 
-// ─── 1. get Courses Management Stats
+// ─── 1. Get Courses Management Stats (Admin Only)
 export const getCoursesManagementStats = async (
   req: Request,
   res: Response,
@@ -226,7 +226,6 @@ export const getCourseBySlug = async (
       return next(createHttpError(404, "Course not found"));
     }
 
-    // নন-এনরোলড স্টুডেন্টদের জন্য ভিডিও লিংক মাস্কিং লজিক
     const sanitizedSections = (course.sections || []).map((section: any) => {
       const sectionObj =
         typeof section.toObject === "function" ? section.toObject() : section;
@@ -288,7 +287,7 @@ export const getInstructorCourses = async (
   }
 };
 
-// ─── 6. Update Course
+// ─── 6. Update Course & Handle Publish Requests (Optimized)
 export const updateCourse = async (
   req: Request,
   res: Response,
@@ -323,6 +322,7 @@ export const updateCourse = async (
       "requirements",
       "whatYouLearn",
       "totalDuration",
+      "status",
     ];
 
     const updates: Record<string, unknown> = {};
@@ -332,7 +332,24 @@ export const updateCourse = async (
       }
     }
 
-    // যদি কোর্সটি অলরেডি পাবলিশড থাকে এবং সেকশন/লেসন এডিট হয়, তবে লেসন কাউন্ট ডাইনামিকালি রিক্যালকুলেট হবে
+    // ইনস্ট্রাক্টরের স্ট্যাটাস আপডেট ভ্যালিডেশন
+    if (updates.status !== undefined) {
+      if (updates.status === "published") {
+        return next(
+          createHttpError(
+            403,
+            "Instructors cannot publish courses directly. Please request a review.",
+          ),
+        );
+      }
+
+      const allowedStatuses = ["draft", "pending"];
+      if (!allowedStatuses.includes(updates.status as string)) {
+        return next(createHttpError(400, "Invalid status update request"));
+      }
+    }
+
+    // সেকশন আপডেট হলে লেসন সংখ্যা রিক্যালকুলেট করা
     if (updates.sections && Array.isArray(updates.sections)) {
       updates.lessonsCount = updates.sections.reduce(
         (total: number, section: any) => total + (section.lessons?.length || 0),
@@ -340,6 +357,7 @@ export const updateCourse = async (
       );
     }
 
+    // কোর্সটি অলরেডি পাবলিশড থাকলে, যেকোনো এডিটের পর সেটি আবার রিভিউতে (pending) চলে যাবে
     if (course.status === "published") {
       updates.status = "pending";
     }
