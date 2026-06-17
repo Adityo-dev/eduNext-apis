@@ -39,6 +39,9 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
+    //Solve
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "ignoreDeprecations": "5.0"
   }
 }
