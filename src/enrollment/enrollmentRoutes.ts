@@ -14,3 +14,4 @@ enrollmentRouter.post("/enroll", enrollInCourse);
 enrollmentRouter.get("/my-enrolled", getMyEnrolledCourses);
 
 export default enrollmentRouter;
+   
