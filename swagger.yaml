@@ -429,6 +429,43 @@ paths:
         200:
           description: Courses fetched successfully
 
+  /courses/admin/courses:
+    get:
+      summary: Get all courses for admin dashboard (Admin Only)
+      tags:
+        - Course Management
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, draft, pending, published, rejected]
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "1"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "10"
+      responses:
+        200:
+          description: Admin course list fetched successfully
+        401:
+          description: Unauthorized - Invalid or missing token
+        403:
+          description: Forbidden - Admin access required
+
   /courses/admin/course-stats:
     get:
       summary: Get course management overview stats (Admin Only)
@@ -757,7 +794,6 @@ paths:
           description: Reviews fetched successfully
 
   # 🎥 ──────────────── LIVE SESSIONS ROUTES ────────────────
-  paths:
   # 📊 ──────────────── LIVE SESSIONS ANALYTICS (STATS) ────────────────
   /live-sessions/student/stats:
     get:

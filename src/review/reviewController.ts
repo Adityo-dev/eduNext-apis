@@ -4,7 +4,7 @@ import CourseModel from "../course/courseModel.js";
 import { EnrollmentModel } from "../enrollment/enrollmentModel.js";
 import { ReviewModel } from "./reviewModel.js";
 
-// ─── ১. কোর্সে রিভিউ এবং রেটিং দেওয়া
+// ─── 1. Create Course Review (Only Student)
 export const createCourseReview = async (
   req: Request,
   res: Response,
@@ -18,7 +18,7 @@ export const createCourseReview = async (
       return next(createHttpError(400, "Rating and comment are required"));
     }
 
-    // ১. স্টুডেন্ট আসলেই এই কোর্সটি কিনেছে কিনা তা ভেরিফাই করা (পাওয়ারফুল সিকিউরিটি)
+    // Verify Student is Enrolled Or not
     const isEnrolled = await EnrollmentModel.findOne({
       student: studentId,
       course: courseId,
@@ -32,18 +32,19 @@ export const createCourseReview = async (
       );
     }
 
-    // ২. অলরেডি রিভিউ দিয়ে ফেলেছে কিনা চেক
+    // Already Reviewed Check
     const alreadyReviewed = await ReviewModel.findOne({
       student: studentId,
       course: courseId,
     });
+
     if (alreadyReviewed) {
       return next(
         createHttpError(400, "You have already reviewed this course"),
       );
     }
 
-    // ৩. রিভিউ তৈরি করা
+    // Create Review
     const review = await ReviewModel.create({
       student: studentId,
       course: courseId,
@@ -51,9 +52,9 @@ export const createCourseReview = async (
       comment,
     });
 
-    // ৪. ডাইনামিকলি কোর্সের এভারেজ রেটিং (Average Rating) ক্যালকুলেট করা (Mongoose Aggregation)
+    //  Dynamic Course Average Rating Calculate
     const stats = await ReviewModel.aggregate([
-      { $match: { course: course.courseId } },
+      { $match: { course: courseId } },
       { $group: { _id: "$course", avgRating: { $avg: "$rating" } } },
     ]);
 
@@ -62,7 +63,7 @@ export const createCourseReview = async (
         ? Math.round(stats[0].avgRating * 10) / 10
         : Number(rating);
 
-    // ৫. কোর্স মডেলে নতুন রেটিং সেভ করা
+    // save New rating
     await CourseModel.findByIdAndUpdate(courseId, { rating: newAverageRating });
 
     res.status(201).json({
@@ -75,14 +76,18 @@ export const createCourseReview = async (
   }
 };
 
-// ─── ২. একটি নির্দিষ্ট কোর্সের সব রিভিউ দেখা (Public)
+// ─── 2. Get Single Course All Review
 export const getCourseReviews = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { courseId } = req.params;
+    const courseId = req.params.courseId as string;
+
+    // if (!courseId || Array.isArray(courseId)) {
+    //   return next(createHttpError(400, "Invalid course id"));
+    // }
 
     const reviews = await ReviewModel.find({ course: courseId })
       .populate("student", "firstName lastName avatar")

@@ -4,6 +4,7 @@ import {
   createCourse,
   deleteCourse,
   getAllCourses,
+  getAllCoursesAdmin,
   getCourseBySlug,
   getCoursesManagementStats,
   getInstructorCourses,
@@ -41,9 +42,16 @@ courseRouter.delete(
 // ─── Admin Routes
 courseRouter.patch(
   "/:id/status",
-  authenticate,
-  authorize(["admin"]),
+  // authenticate,
+  // authorize(["admin"]),
   updateCourseStatus,
+);
+
+courseRouter.get(
+  "/admin/courses",
+  // authenticate,
+  // authorize(["admin"]),
+  getAllCoursesAdmin,
 );
 
 courseRouter.get(

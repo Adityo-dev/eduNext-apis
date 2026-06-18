@@ -205,14 +205,63 @@ export const getAllCourses = async (
   }
 };
 
-// ─── 4. Get Single Course by Slug (Public)
+// ─── 4. Get All Courses for Admin Dashboard ( - Admin Only)
+export const getAllCoursesAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { status, search, page = "1", limit = "10" } = req.query;
+
+    const filter: Record<string, unknown> = {};
+
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.min(50, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [courses, total] = await Promise.all([
+      CourseModel.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .populate("instructor", "firstName lastName email avatar"),
+      CourseModel.countDocuments(filter),
+    ]);
+
+    sendResponse(res, 200, true, "Admin course list fetched successfully", {
+      courses,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 5. Get Single Course by Slug (Public)
 export const getCourseBySlug = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
 
     const course = await CourseModel.findOne({
       slug,
@@ -247,7 +296,7 @@ export const getCourseBySlug = async (
   }
 };
 
-// ─── 5. Get Instructor's Own Courses
+// ─── 6. Get Instructor's Own Courses
 export const getInstructorCourses = async (
   req: Request,
   res: Response,
@@ -287,14 +336,14 @@ export const getInstructorCourses = async (
   }
 };
 
-// ─── 6. Update Course & Handle Publish Requests (Optimized)
+// ─── 7. Update Course & Handle Publish Requests (Optimized)
 export const updateCourse = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const instructorId = (req as any).user?._id || (req as any).user?.id;
 
     const course = await CourseModel.findOne({
@@ -332,7 +381,6 @@ export const updateCourse = async (
       }
     }
 
-    // ইনস্ট্রাক্টরের স্ট্যাটাস আপডেট ভ্যালিডেশন
     if (updates.status !== undefined) {
       if (updates.status === "published") {
         return next(
@@ -371,14 +419,14 @@ export const updateCourse = async (
   }
 };
 
-// ─── 7. Delete Course
+// ─── 8. Delete Course
 export const deleteCourse = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = (req as any).user?._id || (req as any).user?.id;
     const userRole = (req as any).user?.role;
 
@@ -397,7 +445,7 @@ export const deleteCourse = async (
   }
 };
 
-// ─── 8. Update Course Status (Admin Only)
+// ─── 9. Update Course Status (Admin Only)
 export const updateCourseStatus = async (
   req: Request,
   res: Response,

@@ -18,7 +18,6 @@ const reviewSchema = new Schema<IReview>(
   { timestamps: true, versionKey: false },
 );
 
-// একজন স্টুডেন্ট একটা কোর্সে একটাই রিভিউ দিতে পারবে
 reviewSchema.index({ student: 1, course: 1 }, { unique: true });
 
 export const ReviewModel = model<IReview>("Review", reviewSchema);

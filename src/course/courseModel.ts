@@ -147,7 +147,7 @@ const courseSchema = new Schema<ICourseDocument>(
   },
 );
 
-// ─── Mongoose Hooks (Pre-save Middleware) ─────────────────────────────────────
+// ─── Mongoose Hooks (Pre-save Middleware)
 courseSchema.pre("save", function () {
   // auto generate slug
   if (this.isModified("title")) {
