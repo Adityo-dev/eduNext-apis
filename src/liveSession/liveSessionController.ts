@@ -290,10 +290,12 @@ export const updateLiveSession = async (
       return next(createHttpError(400, "Invalid sessionId parameter"));
     }
 
-    const session = await LiveSessionModel.findOne({
-      _id: sessionId as unknown as import("mongodb").ObjectId,
+    const queryFilter: any = {
+      _id: sessionId,
       instructor: instructorId,
-    });
+    };
+
+    const session = await LiveSessionModel.findOne(queryFilter);
     if (!session) {
       return next(
         createHttpError(404, "Live session not found or unauthorized"),

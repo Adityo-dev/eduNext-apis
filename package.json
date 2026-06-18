@@ -14,20 +14,12 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/server.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/cors": "^2.8.19",
-    "@types/dotenv": "^6.1.1",
-    "@types/express": "^5.0.6",
-    "@types/http-errors": "^2.0.5",
-    "@types/node": "^25.6.2",
-    "@types/swagger-ui-express": "^4.1.8",
-    "@types/yamljs": "^0.2.34",
     "eslint": "^10.3.0",
     "globals": "^17.6.0",
-    "mongoose": "^9.6.2",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
@@ -35,15 +27,24 @@
     "typescript-eslint": "^8.59.2"
   },
   "dependencies": {
+    "express": "^5.2.1",
+    "mongoose": "^9.6.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.2",
+    "@types/cors": "^2.8.19",
+    "@types/dotenv": "^6.1.1",
+    "@types/http-errors": "^2.0.5",
+    "@types/swagger-ui-express": "^4.1.8",
+    "@types/yamljs": "^0.2.34",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
     "http-errors": "^2.0.1",
     "jsonwebtoken": "^9.0.3",
     "swagger-ui-express": "^5.0.1",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "mongodb": "^6.0.0"
   }
 }

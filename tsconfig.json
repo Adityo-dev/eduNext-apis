@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // File Layout
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
 
     // Environment Settings
@@ -27,6 +27,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "server.ts"],
   "exclude": ["node_modules", "dist", "eslint.config.mts"]
 }
