@@ -231,7 +231,7 @@ export const getCourseLiveSessions = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { courseId } = req.params;
+    const courseId = req.params.courseId as string;
     const userId = (req as any).user?._id || (req as any).user?.id;
     const userRole = (req as any).user?.role;
 
