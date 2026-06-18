@@ -18,7 +18,31 @@ const swaggerDocument = YAML.load(path.join(process.cwd(), "swagger.yaml"));
 
 //  middleware ->
 app.use(express.json());
-app.use(cors({ origin: true, credentials: true }));
+
+const allowedOrigins = [
+  "https://edunext-apis.onrender.com",
+  "https://your-frontend.vercel.app",
+  "http://localhost:5000",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+app.options("*", cors() as any);
 
 // Swagger API Docs UI Route ->
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
