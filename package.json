@@ -12,7 +12,9 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon --exec tsx server.ts"
+    "dev": "nodemon --exec tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
