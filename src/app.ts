@@ -42,7 +42,7 @@ app.use(
   }),
 );
 
-app.options("*", cors() as any);
+app.options("(.*)", cors() as any);
 
 // Swagger API Docs UI Route ->
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
