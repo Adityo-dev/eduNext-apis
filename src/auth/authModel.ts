@@ -47,6 +47,10 @@ const authSchema = new Schema<IUserDocument>(
       type: [String],
       default: [],
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
     isVerified: {
       type: Boolean,
       default: false,

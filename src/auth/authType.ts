@@ -13,6 +13,7 @@ export interface IUser {
   password: string;
   role: UserRole;
   areaOfExpertise: string[];
+  isEmailVerified: boolean;
   isVerified: boolean;
   isSuspended: boolean;
   createdAt: Date;

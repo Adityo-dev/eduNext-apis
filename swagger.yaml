@@ -21,8 +21,8 @@ components:
       bearerFormat: JWT
       description: Enter your JWT token here (Without 'Bearer ' prefix).
 
+# 🌐 ──────────────── AUTH ROUTES ────────────────
 paths:
-  # 🌐 ──────────────── AUTH ROUTES ────────────────
   /auth/signup:
     post:
       summary: Register a new user (Student/Instructor with Expertise)
@@ -70,9 +70,49 @@ paths:
                   example: ["Next.js", "TypeScript", "React"]
       responses:
         201:
-          description: Registration successful
+          description: Registration successful. OTP sent to email.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Registration successful. Please verify your email."
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "60a75b..."
+                      firstName:
+                        type: string
+                        example: Aditto
+                      lastName:
+                        type: string
+                        example: Dev
+                      fullName:
+                        type: string
+                        example: Aditto Dev
+                      email:
+                        type: string
+                        example: aditto@example.com
+                      phone:
+                        type: string
+                        example: "01712345678"
+                      role:
+                        type: string
+                        example: instructor
+                      areaOfExpertise:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Next.js", "TypeScript", "React"]
         400:
-          description: Validation error (e.g., Instructors must provide at least one area of expertise)
+          description: Validation error or User already exists
 
   /auth/login:
     post:
@@ -99,10 +139,151 @@ paths:
       responses:
         200:
           description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Logged in successfully"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "60a75b..."
+                      firstName:
+                        type: string
+                        example: Aditto
+                      lastName:
+                        type: string
+                        example: Dev
+                      fullName:
+                        type: string
+                        example: Aditto Dev
+                      email:
+                        type: string
+                        example: aditto@example.com
+                      phone:
+                        type: string
+                        example: "01712345678"
+                      role:
+                        type: string
+                        example: instructor
+                      areaOfExpertise:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Next.js", "TypeScript", "React"]
         400:
           description: Please provide email and password
         401:
-          description: Invalid email or password
+          description: Invalid email or password / Email not registered
+        403:
+          description: Forbidden - Account suspended, pending admin approval, or email not verified
+
+  /auth/verify-otp:
+    post:
+      summary: Verify user email with OTP (Auto-login supported)
+      tags:
+        - Authentication
+      security: [] # Public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  example: aditto@example.com
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        200:
+          description: Email verified successfully. Returns JWT token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Email verified successfully!"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "60a75b..."
+                      fullName:
+                        type: string
+                        example: Aditto Dev
+                      email:
+                        type: string
+                        example: aditto@example.com
+                      role:
+                        type: string
+                        example: instructor
+        400:
+          description: Invalid or expired OTP / Missing required fields
+        404:
+          description: User not found
+
+  /auth/resend-otp:
+    post:
+      summary: Delete old OTPs and send a new one
+      tags:
+        - Authentication
+      security: [] # Public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: aditto@example.com
+      responses:
+        200:
+          description: New OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "A new OTP has been sent to your email."
+        400:
+          description: Email is required
+        404:
+          description: User not found
 
   # 👑 ──────────────── SUPER ADMIN ROUTES ────────────────
   /admin/user-stats:
