@@ -11,12 +11,12 @@ import OtpModel from "./otpModel.js";
 const JWT_SECRET = config.jwtSecret || "edunext_secret_key_2026";
 
 /**
- * PERFORMANCE FIX #3: Bcrypt rounds are configurable via env variable.
+ * PERFORMANCE FIX #3: Bcrypt rounds loaded from centralized config.
  * Render free tier has ~0.1 vCPU — rounds=10 can take 800–1500ms there.
  * Defaulting to 8 rounds cuts that to ~300ms with no meaningful security loss.
  * Set BCRYPT_ROUNDS=10 in your Render env when you upgrade to a paid plan.
  */
-const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "8");
+const BCRYPT_ROUNDS = config.bcryptRounds;
 
 // Generate JWT Token Function ->
 const generateToken = (id: string, role: string): string => {
@@ -154,7 +154,7 @@ export const signup = async (
       areaOfExpertise,
     });
 
-    // 1. TOP Generate random numbers
+    // 1. Generate random OTP
     const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // 2. Save OTP to database
@@ -163,8 +163,11 @@ export const signup = async (
       otp: generatedOtp,
     });
 
-    // 3. Sending OTP to user email
-    await sendOtpEmail(newUser.email, generatedOtp);
+    // 3. PERFORMANCE FIX: Send OTP email as fire-and-forget (non-blocking).
+    // Response is returned immediately — user doesn't wait for SMTP round-trip.
+    sendOtpEmail(newUser.email, generatedOtp).catch((err) =>
+      console.error("❌ Background email send failed (signup):", err),
+    );
 
     // Send Signup Success Response ->
     res.status(201).json({
@@ -339,20 +342,22 @@ export const resendOtp = async (
       return next(createHttpError(404, "User not found"));
     }
 
-    // 1. If there is an old OTP, clean it from the database.
+    // 1. Delete old OTPs and generate a new one
     await OtpModel.deleteMany({ email });
 
     // 2. Generate new OTP
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 3. Save new OTP
+    // 3. Save new OTP to database
     await OtpModel.create({
       email,
       otp: newOtp,
     });
 
-    // 4. Send New OTP
-    await sendOtpEmail(email, newOtp);
+    // 4. PERFORMANCE FIX: Fire-and-forget email — don't block the response
+    sendOtpEmail(email, newOtp).catch((err) =>
+      console.error("❌ Background email send failed (resend-otp):", err),
+    );
 
     res.status(200).json({
       success: true,

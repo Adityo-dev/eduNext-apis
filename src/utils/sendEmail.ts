@@ -12,7 +12,7 @@ interface EmailOptions {
  * for every email. This avoids a full TCP + TLS handshake on every request.
  * Connection pooling keeps up to 5 SMTP connections alive simultaneously.
  */
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   host: config.smtpHost || "smtp.gmail.com",
   port: parseInt(config.smtpPort || "587"),
   secure: false,
@@ -24,6 +24,15 @@ const transporter = nodemailer.createTransport({
   maxConnections: 5, // Keep up to 5 connections alive
   maxMessages: 100, // Max messages per connection before recycling
 });
+
+export const verifySMTPConnection = async () => {
+  try {
+    await transporter.verify();
+    console.log("✅ SMTP Connection established & verified successfully.");
+  } catch (error) {
+    console.error("❌ SMTP Connection failed during startup:", error);
+  }
+};
 
 /**
  * @param options { email: string, subject: string, html: string }

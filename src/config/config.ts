@@ -12,6 +12,9 @@ const _config = {
   smtpPort: process.env.SMTP_PORT,
   smtpUser: process.env.SMTP_USER,
   smtpPass: process.env.SMTP_PASS,
+
+  // Bcrypt — default 8 for free-tier CPU, set to 10 in paid env via BCRYPT_ROUNDS
+  bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || "8"),
 };
 
 export const config = Object.freeze(_config);
