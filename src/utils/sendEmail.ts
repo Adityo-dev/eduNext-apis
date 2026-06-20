@@ -15,7 +15,7 @@ interface EmailOptions {
 export const transporter = nodemailer.createTransport({
   host: config.smtpHost || "smtp.gmail.com",
   port: parseInt(config.smtpPort || "587"),
-  secure: false,
+  secure: parseInt(config.smtpPort || "587") === 465, // Use true for port 465, false for 587
   auth: {
     user: config.smtpUser,
     pass: config.smtpPass,
