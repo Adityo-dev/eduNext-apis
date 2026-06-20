@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import AuthModel from "./authModel.js";
 import OtpModel from "./otpModel.js";
 
@@ -14,11 +15,66 @@ const generateToken = (id: string, role: string): string => {
   return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "7d" });
 };
 
-const sendEmail = async (email: string, otp: string) => {
-  console.log(`╔════════════════════════════════════════════╗`);
-  console.log(`  📩 Sending Email to: ${email}`);
-  console.log(`  🔑 Your EduNext OTP Code: ${otp}`);
-  console.log(`╚════════════════════════════════════════════╝`);
+// send OTP Email Template
+const sendOtpEmail = async (email: string, otp: string) => {
+  const emailHtml = `
+  <div style="background-color: #F9FAFB; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #E5E7EB;">
+      
+      <div style="background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%); height: 8px;"></div>
+      
+      <div style="padding: 40px 32px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #4F46E5; letter-spacing: -0.5px;">EduNext</h1>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #6B7280; text-spacing: 1px; text-transform: uppercase; font-weight: 600;">Empowering Next-Gen Learning</p>
+        </div>
+
+        <h2 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #111827; text-align: center;">Verify Your Email Address</h2>
+        <p style="margin: 0 0 32px 0; font-size: 15px; color: #4B5563; line-height: 1.6; text-align: center;">
+          Thank you for joining EduNext! To complete your registration, please use the secure One-Time Password (OTP) below.
+        </p>
+
+        <div style="background-color: #F3F4F6; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 32px; border: 1px solid #E5E7EB;">
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; font-weight: 700; margin-bottom: 10px;">Verification Code</div>
+          <div style="font-size: 38px; font-weight: 800; letter-spacing: 6px; color: #4F46E5; font-family: 'Courier New', Courier, monospace; display: inline-block;">
+            ${otp}
+          </div>
+        </div>
+
+        <div style="display: flex; background-color: #EEF2F6; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 13px; color: #374151; line-height: 1.5; text-align: center; width: 100%;">
+            ⏱️ This code is valid for <strong>10 minutes</strong>. For your security, do not share this code with anyone.
+          </p>
+        </div>
+
+        <p style="margin: 0; font-size: 14px; color: #9CA3AF; text-align: center; line-height: 1.5;">
+          If you did not request this verification, you can safely ignore this email.
+        </p>
+      </div>
+
+      <div style="background-color: #F9FAFB; padding: 24px 32px; text-align: center; border-top: 1px solid #E5E7EB;">
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: #6B7280;">&copy; 2026 EduNext Platform. All rights reserved.</p>
+        <div style="font-size: 11px; color: #9CA3AF;">
+          Dhaka, Bangladesh
+        </div>
+      </div>
+
+    </div>
+  </div>
+`;
+
+  try {
+    await sendEmail({
+      email,
+      subject: "Verify your EduNext Account",
+      html: emailHtml,
+    });
+  } catch (error) {
+    console.error(
+      "❌ Notification: Email sending failed but process continuing.",
+      error,
+    );
+  }
 };
 
 // Signup ->
@@ -96,7 +152,7 @@ export const signup = async (
     });
 
     // 3. Sending OTP to user email
-    await sendEmail(newUser.email, generatedOtp);
+    await sendOtpEmail(newUser.email, generatedOtp);
 
     // Send Signup Success Response ->
     res.status(201).json({
@@ -284,7 +340,7 @@ export const resendOtp = async (
     });
 
     // 4. Send New OTP
-    await sendEmail(email, newOtp);
+    await sendOtpEmail(email, newOtp);
 
     res.status(200).json({
       success: true,
