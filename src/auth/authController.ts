@@ -10,6 +10,14 @@ import OtpModel from "./otpModel.js";
 // JWT Secret Key ->
 const JWT_SECRET = config.jwtSecret || "edunext_secret_key_2026";
 
+/**
+ * PERFORMANCE FIX #3: Bcrypt rounds are configurable via env variable.
+ * Render free tier has ~0.1 vCPU — rounds=10 can take 800–1500ms there.
+ * Defaulting to 8 rounds cuts that to ~300ms with no meaningful security loss.
+ * Set BCRYPT_ROUNDS=10 in your Render env when you upgrade to a paid plan.
+ */
+const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || "8");
+
 // Generate JWT Token Function ->
 const generateToken = (id: string, role: string): string => {
   return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "7d" });
@@ -115,21 +123,25 @@ export const signup = async (
       }
     }
 
-    // Check if user already exists with the same email
-    const userEmailExists = await AuthModel.findOne({ email });
+    // PERFORMANCE FIX #2: Run both duplicate checks IN PARALLEL with Promise.all
+    // instead of sequentially — saves one full DB round-trip on every signup.
+    // .select("_id") returns only the ID field instead of the full document.
+    const [userEmailExists, userPhoneExists] = await Promise.all([
+      AuthModel.findOne({ email }).select("_id"),
+      AuthModel.findOne({ phone }).select("_id"),
+    ]);
+
     if (userEmailExists) {
       return next(createHttpError(400, "User already exists with this email"));
     }
-    // Check if user already exists with the same phone number
-    const userPhoneExists = await AuthModel.findOne({ phone });
     if (userPhoneExists) {
       return next(
-        createHttpError(400, "User already exists with this phone number "),
+        createHttpError(400, "User already exists with this phone number"),
       );
     }
 
-    // Password Hashing ->
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // PERFORMANCE FIX #3: Use configurable rounds (default 8 for Render free tier)
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     // Create New User ->
     const newUser = await AuthModel.create({

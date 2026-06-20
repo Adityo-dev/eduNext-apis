@@ -8,22 +8,30 @@ interface EmailOptions {
 }
 
 /**
+ * PERFORMANCE FIX: Transporter is created ONCE at module load time and reused
+ * for every email. This avoids a full TCP + TLS handshake on every request.
+ * Connection pooling keeps up to 5 SMTP connections alive simultaneously.
+ */
+const transporter = nodemailer.createTransport({
+  host: config.smtpHost || "smtp.gmail.com",
+  port: parseInt(config.smtpPort || "587"),
+  secure: false,
+  auth: {
+    user: config.smtpUser,
+    pass: config.smtpPass,
+  },
+  pool: true, // Reuse existing connections instead of opening new ones
+  maxConnections: 5, // Keep up to 5 connections alive
+  maxMessages: 100, // Max messages per connection before recycling
+});
+
+/**
  * @param options { email: string, subject: string, html: string }
  */
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: config.smtpHost || "smtp.gmail.com",
-      port: parseInt(config.smtpPort || "587"),
-      secure: false,
-      auth: {
-        user: config.smtpUser,
-        pass: config.smtpPass,
-      },
-    });
-
     const mailOptions = {
-      from: `"EduNext Platform" <${process.env.SMTP_USER}>`,
+      from: `"EduNext Platform" <${config.smtpUser}>`,
       to: options.email,
       subject: options.subject,
       html: options.html,
