@@ -98,21 +98,19 @@ export const signup = async (
     // 3. Sending OTP to user email
     await sendEmail(newUser.email, generatedOtp);
 
-    const userObj = newUser.toObject();
-
     // Send Signup Success Response ->
     res.status(201).json({
       success: true,
       message: "Registration successful. Please verify your email.",
       user: {
-        id: userObj?._id,
-        firstName: userObj?.firstName,
-        lastName: userObj?.lastName,
-        fullName: `${userObj?.firstName} ${userObj?.lastName}`,
-        email: userObj?.email,
-        phone: userObj?.phone,
-        role: userObj?.role,
-        areaOfExpertise: userObj?.areaOfExpertise,
+        id: newUser?._id,
+        firstName: newUser?.firstName,
+        lastName: newUser?.lastName,
+        fullName: `${newUser?.firstName} ${newUser?.lastName}`,
+        email: newUser?.email,
+        phone: newUser?.phone,
+        role: newUser?.role,
+        areaOfExpertise: newUser?.areaOfExpertise,
       },
     });
   } catch (error) {
