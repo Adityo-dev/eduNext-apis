@@ -12,7 +12,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon --exec tsx src/server.ts",
+    "dev": "nodemon --exec tsx server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },
@@ -41,6 +41,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "googleapis": "^173.0.0",
     "http-errors": "^2.0.1",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^6.0.0",

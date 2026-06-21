@@ -7,16 +7,13 @@ const _config = {
   env: process.env.NODE_ENV,
   jwtSecret: process.env.JWT_SECRET,
 
-  // Nodemailer Configuration
-  // smtpHost: process.env.SMTP_HOST,
-  // smtpPort: process.env.SMTP_PORT,
-  // smtpUser: process.env.SMTP_USER,
-  // smtpPass: process.env.SMTP_PASS,
+  // Google OAuth2 Credentials
+  oauthClientId: process.env.OAUTH_CLIENT_ID,
+  oauthClientSecret: process.env.OAUTH_CLIENT_SECRET,
+  oauthRefreshToken: process.env.OAUTH_REFRESH_TOKEN,
+  oauthEmail: process.env.OAUTH_EMAIL,
 
-  // Resend Configuration
-  resendApiKey: process.env.RESEND_API_KEY,
-
-  // Bcrypt — default 8 for free-tier CPU, set to 10 in paid env via BCRYPT_ROUNDS
+  // Bcrypt — default 8 for free-tier CPU
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || "8"),
 };
 
