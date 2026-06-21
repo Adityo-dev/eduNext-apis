@@ -9,13 +9,7 @@ import OtpModel from "./otpModel.js";
 
 // JWT Secret Key ->
 const JWT_SECRET = config.jwtSecret || "edunext_secret_key_2026";
-
-/**
- * PERFORMANCE FIX #3: Bcrypt rounds loaded from centralized config.
- * Render free tier has ~0.1 vCPU — rounds=10 can take 800–1500ms there.
- * Defaulting to 8 rounds cuts that to ~300ms with no meaningful security loss.
- * Set BCRYPT_ROUNDS=10 in your Render env when you upgrade to a paid plan.
- */
+// BCRYPT rounds
 const BCRYPT_ROUNDS = config.bcryptRounds;
 
 // Generate JWT Token Function ->
@@ -79,7 +73,7 @@ const sendOtpEmail = async (email: string, otp: string) => {
     });
   } catch (error) {
     console.error(
-      "❌ Notification: Email sending failed but process continuing.",
+      "Notification: Email sending failed but process continuing.",
       error,
     );
   }
@@ -123,9 +117,7 @@ export const signup = async (
       }
     }
 
-    // PERFORMANCE FIX #2: Run both duplicate checks IN PARALLEL with Promise.all
-    // instead of sequentially — saves one full DB round-trip on every signup.
-    // .select("_id") returns only the ID field instead of the full document.
+    //  User Email And Phone Number Is Exists or not
     const [userEmailExists, userPhoneExists] = await Promise.all([
       AuthModel.findOne({ email }).select("_id"),
       AuthModel.findOne({ phone }).select("_id"),
@@ -140,7 +132,7 @@ export const signup = async (
       );
     }
 
-    // PERFORMANCE FIX #3: Use configurable rounds (default 8 for Render free tier)
+    // password hashed
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     // Create New User ->
@@ -163,10 +155,9 @@ export const signup = async (
       otp: generatedOtp,
     });
 
-    // 3. PERFORMANCE FIX: Send OTP email as fire-and-forget (non-blocking).
-    // Response is returned immediately — user doesn't wait for SMTP round-trip.
+    // 3. sent OTP
     sendOtpEmail(newUser.email, generatedOtp).catch((err) =>
-      console.error("❌ Background email send failed (signup):", err),
+      console.error("Background email send failed (signup):", err),
     );
 
     // Send Signup Success Response ->
@@ -356,7 +347,7 @@ export const resendOtp = async (
 
     // 4. PERFORMANCE FIX: Fire-and-forget email — don't block the response
     sendOtpEmail(email, newOtp).catch((err) =>
-      console.error("❌ Background email send failed (resend-otp):", err),
+      console.error("Background email send failed (resend-otp):", err),
     );
 
     res.status(200).json({
