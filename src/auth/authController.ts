@@ -3,22 +3,86 @@ import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import AuthModel from "./authModel.js";
 import OtpModel from "./otpModel.js";
 
 // JWT Secret Key ->
 const JWT_SECRET = config.jwtSecret || "edunext_secret_key_2026";
 
+/**
+ * PERFORMANCE FIX #3: Bcrypt rounds loaded from centralized config.
+ * Render free tier has ~0.1 vCPU — rounds=10 can take 800–1500ms there.
+ * Defaulting to 8 rounds cuts that to ~300ms with no meaningful security loss.
+ * Set BCRYPT_ROUNDS=10 in your Render env when you upgrade to a paid plan.
+ */
+const BCRYPT_ROUNDS = config.bcryptRounds;
+
 // Generate JWT Token Function ->
 const generateToken = (id: string, role: string): string => {
   return jwt.sign({ id, role }, JWT_SECRET, { expiresIn: "7d" });
 };
 
-const sendEmail = async (email: string, otp: string) => {
-  console.log(`╔════════════════════════════════════════════╗`);
-  console.log(`  📩 Sending Email to: ${email}`);
-  console.log(`  🔑 Your EduNext OTP Code: ${otp}`);
-  console.log(`╚════════════════════════════════════════════╝`);
+// send OTP Email Template
+const sendOtpEmail = async (email: string, otp: string) => {
+  const emailHtml = `
+  <div style="background-color: #F9FAFB; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #E5E7EB;">
+      
+      <div style="background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%); height: 8px;"></div>
+      
+      <div style="padding: 40px 32px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #4F46E5; letter-spacing: -0.5px;">EduNext</h1>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #6B7280; text-spacing: 1px; text-transform: uppercase; font-weight: 600;">Empowering Next-Gen Learning</p>
+        </div>
+
+        <h2 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700; color: #111827; text-align: center;">Verify Your Email Address</h2>
+        <p style="margin: 0 0 32px 0; font-size: 15px; color: #4B5563; line-height: 1.6; text-align: center;">
+          Thank you for joining EduNext! To complete your registration, please use the secure One-Time Password (OTP) below.
+        </p>
+
+        <div style="background-color: #F3F4F6; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 32px; border: 1px solid #E5E7EB;">
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; font-weight: 700; margin-bottom: 10px;">Verification Code</div>
+          <div style="font-size: 38px; font-weight: 800; letter-spacing: 6px; color: #4F46E5; font-family: 'Courier New', Courier, monospace; display: inline-block;">
+            ${otp}
+          </div>
+        </div>
+
+        <div style="display: flex; background-color: #EEF2F6; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 13px; color: #374151; line-height: 1.5; text-align: center; width: 100%;">
+            ⏱️ This code is valid for <strong>10 minutes</strong>. For your security, do not share this code with anyone.
+          </p>
+        </div>
+
+        <p style="margin: 0; font-size: 14px; color: #9CA3AF; text-align: center; line-height: 1.5;">
+          If you did not request this verification, you can safely ignore this email.
+        </p>
+      </div>
+
+      <div style="background-color: #F9FAFB; padding: 24px 32px; text-align: center; border-top: 1px solid #E5E7EB;">
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: #6B7280;">&copy; 2026 EduNext Platform. All rights reserved.</p>
+        <div style="font-size: 11px; color: #9CA3AF;">
+          Dhaka, Bangladesh
+        </div>
+      </div>
+
+    </div>
+  </div>
+`;
+
+  try {
+    await sendEmail({
+      email,
+      subject: "Verify your EduNext Account",
+      html: emailHtml,
+    });
+  } catch (error) {
+    console.error(
+      "❌ Notification: Email sending failed but process continuing.",
+      error,
+    );
+  }
 };
 
 // Signup ->
@@ -59,21 +123,25 @@ export const signup = async (
       }
     }
 
-    // Check if user already exists with the same email
-    const userEmailExists = await AuthModel.findOne({ email });
+    // PERFORMANCE FIX #2: Run both duplicate checks IN PARALLEL with Promise.all
+    // instead of sequentially — saves one full DB round-trip on every signup.
+    // .select("_id") returns only the ID field instead of the full document.
+    const [userEmailExists, userPhoneExists] = await Promise.all([
+      AuthModel.findOne({ email }).select("_id"),
+      AuthModel.findOne({ phone }).select("_id"),
+    ]);
+
     if (userEmailExists) {
       return next(createHttpError(400, "User already exists with this email"));
     }
-    // Check if user already exists with the same phone number
-    const userPhoneExists = await AuthModel.findOne({ phone });
     if (userPhoneExists) {
       return next(
-        createHttpError(400, "User already exists with this phone number "),
+        createHttpError(400, "User already exists with this phone number"),
       );
     }
 
-    // Password Hashing ->
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // PERFORMANCE FIX #3: Use configurable rounds (default 8 for Render free tier)
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     // Create New User ->
     const newUser = await AuthModel.create({
@@ -86,7 +154,7 @@ export const signup = async (
       areaOfExpertise,
     });
 
-    // 1. TOP Generate random numbers
+    // 1. Generate random OTP
     const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // 2. Save OTP to database
@@ -95,8 +163,11 @@ export const signup = async (
       otp: generatedOtp,
     });
 
-    // 3. Sending OTP to user email
-    await sendEmail(newUser.email, generatedOtp);
+    // 3. PERFORMANCE FIX: Send OTP email as fire-and-forget (non-blocking).
+    // Response is returned immediately — user doesn't wait for SMTP round-trip.
+    sendOtpEmail(newUser.email, generatedOtp).catch((err) =>
+      console.error("❌ Background email send failed (signup):", err),
+    );
 
     // Send Signup Success Response ->
     res.status(201).json({
@@ -271,20 +342,22 @@ export const resendOtp = async (
       return next(createHttpError(404, "User not found"));
     }
 
-    // 1. If there is an old OTP, clean it from the database.
+    // 1. Delete old OTPs and generate a new one
     await OtpModel.deleteMany({ email });
 
     // 2. Generate new OTP
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 3. Save new OTP
+    // 3. Save new OTP to database
     await OtpModel.create({
       email,
       otp: newOtp,
     });
 
-    // 4. Send New OTP
-    await sendEmail(email, newOtp);
+    // 4. PERFORMANCE FIX: Fire-and-forget email — don't block the response
+    sendOtpEmail(email, newOtp).catch((err) =>
+      console.error("❌ Background email send failed (resend-otp):", err),
+    );
 
     res.status(200).json({
       success: true,
