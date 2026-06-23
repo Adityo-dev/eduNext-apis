@@ -10,6 +10,9 @@ interface EmailOptions {
   html: string;
 }
 
+/**
+ * Validates that all required OAuth2 environment variables are present
+ */
 export const verifySMTPConnection = async (): Promise<void> => {
   const { oauthClientId, oauthClientSecret, oauthRefreshToken, oauthEmail } =
     config;
@@ -21,12 +24,12 @@ export const verifySMTPConnection = async (): Promise<void> => {
     !oauthEmail
   ) {
     console.error(
-      "Gmail OAuth2 configuration is incomplete. Check environment variables.",
+      "❌ Gmail OAuth2 configuration is incomplete. Check environment variables.",
     );
     return;
   }
   console.log(
-    "Gmail OAuth2 email service configuration successfully validated.",
+    "✅ Gmail OAuth2 email service configuration successfully validated.",
   );
 };
 
@@ -67,7 +70,7 @@ const createTransporter = async () => {
 
     return transporter;
   } catch (error) {
-    console.error("Error setting up secure OAuth2 transporter:", error);
+    console.error("❌ Error setting up secure OAuth2 transporter:", error);
     throw error;
   }
 };
@@ -88,10 +91,10 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 
     const info = await transporter.sendMail(mailOptions);
     console.log(
-      `Email successfully sent to: ${options.email} (ID: ${info.messageId})`,
+      `✉️ Email successfully sent to: ${options.email} (ID: ${info.messageId})`,
     );
   } catch (error) {
-    console.error("Nodemailer OAuth2 Error: Failed to send email.", error);
+    console.error("❌ Nodemailer OAuth2 Error: Failed to send email.", error);
     throw new Error(
       "Email could not be dispatched. Please verify your Gmail API credentials.",
     );

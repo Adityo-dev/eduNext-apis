@@ -7,7 +7,7 @@ const _config = {
   env: process.env.NODE_ENV,
   jwtSecret: process.env.JWT_SECRET,
 
-  // Google OAuth2 Credentials
+  // Google OAuth2 Settings (Gmail API)
   oauthClientId: process.env.OAUTH_CLIENT_ID,
   oauthClientSecret: process.env.OAUTH_CLIENT_SECRET,
   oauthRefreshToken: process.env.OAUTH_REFRESH_TOKEN,
