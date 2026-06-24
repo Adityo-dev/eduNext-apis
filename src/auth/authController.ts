@@ -63,20 +63,14 @@ const sendOtpEmail = async (email: string, otp: string) => {
 
     </div>
   </div>
-`;
+  `;
 
-  try {
-    await sendEmail({
-      email,
-      subject: "Verify your EduNext Account",
-      html: emailHtml,
-    });
-  } catch (error) {
-    console.error(
-      "Notification: Email sending failed but process continuing.",
-      error,
-    );
-  }
+  // Explicitly forwarding rejection to standard tracker logs
+  await sendEmail({
+    email,
+    subject: "Verify your EduNext Account",
+    html: emailHtml,
+  });
 };
 
 // Signup ->
@@ -96,12 +90,10 @@ export const signup = async (
       areaOfExpertise,
     } = req.body;
 
-    // Validation ->
     if (!firstName || !lastName || !email || !phone || !password || !role) {
       return next(createHttpError(400, "All fields are required"));
     }
 
-    // instructor must provide area of expertise
     if (role === "instructor") {
       if (
         !areaOfExpertise ||
@@ -117,7 +109,6 @@ export const signup = async (
       }
     }
 
-    //  User Email And Phone Number Is Exists or not
     const [userEmailExists, userPhoneExists] = await Promise.all([
       AuthModel.findOne({ email }).select("_id"),
       AuthModel.findOne({ phone }).select("_id"),
@@ -132,10 +123,8 @@ export const signup = async (
       );
     }
 
-    // password hashed
     const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    // Create New User ->
     const newUser = await AuthModel.create({
       firstName,
       lastName,
@@ -146,21 +135,18 @@ export const signup = async (
       areaOfExpertise,
     });
 
-    // 1. Generate random OTP
     const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 2. Save OTP to database
     await OtpModel.create({
       email: newUser.email,
       otp: generatedOtp,
     });
 
-    // 3. sent OTP
+    // Send email synchronously or safe handle background logs
     sendOtpEmail(newUser.email, generatedOtp).catch((err) =>
       console.error("Background email send failed (signup):", err),
     );
 
-    // Send Signup Success Response ->
     res.status(201).json({
       success: true,
       message: "Registration successful. Please verify your email.",
@@ -189,12 +175,10 @@ export const login = async (
   try {
     const { email, password } = req.body;
 
-    // Validation ->
     if (!email || !password) {
       return next(createHttpError(400, "Please provide email and password"));
     }
 
-    // Check if user exists
     const user = await AuthModel.findOne({ email }).select("+password");
     if (!user) {
       return next(
@@ -205,13 +189,11 @@ export const login = async (
       );
     }
 
-    // Check if user password and email match
     const isPasswordMatch = await bcrypt.compare(password, user?.password);
     if (!isPasswordMatch) {
       return next(createHttpError(401, "Invalid email or password"));
     }
 
-    // check if user email is verified
     if (!user?.isEmailVerified) {
       return next(
         createHttpError(
@@ -221,7 +203,6 @@ export const login = async (
       );
     }
 
-    // check if instructor is admin approval
     if (user.role === "instructor" && !user.isVerified) {
       return next(
         createHttpError(
@@ -231,15 +212,12 @@ export const login = async (
       );
     }
 
-    // check if user is suspended
     if (user?.isSuspended) {
       return next(createHttpError(403, "Your account has been suspended"));
     }
 
-    // Generate JWT Token ->
     const token = generateToken(user?._id as unknown as string, user?.role);
 
-    // Send Login Success Response ->
     res.status(200).json({
       success: true,
       message: "Logged in successfully",
@@ -273,26 +251,21 @@ export const verifyOtp = async (
       return next(createHttpError(400, "Email and OTP are required"));
     }
 
-    // 1. Find the latest OTP for this email from the dataBase
     const otpRecord = await OtpModel.findOne({ email, otp });
     if (!otpRecord) {
       return next(createHttpError(400, "Invalid or expired OTP"));
     }
 
-    // 2. Finding user accounts
     const user = await AuthModel.findOne({ email });
     if (!user) {
       return next(createHttpError(404, "User not found"));
     }
 
-    // 3. Ste email verification stats True
     user.isEmailVerified = true;
     await user.save();
 
-    // 4 If verification is successful, the OTP record is deleted from the database.
     await OtpModel.deleteOne({ _id: otpRecord._id });
 
-    // 5. If OTP is successful, token will be generated here
     const token = generateToken(user._id as unknown as string, user.role);
 
     res.status(200).json({
@@ -333,19 +306,15 @@ export const resendOtp = async (
       return next(createHttpError(404, "User not found"));
     }
 
-    // 1. Delete old OTPs and generate a new one
     await OtpModel.deleteMany({ email });
 
-    // 2. Generate new OTP
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 3. Save new OTP to database
     await OtpModel.create({
       email,
       otp: newOtp,
     });
 
-    // 4. PERFORMANCE FIX: Fire-and-forget email — don't block the response
     sendOtpEmail(email, newOtp).catch((err) =>
       console.error("Background email send failed (resend-otp):", err),
     );
