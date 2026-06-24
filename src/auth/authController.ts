@@ -191,7 +191,7 @@ export const login = async (
 
     const isPasswordMatch = await bcrypt.compare(password, user?.password);
     if (!isPasswordMatch) {
-      return next(createHttpError(401, "Invalid email or password"));
+      return next(createHttpError(401, "Invalid password"));
     }
 
     if (!user?.isEmailVerified) {

@@ -7,9 +7,10 @@ const _config = {
   env: process.env.NODE_ENV,
   jwtSecret: process.env.JWT_SECRET,
 
-  // Clean SMTP Credentials
-  emailUser: process.env.EMAIL_USER,
-  emailPass: process.env.EMAIL_PASS,
+  // Brevo HTTP API credentials
+  brevoApiKey: process.env.BREVO_API_KEY,
+  brevoSenderEmail: process.env.BREVO_SENDER_EMAIL,
+  brevoSenderName: process.env.BREVO_SENDER_NAME || "EduNext Platform",
 
   // Bcrypt — default 8 for free-tier CPU
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || "8"),
