@@ -201,23 +201,19 @@ export const getInstructorDashboardLiveSessions = async (
       .sort({ startTime: 1 })
       .populate("course", "title");
 
-    // UI-তে "X Students Registered" দেখানোর জন্য এনরোলমেন্ট কাউন্ট পুশ করা হলো
-    const sessionsWithEnrollmentCount = await Promise.all(
-      sessions.map(async (session) => {
-        const totalUsersRegistered = await EnrollmentModel.countDocuments({
-          course: session.course?._id,
-        });
-        return {
-          ...session.toObject(),
-          totalUsersRegistered,
-        };
-      }),
-    );
+    // UI-তে "X Students Registered" (যারা জয়েন করেছে) দেখানোর জন্য কাউন্ট পুশ করা হলো
+    const sessionsWithJoinCount = sessions.map((session) => {
+      const totalUsersRegistered = session.joinedStudents ? session.joinedStudents.length : 0;
+      return {
+        ...session.toObject(),
+        totalUsersRegistered,
+      };
+    });
 
     res.status(200).json({
       success: true,
       message: "Instructor dashboard live sessions fetched successfully",
-      data: sessionsWithEnrollmentCount,
+      data: sessionsWithJoinCount,
     });
   } catch (error) {
     next(error);
@@ -328,6 +324,51 @@ export const updateLiveSession = async (
       success: true,
       message: "Live session updated successfully",
       data: session,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 6. Join Live Session (Student Only) ──────────────────────────────────
+export const joinLiveSession = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { sessionId } = req.params;
+    const studentId = (req as any).user?._id || (req as any).user?.id;
+
+    if (!sessionId || Array.isArray(sessionId)) {
+      return next(createHttpError(400, "Invalid sessionId parameter"));
+    }
+
+    const session = await LiveSessionModel.findById(sessionId);
+    if (!session) {
+      return next(createHttpError(404, "Live session not found"));
+    }
+
+    // Verify if student is enrolled in the course
+    const isEnrolled = await EnrollmentModel.findOne({
+      student: studentId,
+      course: session.course,
+    });
+
+    if (!isEnrolled) {
+      return next(
+        createHttpError(403, "You must enroll in this course to join the live session"),
+      );
+    }
+
+    // Add student to joinedStudents array using $addToSet (prevents duplicates)
+    await LiveSessionModel.findByIdAndUpdate(sessionId, {
+      $addToSet: { joinedStudents: studentId },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully joined live session",
     });
   } catch (error) {
     next(error);

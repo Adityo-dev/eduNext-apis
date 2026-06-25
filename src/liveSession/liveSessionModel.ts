@@ -47,6 +47,12 @@ const liveSessionSchema = new Schema<ILiveSession>(
       enum: ["upcoming", "live", "completed"],
       default: "upcoming",
     },
+    joinedStudents: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

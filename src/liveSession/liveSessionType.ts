@@ -10,6 +10,7 @@ export interface ILiveSession extends Document {
   startTime: Date;
   durationInMins: number;
   status: "upcoming" | "live" | "completed";
+  joinedStudents: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }

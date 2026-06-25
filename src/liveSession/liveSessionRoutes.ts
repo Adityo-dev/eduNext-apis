@@ -8,6 +8,7 @@ import {
   getStudentDashboardLiveSessions,
   getStudentLiveSessionsStats,
   updateLiveSession,
+  joinLiveSession,
 } from "./liveSessionController.js";
 
 const liveSessionRouter = Router();
@@ -53,6 +54,13 @@ liveSessionRouter.patch(
   "/:sessionId",
   authorize(["instructor"]),
   updateLiveSession,
+);
+
+// Student join live session route
+liveSessionRouter.post(
+  "/:sessionId/join",
+  authorize(["student"]),
+  joinLiveSession,
 );
 
 export default liveSessionRouter;
