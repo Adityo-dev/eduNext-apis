@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import CourseModel from "./courseModel.js";
+import { EnrollmentModel } from "../enrollment/enrollmentModel.js";
 
 // ─── Helper Response Function
 const sendResponse = (
@@ -70,7 +71,6 @@ export const createCourse = async (
       requirements,
       whatYouLearn,
       sections,
-      totalDuration,
     } = req.body;
 
     // Validation
@@ -107,7 +107,6 @@ export const createCourse = async (
       whatYouLearn,
       sections: sections || [],
       lessonsCount,
-      totalDuration: totalDuration || "0 hrs",
       instructor: instructorId,
       status: "draft",
     });
@@ -430,14 +429,27 @@ export const deleteCourse = async (
     const userId = (req as any).user?._id || (req as any).user?.id;
     const userRole = (req as any).user?.role;
 
-    const filter =
-      userRole === "admin" ? { _id: id } : { _id: id, instructor: userId };
-
-    const course = await CourseModel.findOneAndDelete(filter);
+    const course = await CourseModel.findById(id);
 
     if (!course) {
-      return next(createHttpError(404, "Course not found or unauthorized"));
+      return next(createHttpError(404, "Course not found"));
     }
+
+    if (userRole !== "admin" && course.instructor.toString() !== userId.toString()) {
+      return next(createHttpError(403, "Unauthorized to delete this course"));
+    }
+
+    if (userRole === "admin" && course.status !== "draft" && course.status !== "rejected") {
+      return next(createHttpError(400, "Admins can only delete courses in 'draft' or 'rejected' status. For 'published' courses, use suspend."));
+    }
+
+    // Check for active enrollments
+    const enrollmentsCount = await EnrollmentModel.countDocuments({ course: id });
+    if (enrollmentsCount > 0) {
+      return next(createHttpError(400, "Cannot delete course because there are active enrollments."));
+    }
+
+    await CourseModel.findByIdAndDelete(id);
 
     sendResponse(res, 200, true, "Course deleted successfully from EduNext");
   } catch (error) {
@@ -453,9 +465,9 @@ export const updateCourseStatus = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { status, rejectedReason, badge } = req.body;
+    const { status, rejectedReason, suspendedReason, badge } = req.body;
 
-    const validStatuses = ["draft", "pending", "published", "rejected"];
+    const validStatuses = ["draft", "pending", "published", "rejected", "suspended"];
 
     if (!validStatuses.includes(status)) {
       return next(
@@ -464,6 +476,19 @@ export const updateCourseStatus = async (
           `Invalid status. Allowed statuses: ${validStatuses.join(", ")}`,
         ),
       );
+    }
+
+    const course = await CourseModel.findById(id);
+    if (!course) {
+      return next(createHttpError(404, "Course not found"));
+    }
+
+    // Enforce status transition rules
+    if (status === "published" && course.status !== "pending") {
+      return next(createHttpError(400, "Cannot approve (publish) a course unless it is in 'pending' status."));
+    }
+    if (status === "suspended" && course.status !== "published") {
+      return next(createHttpError(400, "Cannot suspend a course unless it is currently 'published'."));
     }
 
     const updates: Record<string, unknown> = { status };
@@ -482,18 +507,32 @@ export const updateCourseStatus = async (
       updates.rejectedReason = null;
     }
 
+    if (status === "suspended") {
+      if (!suspendedReason) {
+        return next(
+          createHttpError(
+            400,
+            "Suspension reason is required when status is suspended",
+          ),
+        );
+      }
+      updates.suspendedReason = suspendedReason;
+    } else {
+      updates.suspendedReason = null;
+    }
+
     if (status === "published" && badge !== undefined) {
       updates.badge = badge;
     }
 
-    const course = await CourseModel.findByIdAndUpdate(
+    const updatedCourse = await CourseModel.findByIdAndUpdate(
       id,
       { $set: updates },
       { new: true, runValidators: true },
     ).populate("instructor", "firstName lastName email");
 
-    if (!course) {
-      return next(createHttpError(404, "Course not found"));
+    if (!updatedCourse) {
+      return next(createHttpError(404, "Failed to update course"));
     }
 
     sendResponse(
@@ -501,6 +540,49 @@ export const updateCourseStatus = async (
       200,
       true,
       `Course status updated to ${status} successfully`,
+      updatedCourse,
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 10. Request Publish Course (Instructor Only)
+export const requestCoursePublish = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const id = req.params.id as string;
+    const instructorId = (req as any).user?._id || (req as any).user?.id;
+
+    const course = await CourseModel.findOne({
+      _id: id,
+      instructor: instructorId,
+    });
+
+    if (!course) {
+      return next(createHttpError(404, "Course not found or unauthorized"));
+    }
+
+    if (course.status !== "draft" && course.status !== "rejected") {
+      return next(
+        createHttpError(
+          400,
+          "Only 'draft' or 'rejected' courses can be submitted for review.",
+        ),
+      );
+    }
+
+    course.status = "pending";
+    await course.save();
+
+    sendResponse(
+      res,
+      200,
+      true,
+      "Course publish request submitted successfully. It is now pending admin review.",
       course,
     );
   } catch (error) {

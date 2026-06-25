@@ -124,10 +124,14 @@ const courseSchema = new Schema<ICourseDocument>(
     // Status
     status: {
       type: String,
-      enum: ["draft", "pending", "published", "rejected"],
+      enum: ["draft", "pending", "published", "rejected", "suspended"],
       default: "draft",
     },
     rejectedReason: {
+      type: String,
+      default: null,
+    },
+    suspendedReason: {
       type: String,
       default: null,
     },
@@ -157,12 +161,44 @@ courseSchema.pre("save", function () {
       .replace(/(^-|-$)+/g, "");
   }
 
-  //  auto calculate lessons count
+  //  auto calculate lessons count and total duration
   if (this.isModified("sections")) {
-    this.lessonsCount = this.sections.reduce(
-      (total, section) => total + (section.lessons?.length || 0),
-      0,
-    );
+    let totalLessons = 0;
+    let totalMinutes = 0;
+
+    this.sections.forEach((section: any) => {
+      if (section.lessons && Array.isArray(section.lessons)) {
+        totalLessons += section.lessons.length;
+        
+        section.lessons.forEach((lesson: any) => {
+          if (lesson.duration) {
+            const parts = lesson.duration.split(":").map(Number);
+            if (parts.length === 2) {
+              // MM:SS
+              totalMinutes += parts[0] + parts[1] / 60;
+            } else if (parts.length === 3) {
+              // HH:MM:SS
+              totalMinutes += parts[0] * 60 + parts[1] + parts[2] / 60;
+            } else if (parts.length === 1 && !isNaN(parts[0])) {
+              // Just minutes
+              totalMinutes += parts[0];
+            }
+          }
+        });
+      }
+    });
+
+    this.lessonsCount = totalLessons;
+
+    const roundedMinutes = Math.round(totalMinutes);
+    const hrs = Math.floor(roundedMinutes / 60);
+    const mins = roundedMinutes % 60;
+    
+    if (hrs > 0) {
+      this.totalDuration = `${hrs} hrs ${mins} mins`;
+    } else {
+      this.totalDuration = `${mins} mins`;
+    }
   }
 });
 

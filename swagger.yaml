@@ -634,9 +634,6 @@ paths:
                       "Next.js 15 App Routing Architecture",
                       "Advanced Server Side Rendering (SSR)",
                     ]
-                totalDuration:
-                  type: string
-                  example: "12 hrs 30 mins"
                 sections:
                   type: array
                   items:
@@ -997,6 +994,26 @@ paths:
         404:
           description: Course not found or unauthorized
 
+  /courses/{id}/publish-request:
+    post:
+      summary: Request admin review to publish a draft or rejected course (Instructor Only)
+      tags:
+        - Course Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9d0"
+      responses:
+        200:
+          description: Course publish request submitted successfully
+        400:
+          description: Only draft or rejected courses can be submitted
+        404:
+          description: Course not found or unauthorized
+
   /courses/{id}/status:
     patch:
       summary: Approve, reject, or change course status (Admin Only)
@@ -1020,11 +1037,14 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [draft, pending, published, rejected]
+                  enum: [draft, pending, published, rejected, suspended]
                   example: published
                 rejectedReason:
                   type: string
                   example: "Thumbnail quality is low and audio requirements are unmet."
+                suspendedReason:
+                  type: string
+                  example: "Instructor violating community guidelines."
                 badge:
                   type: string
                   enum: ["Best Seller", "Top Rated", "New"]
@@ -1338,8 +1358,8 @@ paths:
                           example: "upcoming"
                         totalUsersRegistered:
                           type: number
-                          description: Total count of users enrolled in the session's parent course
-                          example: 45
+                          description: Total count of students who joined the session
+                          example: 10
                         course:
                           type: object
                           properties:
@@ -1460,3 +1480,25 @@ paths:
           description: Live session updated successfully
         404:
           description: Session not found or instructor unauthorized
+
+  /live-sessions/{sessionId}/join:
+    post:
+      summary: Join a live session (Student Only)
+      tags:
+        - Live Sessions Management
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9d9"
+      responses:
+        200:
+          description: Successfully joined live session
+        400:
+          description: Invalid session ID
+        403:
+          description: Must be enrolled in the course to join
+        404:
+          description: Live session not found

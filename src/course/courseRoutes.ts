@@ -10,6 +10,7 @@ import {
   getInstructorCourses,
   updateCourse,
   updateCourseStatus,
+  requestCoursePublish,
 } from "./courseController.js";
 
 const courseRouter = Router();
@@ -37,6 +38,12 @@ courseRouter.delete(
   authenticate,
   authorize(["instructor", "admin"]),
   deleteCourse,
+);
+courseRouter.post(
+  "/:id/publish-request",
+  authenticate,
+  authorize(["instructor"]),
+  requestCoursePublish,
 );
 
 // ─── Admin Routes

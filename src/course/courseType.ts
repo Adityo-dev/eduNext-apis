@@ -53,8 +53,9 @@ export interface ICourse {
   hasCertificate: boolean;
 
   // Status
-  status: "draft" | "pending" | "published" | "rejected";
+  status: "draft" | "pending" | "published" | "rejected" | "suspended";
   rejectedReason?: string | null;
+  suspendedReason?: string | null;
   badge?: "Best Seller" | "Top Rated" | "New" | null;
 
   // Requirements
