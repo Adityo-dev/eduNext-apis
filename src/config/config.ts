@@ -14,6 +14,11 @@ const _config = {
 
   // Bcrypt — default 8 for free-tier CPU
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || "8"),
+
+  // Cloudinary
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
 };
 
 export const config = Object.freeze(_config);

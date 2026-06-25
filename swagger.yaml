@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 # ── global security ──
 security:
@@ -285,6 +285,54 @@ paths:
         404:
           description: User not found
 
+  # 📤 ──────────────── UPLOAD ROUTES ────────────────
+  /upload/image:
+    post:
+      summary: Upload an image file (e.g. avatar, thumbnail) to Cloudinary
+      tags:
+        - Upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file to upload (max 5MB)
+      responses:
+        200:
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Image uploaded successfully"
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        example: "https://res.cloudinary.com/demo/image/upload/v1234567890/edunext_images/xyz.png"
+                      publicId:
+                        type: string
+                        example: "edunext_images/xyz"
+                      format:
+                        type: string
+                        example: "png"
+        400:
+          description: No image file provided or file type not supported
+        500:
+          description: Image upload failed
+
   # 👑 ──────────────── SUPER ADMIN ROUTES ────────────────
   /admin/user-stats:
     get:
@@ -325,19 +373,118 @@ paths:
 
   /admin/users:
     get:
-      summary: Get all registered users (Admin Only)
+      summary: Get all registered users with search & pagination (Admin Only)
       tags:
         - Super Admin Actions
       parameters:
+        - name: search
+          in: query
+          required: false
+          description: Search by first name, last name, or email (case-insensitive)
+          schema:
+            type: string
+            example: "aditto"
         - name: role
           in: query
           required: false
+          description: Filter by user role
           schema:
             type: string
             enum: [student, instructor, admin]
+        - name: status
+          in: query
+          required: false
+          description: Filter by account status
+          schema:
+            type: string
+            enum: [active, suspended]
+        - name: isVerified
+          in: query
+          required: false
+          description: Filter by email verification status
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          required: false
+          description: Page number (default 1)
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of users per page (max 50, default 10)
+          schema:
+            type: integer
+            default: 10
+            example: 10
       responses:
         200:
-          description: List of users retrieved successfully
+          description: Users fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Users fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "65f8a1b2c3d4e5f6a7b8c9d0"
+                            firstName:
+                              type: string
+                              example: "Aditto"
+                            lastName:
+                              type: string
+                              example: "Dev"
+                            email:
+                              type: string
+                              example: "aditto@example.com"
+                            role:
+                              type: string
+                              example: "instructor"
+                            isSuspended:
+                              type: boolean
+                              example: false
+                            isVerified:
+                              type: boolean
+                              example: true
+                            createdAt:
+                              type: string
+                              example: "2025-01-15T10:00:00.000Z"
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            example: 45
+                          page:
+                            type: integer
+                            example: 1
+                          limit:
+                            type: integer
+                            example: 10
+                          totalPages:
+                            type: integer
+                            example: 5
+        401:
+          description: Unauthorized - Invalid or missing token
+        403:
+          description: Forbidden - Admin access required
 
   /admin/users/{id}/status:
     patch:

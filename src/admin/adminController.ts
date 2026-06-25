@@ -31,31 +31,65 @@ export const getUserManagementStats = async (
   }
 };
 
-// 2. Get all users with optional filters (Get All Users)
+// 2. Get all users with optional filters, search & pagination (Get All Users)
 export const getAllUsers = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
-  const { role, status, isVerified } = req.query;
+  try {
+    const {
+      role,
+      status,
+      isVerified,
+      search,
+      page = "1",
+      limit = "10",
+    } = req.query;
 
-  // Default filter
-  const filter: any = {};
-  if (role) filter.role = role;
-  if (isVerified) filter.isVerified = isVerified === "true";
+    // Build filter
+    const filter: any = {};
+    if (role) filter.role = role;
+    if (isVerified !== undefined) filter.isVerified = isVerified === "true";
 
-  // status: "active" | "suspended"
-  if (status) {
+    // status: "active" | "suspended"
     if (status === "suspended") filter.isSuspended = true;
     if (status === "active") filter.isSuspended = false;
+
+    // Search by name or email
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.min(50, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [users, total] = await Promise.all([
+      AuthModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+      AuthModel.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: {
+        users,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-
-  const users = await AuthModel.find(filter).sort({ createdAt: -1 });
-
-  res.status(200).json({
-    success: true,
-    count: users.length,
-    data: users,
-  });
 };
 
 // 3. Update User Status / Suspend & Activate User
@@ -64,7 +98,7 @@ export const updateUserStatus = async (
   res: Response,
 ): Promise<void> => {
   const { id } = req.params;
-  const { status } = req.body; // 'active' | 'suspended'
+  const { status } = req.body;
 
   if (!status || !["active", "suspended"].includes(status)) {
     res.status(400);
@@ -96,8 +130,7 @@ export const verifyInstructor = async (
   res: Response,
 ): Promise<void> => {
   const { id } = req.params;
-  const { status } = req.body; // 'approved' | 'rejected'
-
+  const { status } = req.body;
   if (!status || !["approved", "rejected"].includes(status)) {
     res.status(400);
     throw new Error(

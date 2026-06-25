@@ -74,11 +74,11 @@ export const createCourse = async (
     } = req.body;
 
     // Validation
-    if (!title || !subtitle || !description || !price || !category) {
+    if (!title || !subtitle || !description || !price || !category || !thumbnail) {
       return next(
         createHttpError(
           400,
-          "Please provide all required fields (title, subtitle, description, price, category)",
+          "Please provide all required fields (title, subtitle, description, price, category, thumbnail)",
         ),
       );
     }

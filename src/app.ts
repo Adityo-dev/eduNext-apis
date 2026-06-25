@@ -10,6 +10,7 @@ import enrollmentRouter from "./enrollment/enrollmentRoutes.js";
 import liveSessionRouter from "./liveSession/liveSessionRoutes.js";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
 import ReviewRouter from "./review/reviewRoutes.js";
+import uploadRouter from "./upload/uploadRoutes.js";
 
 const app = express();
 
@@ -49,6 +50,9 @@ app.use("/api/v1/live-sessions", liveSessionRouter);
 
 // review router
 app.use("/api/v1/reviews", ReviewRouter);
+
+// Upload routes ->
+app.use("/api/v1/upload", uploadRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);

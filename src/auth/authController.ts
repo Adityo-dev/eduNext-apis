@@ -117,6 +117,7 @@ export const signup = async (
     if (userEmailExists) {
       return next(createHttpError(400, "User already exists with this email"));
     }
+    
     if (userPhoneExists) {
       return next(
         createHttpError(400, "User already exists with this phone number"),
