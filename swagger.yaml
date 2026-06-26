@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 # ── global security ──
 security:
@@ -25,10 +25,10 @@ components:
 paths:
   /auth/signup:
     post:
-      summary: Register a new user (Student/Instructor with Expertise)
+      summary: Register a new user (Student/Instructor)
       tags:
         - Authentication
-      security: [] # Public
+      security: []
       requestBody:
         required: true
         content:
@@ -81,45 +81,28 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Registration successful. Please verify your email."
+                    example: "Registration completed successfully. Verification OTP sent to your email."
                   user:
                     type: object
                     properties:
                       id:
                         type: string
                         example: "60a75b..."
-                      firstName:
-                        type: string
-                        example: Aditto
-                      lastName:
-                        type: string
-                        example: Dev
-                      fullName:
-                        type: string
-                        example: Aditto Dev
                       email:
                         type: string
                         example: aditto@example.com
-                      phone:
-                        type: string
-                        example: "01712345678"
                       role:
                         type: string
                         example: instructor
-                      areaOfExpertise:
-                        type: array
-                        items:
-                          type: string
-                        example: ["Next.js", "TypeScript", "React"]
         400:
-          description: Validation error or User already exists
+          description: Validation error / Missing fields / Account already exists
 
   /auth/login:
     post:
       summary: Login user and get token
       tags:
         - Authentication
-      security: [] # Public
+      security: []
       requestBody:
         required: true
         content:
@@ -149,7 +132,7 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Logged in successfully"
+                    example: "Authentication successful. Welcome back!"
                   token:
                     type: string
                     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -159,42 +142,31 @@ paths:
                       id:
                         type: string
                         example: "60a75b..."
-                      firstName:
-                        type: string
-                        example: Aditto
-                      lastName:
-                        type: string
-                        example: Dev
                       fullName:
                         type: string
                         example: Aditto Dev
                       email:
                         type: string
                         example: aditto@example.com
-                      phone:
-                        type: string
-                        example: "01712345678"
                       role:
                         type: string
                         example: instructor
-                      areaOfExpertise:
-                        type: array
-                        items:
-                          type: string
-                        example: ["Next.js", "TypeScript", "React"]
+                      badge:
+                        type: string
+                        example: "none"
         400:
-          description: Please provide email and password
+          description: Missing email or password
         401:
-          description: Invalid email or password / Email not registered
+          description: Email not registered / Incorrect credentials
         403:
-          description: Forbidden - Account suspended, pending admin approval, or email not verified
+          description: Email not verified / Account suspended
 
   /auth/verify-otp:
     post:
-      summary: Verify user email with OTP (Auto-login supported)
+      summary: Verify user email with OTP
       tags:
         - Authentication
-      security: [] # Public
+      security: []
       requestBody:
         required: true
         content:
@@ -213,7 +185,7 @@ paths:
                   example: "123456"
       responses:
         200:
-          description: Email verified successfully. Returns JWT token.
+          description: Email identity verified successfully
           content:
             application/json:
               schema:
@@ -224,7 +196,7 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Email verified successfully!"
+                    example: "Email identity verified successfully."
                   token:
                     type: string
                     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -244,16 +216,16 @@ paths:
                         type: string
                         example: instructor
         400:
-          description: Invalid or expired OTP / Missing required fields
+          description: Invalid or expired OTP / Missing fields
         404:
-          description: User not found
+          description: User account not found
 
   /auth/resend-otp:
     post:
-      summary: Delete old OTPs and send a new one
+      summary: Resend a fresh verification OTP
       tags:
         - Authentication
-      security: [] # Public
+      security: []
       requestBody:
         required: true
         content:
@@ -268,7 +240,7 @@ paths:
                   example: aditto@example.com
       responses:
         200:
-          description: New OTP sent successfully
+          description: Fresh OTP dispatched successfully
           content:
             application/json:
               schema:
@@ -279,11 +251,265 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "A new OTP has been sent to your email."
+                    example: "A fresh verification OTP has been dispatched to your email."
         400:
-          description: Email is required
+          description: Email parameter is required
         404:
-          description: User not found
+          description: No user account linked to this email
+
+  /auth/forgot-password:
+    post:
+      summary: Request a recovery OTP code for forgotten password
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: aditto@example.com
+      responses:
+        200:
+          description: Password recovery OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "A password recovery code has been routed to your email."
+        400:
+          description: Account email is required
+        404:
+          description: No account associated with this email
+
+  /auth/reset-password:
+    post:
+      summary: Reset password using verification recovery OTP
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+                - newPassword
+              properties:
+                email:
+                  type: string
+                  example: aditto@example.com
+                otp:
+                  type: string
+                  example: "123456"
+                newPassword:
+                  type: string
+                  example: "newSecurePass123"
+      responses:
+        200:
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Your account password has been reset successfully. Proceed to login."
+        400:
+          description: Missing parameters / Wrong or expired OTP / Password too short
+
+  /auth/change-password:
+    patch:
+      summary: Change account password while logged in
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  example: "password123"
+                newPassword:
+                  type: string
+                  example: "myNewSecretPassword99"
+      responses:
+        200:
+          description: Security password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Security password updated successfully."
+        400:
+          description: Missing required fields / New password too short
+        401:
+          description: Current password statement is incorrect
+        404:
+          description: User session not found
+
+  /auth/profile:
+    get:
+      summary: Fetch user profile dashboard with completion progress
+      tags:
+        - Profile
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Profile dashboard details returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  profileProgress:
+                    type: string
+                    example: "60%"
+                  user:
+                    type: object
+        404:
+          description: Profile not found
+
+  /auth/profile-update:
+    patch:
+      summary: Update profile details and calculate live completion progress
+      tags:
+        - Profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: Aditto
+                lastName:
+                  type: string
+                  example: Dev
+                phone:
+                  type: string
+                  example: "01712345678"
+                bio:
+                  type: string
+                  example: "Senior Frontend Web Developer specializing in UI UX"
+                avatar:
+                  type: string
+                  example: "https://example.com/uploads/avatar.jpg"
+                coverPhoto:
+                  type: string
+                  example: "https://example.com/uploads/cover.jpg"
+                linkedinUrl:
+                  type: string
+                  example: "https://linkedin.com/in/adittodev"
+                githubUrl:
+                  type: string
+                  example: "https://github.com/adittodev"
+                skills:
+                  type: array
+                  items:
+                    type: string
+                  example: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
+      responses:
+        200:
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Profile dashboard updated successfully."
+                  profileProgress:
+                    type: string
+                    example: "80%"
+                  user:
+                    type: object
+        404:
+          description: User account not found
+
+  /auth/request-badge:
+    post:
+      summary: Apply for a milestone profile tier badge (Bronze, Silver, Blue)
+      tags:
+        - Profile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - targetBadge
+              properties:
+                targetBadge:
+                  type: string
+                  enum: [bronze, silver, blue]
+                  example: silver
+      responses:
+        200:
+          description: Badge request queued for admin review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Your application for SILVER tier badge has been queued for admin verification."
+        400:
+          description: Invalid badge type / Insufficient profile completion percentage
+        404:
+          description: User details not found
 
   # 📤 ──────────────── UPLOAD ROUTES ────────────────
   /upload/image:

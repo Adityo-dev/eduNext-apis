@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import AuthModel from "../auth/authModel.js";
+import AuthModel from "../auth/models/authModel.js";
 
 // 1.Get User Management Stats
 export const getUserManagementStats = async (
@@ -125,39 +125,39 @@ export const updateUserStatus = async (
 };
 
 // 4.  (Instructor Verification)
-export const verifyInstructor = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const { id } = req.params;
-  const { status } = req.body;
-  if (!status || !["approved", "rejected"].includes(status)) {
-    res.status(400);
-    throw new Error(
-      "Please provide a valid verification status (approved or rejected)",
-    );
-  }
+// export const verifyInstructor = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<void> => {
+//   const { id } = req.params;
+//   const { status } = req.body;
+//   if (!status || !["approved", "rejected"].includes(status)) {
+//     res.status(400);
+//     throw new Error(
+//       "Please provide a valid verification status (approved or rejected)",
+//     );
+//   }
 
-  const instructor = await AuthModel.findById(id);
-  if (!instructor) {
-    res.status(404);
-    throw new Error("Instructor profile not found");
-  }
+//   const instructor = await AuthModel.findById(id);
+//   if (!instructor) {
+//     res.status(404);
+//     throw new Error("Instructor profile not found");
+//   }
 
-  if (instructor.role !== "instructor") {
-    res.status(400);
-    throw new Error("This user is not an instructor");
-  }
+//   if (instructor.role !== "instructor") {
+//     res.status(400);
+//     throw new Error("This user is not an instructor");
+//   }
 
-  instructor.isVerified = status === "approved";
-  await instructor.save();
+//   instructor.isVerified = status === "approved";
+//   await instructor.save();
 
-  res.status(200).json({
-    success: true,
-    message: `Instructor status has been updated to ${status}`,
-    data: instructor,
-  });
-};
+//   res.status(200).json({
+//     success: true,
+//     message: `Instructor status has been updated to ${status}`,
+//     data: instructor,
+//   });
+// };
 
 // 5. Permanently Delete a User
 export const deleteUser = async (

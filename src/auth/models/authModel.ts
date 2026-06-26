@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import type { IUserDocument } from "./authType.js";
+import type { IUserDocument } from "../authType.js";
 
 const authSchema = new Schema<IUserDocument>(
   {
@@ -47,11 +47,45 @@ const authSchema = new Schema<IUserDocument>(
       type: [String],
       default: [],
     },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
+    avatar: {
+      type: String,
+      default: "",
     },
-    isVerified: {
+    coverPhoto: {
+      type: String,
+      default: "",
+    },
+    bio: {
+      type: String,
+      default: "",
+    },
+    linkedinUrl: {
+      type: String,
+      default: "",
+    },
+    githubUrl: {
+      type: String,
+      default: "",
+    },
+    badge: {
+      type: String,
+      enum: ["none", "bronze", "silver", "blue"],
+      default: "none",
+    },
+    badgeRequest: {
+      requestedBadge: {
+        type: String,
+        enum: ["none", "bronze", "silver", "blue"],
+        default: "none",
+      },
+      status: {
+        type: String,
+        enum: ["none", "pending", "approved", "rejected"],
+        default: "none",
+      },
+      requestedAt: { type: Date },
+    },
+    isEmailVerified: {
       type: Boolean,
       default: false,
     },
@@ -65,6 +99,13 @@ const authSchema = new Schema<IUserDocument>(
     versionKey: false,
   },
 );
+
+// Dynamic Fullname Generate
+authSchema.pre("save", function () {
+  if (this.firstName || this.lastName) {
+    this.fullName = `${this.firstName} ${this.lastName}`.trim();
+  }
+});
 
 const AuthModel = model<IUserDocument>("User", authSchema);
 export default AuthModel;

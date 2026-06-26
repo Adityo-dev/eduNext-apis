@@ -1,24 +1,33 @@
 import { Document } from "mongoose";
 
-// User Role
 export type UserRole = "student" | "instructor" | "admin";
+export type BadgeType = "none" | "bronze" | "silver" | "blue";
+export type RequestStatus = "none" | "pending" | "approved" | "rejected";
 
-// User Interface
 export interface IUser {
-  fullName: string;
-  lastName: string;
   firstName: string;
+  lastName: string;
+  fullName: string;
   email: string;
   phone: string;
   password: string;
   role: UserRole;
   areaOfExpertise: string[];
+  avatar: string;
+  coverPhoto: string;
+  bio: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  badge: BadgeType;
+  badgeRequest: {
+    requestedBadge: BadgeType;
+    status: RequestStatus;
+    requestedAt?: Date;
+  };
   isEmailVerified: boolean;
-  isVerified: boolean;
   isSuspended: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// User Document
 export interface IUserDocument extends IUser, Document {}

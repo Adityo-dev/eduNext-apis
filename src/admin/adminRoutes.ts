@@ -5,7 +5,6 @@ import {
   getAllUsers,
   getUserManagementStats,
   updateUserStatus,
-  verifyInstructor,
 } from "./adminController.js";
 
 const adminRouter = Router();
@@ -14,7 +13,7 @@ const adminRouter = Router();
 adminRouter.get("/user-stats", getUserManagementStats);
 adminRouter.get("/users", getAllUsers);
 adminRouter.patch("/users/:id/status", updateUserStatus);
-adminRouter.patch("/instructors/:id/verify", verifyInstructor);
+// adminRouter.patch("/instructors/:id/verify", verifyInstructor);
 adminRouter.delete("/users/:id", deleteUser);
 
 export default adminRouter;
