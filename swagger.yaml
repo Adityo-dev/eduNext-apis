@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 # ── global security ──
 security:
@@ -343,7 +343,7 @@ paths:
       tags:
         - Authentication
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -381,13 +381,15 @@ paths:
         404:
           description: User session not found
 
+  # 📤 ──────────────── Profile ROUTES ────────────────
+
   /auth/profile:
     get:
       summary: Fetch user profile dashboard with completion progress
       tags:
         - Profile
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       responses:
         200:
           description: Profile dashboard details returned successfully
@@ -413,7 +415,7 @@ paths:
       tags:
         - Profile
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -478,7 +480,7 @@ paths:
       tags:
         - Profile
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -510,6 +512,50 @@ paths:
           description: Invalid badge type / Insufficient profile completion percentage
         404:
           description: User details not found
+
+  /auth/change-password:
+    patch:
+      summary: Change account password while logged in
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  example: "password123"
+                newPassword:
+                  type: string
+                  example: "myNewSecretPassword99"
+      responses:
+        200:
+          description: Security password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Security password updated successfully."
+        400:
+          description: Missing required fields / New password too short
+        401:
+          description: Current password statement is incorrect
+        404:
+          description: User session not found
 
   # 📤 ──────────────── UPLOAD ROUTES ────────────────
   /upload/image:

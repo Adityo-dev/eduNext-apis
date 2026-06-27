@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticate } from "../middlewares/auth.middleware.js";
 import { login } from "./controllers/loginController.js";
 import {
   changePassword,
@@ -15,7 +16,6 @@ import {
   signup,
   verifyOtp,
 } from "./controllers/registerController.js";
-// import { authMiddleware } from "../../middlewares/authMiddleware.js";
 
 const authRouter = Router();
 
@@ -28,9 +28,9 @@ authRouter.post("/login", login);
 authRouter.post("/forgot-password", forgotPassword);
 authRouter.post("/reset-password", resetPassword);
 
-authRouter.get("/profile", getProfile);
-authRouter.patch("/profile-update", updateProfile);
-authRouter.post("/request-badge", requestBadge);
-authRouter.patch("/change-password", changePassword);
+authRouter.get("/profile", authenticate, getProfile);
+authRouter.patch("/profile-update", authenticate, updateProfile);
+authRouter.post("/request-badge", authenticate, requestBadge);
+authRouter.patch("/change-password", authenticate, changePassword);
 
 export default authRouter;
