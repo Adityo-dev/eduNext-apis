@@ -4,10 +4,11 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: http://localhost:5000/api/v1
-    description: Local Development Server
   - url: https://edunext-apis.onrender.com/api/v1
     description: Production Server (Render)
+  - url: http://localhost:5000/api/v1
+    description: Local Development Server
+
 
 # ── global security ──
 security:
@@ -476,7 +477,7 @@ paths:
 
   /auth/request-badge:
     post:
-      summary: Apply for a milestone profile tier badge (Bronze, Silver, Blue)
+      summary: Apply for a milestone profile tier badge (bronze, silver, blue)
       tags:
         - Profile
       security:
