@@ -1,15 +1,19 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../middlewares/auth.middleware.js";
+import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
   createLiveSession,
+  updateLiveSession,
+} from "../controllers/createSessionController.js";
+import {
   getCourseLiveSessions,
   getInstructorDashboardLiveSessions,
-  getInstructorLiveSessionsStats,
   getStudentDashboardLiveSessions,
+} from "../controllers/getSessionController.js";
+import { joinLiveSession } from "../controllers/joinSessionController.js";
+import {
+  getInstructorLiveSessionsStats,
   getStudentLiveSessionsStats,
-  joinLiveSession,
-  updateLiveSession,
-} from "./liveSessionController.js";
+} from "../controllers/statsSessionController.js";
 
 const liveSessionRouter = Router();
 

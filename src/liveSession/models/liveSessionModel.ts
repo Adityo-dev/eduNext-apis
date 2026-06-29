@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import type { ILiveSession } from "./liveSessionType.js";
+import type { ILiveSession } from "../types/liveSessionType.js";
 
 const liveSessionSchema = new Schema<ILiveSession>(
   {
