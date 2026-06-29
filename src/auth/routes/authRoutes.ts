@@ -1,21 +1,21 @@
 import { Router } from "express";
-import { authenticate } from "../middlewares/auth.middleware.js";
-import { login } from "./controllers/loginController.js";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { login } from "../controllers/loginController.js";
 import {
   changePassword,
   forgotPassword,
   resetPassword,
-} from "./controllers/passwordController.js";
+} from "../controllers/passwordController.js";
 import {
   getProfile,
   requestBadge,
   updateProfile,
-} from "./controllers/profileController.js";
+} from "../controllers/profileController.js";
 import {
   resendOtp,
   signup,
   verifyOtp,
-} from "./controllers/registerController.js";
+} from "../controllers/registerController.js";
 
 const authRouter = Router();
 
