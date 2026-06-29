@@ -11,6 +11,7 @@ export interface ILiveSession extends Document {
   durationInMins: number;
   status: "upcoming" | "live" | "completed";
   joinedStudents: Types.ObjectId[];
+  isReminderSent?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

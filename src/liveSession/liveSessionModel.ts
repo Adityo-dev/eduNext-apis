@@ -30,7 +30,7 @@ const liveSessionSchema = new Schema<ILiveSession>(
     },
     meetingPlatform: {
       type: String,
-      enum: ["Zoom", "Google Meet"],
+      enum: ["Zoom", "Google Meet", "Custom"],
       default: "Zoom",
     },
     startTime: {
@@ -46,6 +46,10 @@ const liveSessionSchema = new Schema<ILiveSession>(
       type: String,
       enum: ["upcoming", "live", "completed"],
       default: "upcoming",
+    },
+    isReminderSent: {
+      type: Boolean,
+      default: false,
     },
     joinedStudents: [
       {

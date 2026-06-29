@@ -7,8 +7,8 @@ import {
   getInstructorLiveSessionsStats,
   getStudentDashboardLiveSessions,
   getStudentLiveSessionsStats,
-  updateLiveSession,
   joinLiveSession,
+  updateLiveSession,
 } from "./liveSessionController.js";
 
 const liveSessionRouter = Router();
