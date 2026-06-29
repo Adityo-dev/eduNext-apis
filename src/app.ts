@@ -7,7 +7,7 @@ import adminRouter from "./admin/adminRoutes.js";
 import authRouter from "./auth/routes/authRoutes.js";
 import courseRouter from "./course/courseRoutes.js";
 import enrollmentRouter from "./enrollment/enrollmentRoutes.js";
-import liveSessionRouter from "./liveSession/liveSessionRoutes.js";
+import liveSessionRouter from "./liveSession/routes/liveSessionRoutes.js";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
 import ReviewRouter from "./review/reviewRoutes.js";
 import uploadRouter from "./upload/uploadRoutes.js";
