@@ -17,12 +17,12 @@ export const verifySMTPConnection = async (): Promise<void> => {
 
   if (!brevoApiKey || !brevoSenderEmail) {
     console.error(
-      "❌ Email service configuration is incomplete. Check BREVO_API_KEY and BREVO_SENDER_EMAIL.",
+      "Email service configuration is incomplete. Check BREVO_API_KEY and BREVO_SENDER_EMAIL.",
     );
     return;
   }
 
-  console.log("✅ Brevo email service configuration loaded.");
+  console.log("Brevo email service configuration loaded.");
 };
 
 /**
@@ -57,10 +57,10 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 
     const data = await response.json();
     console.log(
-      `✉️ Email successfully sent to: ${options.email} (messageId: ${data.messageId})`,
+      `Email successfully sent to: ${options.email} (messageId: ${data.messageId})`,
     );
   } catch (error) {
-    console.error("❌ Brevo Error: Failed to dispatch email.", error);
+    console.error("Brevo Error: Failed to dispatch email.", error);
     throw new Error(
       "Email could not be dispatched. Please verify your Brevo credentials.",
     );

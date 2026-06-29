@@ -20,5 +20,5 @@
     "command": "npm run lint",
     "runOn": "folderOpen"
   },
-  "cSpell.words": ["edunext"]
+  "cSpell.words": ["Brevo", "edunext"]
 }
