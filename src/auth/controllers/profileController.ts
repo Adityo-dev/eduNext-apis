@@ -11,6 +11,7 @@ const computeProgress = (user: any): number => {
   return score;
 };
 
+// Get My Profile
 export const getProfile = async (
   req: any,
   res: Response,

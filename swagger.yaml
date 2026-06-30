@@ -1,4 +1,4 @@
-openapi: 3.0.0
+﻿openapi: 3.0.0
 info:
   title: EduNext API Documentation
   version: 1.0.0
@@ -10,7 +10,7 @@ servers:
     description: Local Development Server
 
 
-# ── global security ──
+# â”€â”€ global security â”€â”€
 security:
   - bearerAuth: []
 
@@ -22,7 +22,7 @@ components:
       bearerFormat: JWT
       description: Enter your JWT token here (Without 'Bearer ' prefix).
 
-# 🌐 ──────────────── AUTH ROUTES ────────────────
+# ðŸŒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ AUTH ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 paths:
   /auth/signup:
     post:
@@ -382,7 +382,7 @@ paths:
         404:
           description: User session not found
 
-  # 📤 ──────────────── Profile ROUTES ────────────────
+  # ðŸ“¤ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Profile ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /auth/profile:
     get:
@@ -558,7 +558,7 @@ paths:
         404:
           description: User session not found
 
-  # 📤 ──────────────── UPLOAD ROUTES ────────────────
+  # ðŸ“¤ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ UPLOAD ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /upload/image:
     post:
       summary: Upload an image file (e.g. avatar, thumbnail) to Cloudinary
@@ -606,7 +606,7 @@ paths:
         500:
           description: Image upload failed
 
-  # 👑 ──────────────── SUPER ADMIN ROUTES ────────────────
+  # ðŸ‘‘ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ SUPER ADMIN ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /admin/user-stats:
     get:
       summary: Get user management stats cards data (Admin Only)
@@ -836,7 +836,7 @@ paths:
         200:
           description: User deleted successfully
 
-  # 📚 ──────────────── COURSE ROUTES ────────────────
+  # ðŸ“š â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ COURSE ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /courses:
     post:
       summary: Create a new course with full curriculum (Instructor Only)
@@ -882,8 +882,8 @@ paths:
                   example: Beginner
                 language:
                   type: string
-                  enum: ["বাংলা", "English"]
-                  example: "বাংলা"
+                  enum: ["à¦¬à¦¾à¦‚à¦²à¦¾", "English"]
+                  example: "à¦¬à¦¾à¦‚à¦²à¦¾"
                 tags:
                   type: array
                   items:
@@ -979,7 +979,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ["বাংলা", "English"]
+            enum: ["à¦¬à¦¾à¦‚à¦²à¦¾", "English"]
         - name: minPrice
           in: query
           required: false
@@ -1194,7 +1194,7 @@ paths:
                   enum: [Beginner, Intermediate, Advanced]
                 language:
                   type: string
-                  enum: ["বাংলা", "English"]
+                  enum: ["à¦¬à¦¾à¦‚à¦²à¦¾", "English"]
                 tags:
                   type: array
                   items:
@@ -1330,7 +1330,7 @@ paths:
         404:
           description: Course not found
 
-  # 💳 ──────────────── ENROLLMENT ROUTES ────────────────
+  # ðŸ’³ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ENROLLMENT ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /enrollments/enroll:
     post:
       summary: Enroll/Purchase a course (Student Only)
@@ -1365,7 +1365,7 @@ paths:
         200:
           description: Enrolled courses fetched successfully
 
-  # ⭐️ ──────────────── RATING & REVIEWS ROUTES ────────────────
+  # â­ï¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ RATING & REVIEWS ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /reviews:
     post:
       summary: Add a rating and review to a purchased course (Student Only)
@@ -1416,8 +1416,7 @@ paths:
         200:
           description: Reviews fetched successfully
 
-  # 🎥 ──────────────── LIVE SESSIONS ROUTES ────────────────
-  # 📊 ──────────────── LIVE SESSIONS ANALYTICS (STATS) ────────────────
+  # ðŸŽ¥ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ LIVE SESSIONS ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /live-sessions/student/stats:
     get:
       summary: Get live session analytics for student dashboard
@@ -1484,7 +1483,7 @@ paths:
                         type: number
                         example: 1
 
-  # 🎥 ──────────────── DASHBOARD SESSION LISTINGS ────────────────
+  # ðŸŽ¥ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ DASHBOARD SESSION LISTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /live-sessions/student/dashboard:
     get:
       summary: Get all filtered live sessions for enrolled student dashboard
@@ -1643,7 +1642,7 @@ paths:
                               type: string
                               example: "Complete Web Development Bootcamp"
 
-  # 🛠️ ──────────────── CRUD OPERATIONS & COURSE LISTINGS ────────────────
+  # ðŸ› ï¸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ CRUD OPERATIONS & COURSE LISTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /live-sessions:
     post:
       summary: Schedule a new live session (Instructor Only)
@@ -1775,3 +1774,458 @@ paths:
           description: Must be enrolled in the course to join
         404:
           description: Live session not found
+
+
+# â­ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ REVIEWS ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  /reviews/course/{courseId}:
+    get:
+      summary: Get all published reviews for a course (Public)
+      description: >
+        Returns only **published** reviews for a specific course.
+        No authentication required. Use this endpoint for public course detail pages.
+      tags:
+        - Course Reviews & Ratings
+      security: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9d0"
+          description: The MongoDB ObjectId of the course
+      responses:
+        200:
+          description: Published reviews fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Course reviews fetched successfully
+                  total:
+                    type: integer
+                    example: 12
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "65f8a1b2c3d4e5f6a7b8c9e1"
+                        student:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            firstName:
+                              type: string
+                              example: Sumaiya
+                            lastName:
+                              type: string
+                              example: Akter
+                            avatar:
+                              type: string
+                              example: "https://example.com/avatar.jpg"
+                        rating:
+                          type: number
+                          example: 5
+                        comment:
+                          type: string
+                          example: This course completely changed my life! Best instructor on EduNext.
+                        status:
+                          type: string
+                          example: published
+                        createdAt:
+                          type: string
+                          format: date-time
+
+  /reviews:
+    post:
+      summary: Submit a course review (Student Only â€” Enrolled)
+      description: >
+        A **student** can submit a review for a course they are **enrolled in**.
+        The review is saved with `status: pending` and goes to admin for approval.
+        Each student can only review a course **once**.
+      tags:
+        - Course Reviews & Ratings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - courseId
+                - rating
+                - comment
+              properties:
+                courseId:
+                  type: string
+                  example: "65f8a1b2c3d4e5f6a7b8c9d0"
+                  description: The MongoDB ObjectId of the enrolled course
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                comment:
+                  type: string
+                  example: This course completely changed my life! Best instructor on EduNext.
+      responses:
+        201:
+          description: Review submitted â€” pending admin approval
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Review submitted successfully. It will be visible after admin approval.
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      student:
+                        type: string
+                      course:
+                        type: string
+                      rating:
+                        type: number
+                        example: 5
+                      comment:
+                        type: string
+                      status:
+                        type: string
+                        example: pending
+                      createdAt:
+                        type: string
+                        format: date-time
+        400:
+          description: courseId, rating or comment missing â€” or already reviewed this course
+        403:
+          description: Not enrolled in this course
+        401:
+          description: Unauthorized â€” token required
+
+  /reviews/instructor/dashboard:
+    get:
+      summary: Get instructor's course reviews with pagination & filter (Instructor Only)
+      description: >
+        Returns all **published** reviews across all courses belonging to the authenticated instructor.
+        Supports **pagination** via `page` & `limit` query params, and an optional **courseId** filter
+        to narrow down reviews to a specific course â€” matching the Instructor Reviews Dashboard UI.
+      tags:
+        - Course Reviews & Ratings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            example: 1
+          description: Page number (default 1)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            example: 10
+          description: Number of reviews per page (max 50, default 10)
+        - name: courseId
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9d0"
+          description: Filter reviews by a specific course ID (optional)
+      responses:
+        200:
+          description: Instructor reviews fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Instructor reviews fetched successfully
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        student:
+                          type: object
+                          properties:
+                            firstName:
+                              type: string
+                              example: Nusrat
+                            lastName:
+                              type: string
+                              example: Jahan
+                            avatar:
+                              type: string
+                        course:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                              example: Complete Web Development Bootcamp
+                            thumbnail:
+                              type: string
+                        rating:
+                          type: number
+                          example: 4
+                        comment:
+                          type: string
+                          example: Great course. Very detailed and practical.
+                        status:
+                          type: string
+                          example: published
+                        createdAt:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+                    example: 42
+                  page:
+                    type: integer
+                    example: 1
+                  limit:
+                    type: integer
+                    example: 10
+                  totalPages:
+                    type: integer
+                    example: 5
+        401:
+          description: Unauthorized â€” token required
+        403:
+          description: Only instructors can access this endpoint
+
+  /reviews/admin/pending:
+    get:
+      summary: Get all pending reviews (Admin Only)
+      description: >
+        Returns all reviews with `status: pending` across all courses.
+        Admin reviews these and decides to **publish** or **reject** them.
+      tags:
+        - Course Reviews & Ratings
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Pending reviews fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Pending reviews fetched successfully
+                  total:
+                    type: integer
+                    example: 5
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "65f8a1b2c3d4e5f6a7b8c9e2"
+                        student:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            firstName:
+                              type: string
+                              example: Arif
+                            lastName:
+                              type: string
+                              example: Hossain
+                            email:
+                              type: string
+                              example: arif@example.com
+                            avatar:
+                              type: string
+                        course:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            title:
+                              type: string
+                              example: ReactJS Advanced Masterclass
+                            thumbnail:
+                              type: string
+                        rating:
+                          type: number
+                          example: 5
+                        comment:
+                          type: string
+                          example: The best React course I have ever taken!
+                        status:
+                          type: string
+                          example: pending
+                        createdAt:
+                          type: string
+                          format: date-time
+        401:
+          description: Unauthorized â€” token required
+        403:
+          description: Only admins can access this endpoint
+
+  /reviews/admin/{reviewId}/publish:
+    patch:
+      summary: Publish a pending review (Admin Only)
+      description: >
+        Sets the review `status` to `published`.
+        After publishing, the course's **average rating is recalculated** using only published reviews.
+      tags:
+        - Course Reviews & Ratings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9e2"
+          description: The MongoDB ObjectId of the review to publish
+      responses:
+        200:
+          description: Review published and course rating updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Review published successfully
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      status:
+                        type: string
+                        example: published
+                      rating:
+                        type: number
+                        example: 5
+                      comment:
+                        type: string
+        400:
+          description: Invalid reviewId or review already published
+        401:
+          description: Unauthorized â€” token required
+        403:
+          description: Only admins can access this endpoint
+        404:
+          description: Review not found
+
+  /reviews/admin/{reviewId}/reject:
+    patch:
+      summary: Reject a pending review with reason (Admin Only)
+      description: >
+        Sets the review `status` to `rejected` and saves the provided `rejectionReason`.
+        The **rejection reason is required**.
+        After rejection, the course's average rating is recalculated (excluding this review).
+      tags:
+        - Course Reviews & Ratings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9e2"
+          description: The MongoDB ObjectId of the review to reject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rejectionReason
+              properties:
+                rejectionReason:
+                  type: string
+                  example: This review contains inappropriate language and violates our community guidelines.
+                  description: A clear reason explaining why the review was rejected (shown to admin records)
+      responses:
+        200:
+          description: Review rejected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Review rejected successfully
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      status:
+                        type: string
+                        example: rejected
+                      rejectionReason:
+                        type: string
+                        example: This review contains inappropriate language.
+                      rating:
+                        type: number
+                        example: 1
+                      comment:
+                        type: string
+        400:
+          description: Invalid reviewId, rejection reason missing, or review already rejected
+        401:
+          description: Unauthorized â€” token required
+        403:
+          description: Only admins can access this endpoint
+        404:
+          description: Review not found
+
