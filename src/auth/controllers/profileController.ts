@@ -131,36 +131,48 @@ export const requestBadge = async (
       );
     }
 
-    const progress = computeProgress(user);
     const { targetBadge } = req.body;
+    const currentBadge = user.badge || "none";
 
-    if (!["bronze", "silver", "blue"].includes(targetBadge)) {
+    const badgeTiers = ["none", "bronze", "silver", "blue"];
+    const currentRank = badgeTiers.indexOf(currentBadge);
+    const targetRank = badgeTiers.indexOf(targetBadge);
+
+    if (targetRank === -1) {
       return next(createHttpError(400, "Invalid tier badge request type."));
     }
 
-    if (targetBadge === "bronze" && progress < 50) {
+    if (targetRank <= currentRank) {
       return next(
         createHttpError(
           400,
-          "Requires at least 50% profile completion for Bronze Tier.",
+          `You cannot apply for ${targetBadge.toUpperCase()} because you already have an equal or higher badge.`,
         ),
       );
     }
 
-    if (targetBadge === "silver" && progress < 75) {
+    if (user.badgeRequest?.status === "pending") {
       return next(
         createHttpError(
           400,
-          "Requires at least 75% profile completion for Silver Tier.",
+          "You already have a pending badge request. Please wait for admin approval.",
         ),
       );
     }
 
-    if (targetBadge === "blue" && progress < 90) {
+    const badgeRequirements: Record<string, number> = {
+      bronze: 50,
+      silver: 75,
+      blue: 90,
+    };
+    const progress = computeProgress(user);
+    const requiredMin = badgeRequirements[targetBadge];
+
+    if (requiredMin !== undefined && progress < requiredMin) {
       return next(
         createHttpError(
           400,
-          "Requires at least 90% profile completion for Blue Verified Tier.",
+          `Requires at least ${requiredMin}% profile completion for ${targetBadge.toUpperCase()} Tier.`,
         ),
       );
     }
