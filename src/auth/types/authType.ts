@@ -13,6 +13,7 @@ export interface IUser {
   password: string;
   role: UserRole;
   areaOfExpertise: string[];
+  experienceYears: number;
   avatar: string;
   coverPhoto: string;
   bio: string;

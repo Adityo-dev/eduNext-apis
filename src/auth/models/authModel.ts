@@ -47,6 +47,10 @@ const authSchema = new Schema<IUserDocument>(
       type: [String],
       default: [],
     },
+    experienceYears: {
+      type: Number,
+      default: 0,
+    },
     avatar: {
       type: String,
       default: "",
