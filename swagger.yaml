@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 # â”€â”€ global security â”€â”€
@@ -22,7 +22,7 @@ components:
       bearerFormat: JWT
       description: Enter your JWT token here (Without 'Bearer ' prefix).
 
-# ðŸŒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ AUTH ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 paths:
   /auth/signup:
     post:
@@ -2849,3 +2849,256 @@ paths:
         404:
           description: Instructor not found
 
+  # ─── PLATFORM CONFIGURATION ROUTES ───
+  /platform-config:
+    get:
+      summary: Get platform configuration (Public)
+      description: |
+        Fetches the global platform configuration including site name, branding, SEO metadata, social links, and operational settings.
+        This endpoint is public so that the frontend can render branding, SEO tags, and maintenance status without authentication.
+      tags:
+        - Platform Configuration
+      security: []
+      responses:
+        200:
+          description: Platform configuration fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Platform configuration fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "665a1b2c3d4e5f6a7b8c9d10"
+                      siteName:
+                        type: string
+                        example: EduNext
+                      tagline:
+                        type: string
+                        example: Learn & Grow
+                      supportEmail:
+                        type: string
+                        example: support@edunext.com
+                      maintenanceMode:
+                        type: boolean
+                        example: false
+                      currency:
+                        type: string
+                        enum: [BDT, USD]
+                        example: BDT
+                      contactPhone:
+                        type: string
+                        example: "+8801712345678"
+                      copyrightText:
+                        type: string
+                        example: "© EduNext. All rights reserved."
+                      siteLogo:
+                        type: string
+                        example: "https://res.cloudinary.com/.../logo.png"
+                      favicon:
+                        type: string
+                        example: "https://res.cloudinary.com/.../favicon.ico"
+                      metaDescription:
+                        type: string
+                        example: "EduNext is a modern e-learning marketplace for students and instructors."
+                      metaKeywords:
+                        type: array
+                        items:
+                          type: string
+                        example: ["e-learning", "online courses", "EduNext"]
+                      ogImage:
+                        type: string
+                        example: "https://res.cloudinary.com/.../og-image.png"
+                      googleAnalyticsId:
+                        type: string
+                        example: "G-XXXXXXXXXX"
+                      socialLinks:
+                        type: object
+                        properties:
+                          facebook:
+                            type: string
+                            example: "https://facebook.com/edunext"
+                          youtube:
+                            type: string
+                            example: "https://youtube.com/@edunext"
+                          linkedin:
+                            type: string
+                            example: "https://linkedin.com/company/edunext"
+                          github:
+                            type: string
+                            example: "https://github.com/edunext"
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+
+    patch:
+      summary: Update platform configuration (Admin Only)
+      description: |
+        Allows an admin to update any platform configuration fields. Uses `findOneAndUpdate` with `upsert: true`,
+        so the config document is automatically created if it doesn't exist yet. Only send the fields you want to update.
+      tags:
+        - Platform Configuration
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteName:
+                  type: string
+                  example: EduNext
+                tagline:
+                  type: string
+                  example: Learn & Grow
+                supportEmail:
+                  type: string
+                  example: support@edunext.com
+                maintenanceMode:
+                  type: boolean
+                  example: false
+                currency:
+                  type: string
+                  enum: [BDT, USD]
+                  example: BDT
+                contactPhone:
+                  type: string
+                  example: "+8801712345678"
+                copyrightText:
+                  type: string
+                  example: "© EduNext. All rights reserved."
+                siteLogo:
+                  type: string
+                  example: "https://res.cloudinary.com/.../logo.png"
+                favicon:
+                  type: string
+                  example: "https://res.cloudinary.com/.../favicon.ico"
+                metaDescription:
+                  type: string
+                  example: "EduNext is a modern e-learning marketplace for students and instructors."
+                metaKeywords:
+                  type: array
+                  items:
+                    type: string
+                  example: ["e-learning", "online courses", "EduNext"]
+                ogImage:
+                  type: string
+                  example: "https://res.cloudinary.com/.../og-image.png"
+                googleAnalyticsId:
+                  type: string
+                  example: "G-XXXXXXXXXX"
+                socialLinks:
+                  type: object
+                  properties:
+                    facebook:
+                      type: string
+                      example: "https://facebook.com/edunext"
+                    youtube:
+                      type: string
+                      example: "https://youtube.com/@edunext"
+                    linkedin:
+                      type: string
+                      example: "https://linkedin.com/company/edunext"
+                    github:
+                      type: string
+                      example: "https://github.com/edunext"
+      responses:
+        200:
+          description: Platform configuration updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Platform configuration updated successfully
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "665a1b2c3d4e5f6a7b8c9d10"
+                      siteName:
+                        type: string
+                        example: EduNext
+                      tagline:
+                        type: string
+                        example: Learn & Grow
+                      supportEmail:
+                        type: string
+                        example: support@edunext.com
+                      maintenanceMode:
+                        type: boolean
+                        example: false
+                      currency:
+                        type: string
+                        example: BDT
+                      contactPhone:
+                        type: string
+                        example: "+8801712345678"
+                      copyrightText:
+                        type: string
+                        example: "© EduNext. All rights reserved."
+                      siteLogo:
+                        type: string
+                        example: "https://res.cloudinary.com/.../logo.png"
+                      favicon:
+                        type: string
+                        example: "https://res.cloudinary.com/.../favicon.ico"
+                      metaDescription:
+                        type: string
+                        example: "EduNext is a modern e-learning marketplace for students and instructors."
+                      metaKeywords:
+                        type: array
+                        items:
+                          type: string
+                        example: ["e-learning", "online courses", "EduNext"]
+                      ogImage:
+                        type: string
+                        example: "https://res.cloudinary.com/.../og-image.png"
+                      googleAnalyticsId:
+                        type: string
+                        example: "G-XXXXXXXXXX"
+                      socialLinks:
+                        type: object
+                        properties:
+                          facebook:
+                            type: string
+                            example: "https://facebook.com/edunext"
+                          youtube:
+                            type: string
+                            example: "https://youtube.com/@edunext"
+                          linkedin:
+                            type: string
+                            example: "https://linkedin.com/company/edunext"
+                          github:
+                            type: string
+                            example: "https://github.com/edunext"
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+        401:
+          description: Unauthorized – token required
+        403:
+          description: Only admins can access this endpoint
