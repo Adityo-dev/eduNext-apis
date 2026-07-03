@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import AuthModel from "../auth/models/authModel.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 // 1.Get User Management Stats
 export const getUserManagementStats = async (
@@ -124,42 +125,274 @@ export const updateUserStatus = async (
   });
 };
 
-// 4.  (Instructor Verification)
-// export const verifyInstructor = async (
-//   req: Request,
-//   res: Response,
-// ): Promise<void> => {
-//   const { id } = req.params;
-//   const { status } = req.body;
-//   if (!status || !["approved", "rejected"].includes(status)) {
-//     res.status(400);
-//     throw new Error(
-//       "Please provide a valid verification status (approved or rejected)",
-//     );
-//   }
+// 4. Get Pending Badge Requests (Admin View)
+export const getPendingBadgeRequests = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { page = "1", limit = "10" } = req.query;
 
-//   const instructor = await AuthModel.findById(id);
-//   if (!instructor) {
-//     res.status(404);
-//     throw new Error("Instructor profile not found");
-//   }
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.min(50, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
 
-//   if (instructor.role !== "instructor") {
-//     res.status(400);
-//     throw new Error("This user is not an instructor");
-//   }
+    const filter: any = {
+      role: "instructor",
+      "badgeRequest.status": "pending",
+    };
 
-//   instructor.isVerified = status === "approved";
-//   await instructor.save();
+    const [instructors, total] = await Promise.all([
+      AuthModel.find(filter)
+        .sort({ "badgeRequest.requestedAt": 1 })
+        .skip(skip)
+        .limit(limitNum)
+        .select("-password"),
+      AuthModel.countDocuments(filter),
+    ]);
 
-//   res.status(200).json({
-//     success: true,
-//     message: `Instructor status has been updated to ${status}`,
-//     data: instructor,
-//   });
-// };
+    res.status(200).json({
+      success: true,
+      message: "Pending badge requests fetched successfully",
+      data: {
+        instructors,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// 5. Permanently Delete a User
+// 5. Get Instructor Profile (Admin View)
+export const getInstructorProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const instructor = await AuthModel.findById(id);
+
+    if (!instructor) {
+      res.status(404);
+      throw new Error("Instructor not found");
+    }
+
+    if (instructor.role !== "instructor") {
+      res.status(400);
+      throw new Error("This user is not an instructor");
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor profile fetched successfully",
+      data: instructor,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 5. Approve or Reject an Instructor's Badge Request (Admin Only)
+export const approveInstructor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // "approve" | "reject"
+
+    if (!action || !["approve", "reject"].includes(action)) {
+      res.status(400);
+      throw new Error(
+        "Please provide a valid action: 'approve' or 'reject'",
+      );
+    }
+
+    const instructor = await AuthModel.findById(id);
+
+    if (!instructor) {
+      res.status(404);
+      throw new Error("Instructor not found");
+    }
+
+    if (instructor.role !== "instructor") {
+      res.status(400);
+      throw new Error("This user is not an instructor");
+    }
+
+    // Must have a pending badge request to act on
+    if (
+      !instructor.badgeRequest ||
+      instructor.badgeRequest.status !== "pending"
+    ) {
+      res.status(400);
+      throw new Error(
+        "This instructor does not have a pending badge request",
+      );
+    }
+
+    if (action === "approve") {
+      // Grant the requested badge
+      instructor.badge = instructor.badgeRequest.requestedBadge;
+      instructor.badgeRequest.status = "approved";
+    } else {
+      // Reject — keep current badge, just update request status
+      instructor.badgeRequest.status = "rejected";
+    }
+
+    await instructor.save();
+
+    // Send email notification to instructor
+    const isApproved = action === "approve";
+    const statusText = isApproved ? "APPROVED" : "REJECTED";
+    const badgeName = instructor.badgeRequest?.requestedBadge || "badge";
+    const emailSubject = `EduNext - Your Badge Request Has Been ${statusText}`;
+    
+    let emailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2>Hello ${instructor.firstName},</h2>
+        <p>We are writing to inform you that your request for the <strong>${badgeName.toUpperCase()}</strong> badge on EduNext has been <strong>${statusText.toLowerCase()}</strong> by the administration.</p>
+    `;
+
+    if (isApproved) {
+      emailHtml += `
+        <p>Congratulations! Your profile now displays the ${badgeName.toUpperCase()} badge. Keep up the great work!</p>
+      `;
+    } else {
+      emailHtml += `
+        <p>Unfortunately, your profile does not meet all the requirements for this badge at this time. Please update your profile and try again later.</p>
+      `;
+    }
+
+    emailHtml += `
+        <p>If you have any questions, please contact our support team.</p>
+        <p>Regards,<br><strong>EduNext Admin Team</strong></p>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        email: instructor.email,
+        subject: emailSubject,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Failed to send badge approval/rejection email:", emailError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Instructor badge request has been ${action === "approve" ? "approved" : "rejected"} successfully`,
+      data: {
+        _id: instructor._id,
+        fullName: instructor.fullName,
+        email: instructor.email,
+        badge: instructor.badge,
+        badgeRequest: instructor.badgeRequest,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// 6. Cancel an Instructor's Badge (Admin Only)
+export const cancelBadge = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { cancelReason } = req.body;
+
+    if (!cancelReason || cancelReason.trim() === "") {
+      res.status(400);
+      throw new Error("Please provide a reason for cancelling the badge");
+    }
+
+    const instructor = await AuthModel.findById(id);
+
+    if (!instructor) {
+      res.status(404);
+      throw new Error("Instructor not found");
+    }
+
+    if (instructor.role !== "instructor") {
+      res.status(400);
+      throw new Error("This user is not an instructor");
+    }
+
+    if (instructor.badge === "none") {
+      res.status(400);
+      throw new Error("This instructor does not have any active badge to cancel");
+    }
+
+    const oldBadge = instructor.badge;
+
+    // Remove the badge
+    instructor.badge = "none";
+    if (instructor.badgeRequest) {
+      instructor.badgeRequest.status = "none";
+      instructor.badgeRequest.requestedBadge = "none";
+    }
+
+    await instructor.save();
+
+    // Send email notification to instructor
+    const emailSubject = "EduNext - Your Instructor Badge Has Been Cancelled";
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2>Hello ${instructor.firstName},</h2>
+        <p>We are writing to inform you that your <strong>${oldBadge.toUpperCase()}</strong> badge on EduNext has been cancelled by the administration.</p>
+        <p><strong>Reason:</strong></p>
+        <blockquote style="border-left: 4px solid #f44336; padding-left: 10px; margin-left: 0; color: #555;">
+          ${cancelReason}
+        </blockquote>
+        <p>If you believe this is a mistake or if you have any questions, please contact our support team.</p>
+        <p>Regards,<br><strong>EduNext Admin Team</strong></p>
+      </div>
+    `;
+
+    // Try to send email, but don't fail the request if it fails
+    try {
+      await sendEmail({
+        email: instructor.email,
+        subject: emailSubject,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Failed to send badge cancellation email:", emailError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor badge has been cancelled successfully, and notification sent.",
+      data: {
+        _id: instructor._id,
+        fullName: instructor.fullName,
+        email: instructor.email,
+        badge: instructor.badge,
+        badgeRequest: instructor.badgeRequest,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 7. Permanently Delete a User
 export const deleteUser = async (
   req: Request,
   res: Response,
