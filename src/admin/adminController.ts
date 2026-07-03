@@ -97,32 +97,85 @@ export const getAllUsers = async (
 export const updateUserStatus = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
-  const { id } = req.params;
-  const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status, reason } = req.body;
 
-  if (!status || !["active", "suspended"].includes(status)) {
-    res.status(400);
-    throw new Error("Please provide a valid status (active or suspended)");
+    if (!status || !["active", "suspended"].includes(status)) {
+      res.status(400);
+      throw new Error("Please provide a valid status (active or suspended)");
+    }
+
+    if (status === "suspended" && (!reason || reason.trim() === "")) {
+      res.status(400);
+      throw new Error("Please provide a reason for suspending the account");
+    }
+
+    // find user
+    const user = await AuthModel.findById(id);
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    user.isSuspended = status === "suspended";
+
+    await user.save();
+
+    // Send email notification about account status change
+    const isSuspended = status === "suspended";
+    const emailSubject = isSuspended 
+      ? "EduNext - Account Suspended" 
+      : "EduNext - Account Reactivated";
+      
+    let emailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <h2>Hello ${user.firstName},</h2>
+    `;
+
+    if (isSuspended) {
+      emailHtml += `
+        <p>We are writing to inform you that your EduNext account has been <strong>suspended</strong> by the administration.</p>
+        <p><strong>Reason:</strong></p>
+        <blockquote style="border-left: 4px solid #f44336; padding-left: 10px; margin-left: 0; color: #555;">
+          ${reason}
+        </blockquote>
+        <p>During this period, you will not be able to log in or access our services.</p>
+        <p>If you believe this is a mistake, please contact our support team immediately for assistance.</p>
+      `;
+    } else {
+      emailHtml += `
+        <p>Good news! Your EduNext account has been <strong>reactivated</strong> by the administration.</p>
+        <p>You can now log in and continue using all our platform's features and services.</p>
+      `;
+    }
+
+    emailHtml += `
+        <p>Regards,<br><strong>EduNext Admin Team</strong></p>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: emailSubject,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Failed to send account status email:", emailError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `User account has been ${status} successfully`,
+      data: user,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // find user
-  const user = await AuthModel.findById(id);
-
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-
-  user.isSuspended = status === "suspended";
-
-  await user.save();
-
-  res.status(200).json({
-    success: true,
-    message: `User account has been ${status} successfully`,
-    data: user,
-  });
 };
 
 // 4. Get Pending Badge Requests (Admin View)

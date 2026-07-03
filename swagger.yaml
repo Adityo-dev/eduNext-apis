@@ -2418,6 +2418,10 @@ paths:
                   enum: [active, suspended]
                   example: suspended
                   description: The new account status to apply
+                reason:
+                  type: string
+                  example: "Violation of terms of service"
+                  description: Mandatory if status is 'suspended'. The reason will be sent to the user via email.
       responses:
         200:
           description: User status updated successfully
