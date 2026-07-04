@@ -10,7 +10,7 @@ servers:
     description: Local Development Server
 
 
-# â”€â”€ global security â”€â”€
+
 security:
   - bearerAuth: []
 

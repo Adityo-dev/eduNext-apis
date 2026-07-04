@@ -9,9 +9,9 @@ import courseRouter from "./course/courseRoutes.js";
 import enrollmentRouter from "./enrollment/enrollmentRoutes.js";
 import liveSessionRouter from "./liveSession/routes/liveSessionRoutes.js";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
+import platformConfigRouter from "./platformConfig/routes/platformConfigRoutes.js";
 import ReviewRouter from "./review/routes/reviewRoutes.js";
 import uploadRouter from "./upload/uploadRoutes.js";
-import platformConfigRouter from "./platformConfig/routes/platformConfigRoutes.js";
 
 const app = express();
 
