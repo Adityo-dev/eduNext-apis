@@ -23,6 +23,56 @@ const computeProgress = (user: any): number => {
   return Math.min(score, 100);
 };
 
+// ─── Build Role-Based Profile Response
+const buildProfileResponse = (user: any) => {
+  // Common fields for all roles
+  const base = {
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    fullName: user.fullName,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    avatar: user.avatar,
+    isEmailVerified: user.isEmailVerified,
+    isSuspended: user.isSuspended,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
+  if (user.role === "admin") {
+    return base;
+  }
+
+  if (user.role === "student") {
+    return {
+      ...base,
+      bio: user.bio,
+      linkedinUrl: user.linkedinUrl,
+      githubUrl: user.githubUrl,
+      skills: user.areaOfExpertise,
+      badge: user.badge,
+      badgeRequest: user.badgeRequest,
+    };
+  }
+
+  if (user.role === "instructor") {
+    return {
+      ...base,
+      bio: user.bio,
+      coverPhoto: user.coverPhoto,
+      linkedinUrl: user.linkedinUrl,
+      areaOfExpertise: user.areaOfExpertise,
+      experienceYears: user.experienceYears,
+      badge: user.badge,
+      badgeRequest: user.badgeRequest,
+    };
+  }
+
+  return base;
+};
+
 // Get My Profile
 export const getProfile = async (
   req: any,
@@ -34,11 +84,12 @@ export const getProfile = async (
     if (!user) return next(createHttpError(404, "Profile not found."));
 
     const profileProgress = computeProgress(user);
+    const profile = buildProfileResponse(user);
 
     res.status(200).json({
       success: true,
       profileProgress: `${profileProgress}%`,
-      user,
+      user: profile,
     });
   } catch (error) {
     next(error);
@@ -100,12 +151,13 @@ export const updateProfile = async (
 
     await user.save();
     const updatedProgress = computeProgress(user);
+    const profile = buildProfileResponse(user);
 
     res.status(200).json({
       success: true,
       message: "Profile dashboard updated successfully.",
       profileProgress: `${updatedProgress}%`,
-      user,
+      user: profile,
     });
   } catch (error) {
     next(error);

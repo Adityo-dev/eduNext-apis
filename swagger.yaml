@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -431,6 +431,12 @@ paths:
   /auth/profile:
     get:
       summary: Fetch user profile dashboard with completion progress
+      description: |
+        Returns the profile of the authenticated user. 
+        The response is **role-specific**:
+        - **Admin**: `firstName`, `lastName`, `email`, `phone`, `avatar`, `role`, `isEmailVerified`
+        - **Student**: all admin fields + `bio`, `linkedinUrl`, `githubUrl`, `skills`, `badge`, `badgeRequest`
+        - **Instructor**: all admin fields + `bio`, `coverPhoto`, `linkedinUrl`, `areaOfExpertise`, `experienceYears`, `badge`, `badgeRequest`
       tags:
         - Profile
       security:
@@ -451,12 +457,20 @@ paths:
                     example: "60%"
                   user:
                     type: object
+                    description: Role-specific user profile fields
         404:
           description: Profile not found
 
   /auth/profile-update:
     patch:
       summary: Update profile details and calculate live completion progress
+      description: |
+        Updates the profile of the authenticated user. Only role-relevant fields are accepted:
+        - **All roles**: `firstName`, `lastName`, `phone`, `avatar`
+        - **Student & Instructor**: `bio`, `linkedinUrl`
+        - **Student only**: `githubUrl`, `skills` (array of strings)
+        - **Instructor only**: `coverPhoto`, `areaOfExpertise` (array of strings), `experienceYears`
+        - **Admin**: only `firstName`, `lastName`, `phone`, `avatar`
       tags:
         - Profile
       security:
@@ -471,32 +485,51 @@ paths:
                 firstName:
                   type: string
                   example: Aditto
+                  description: All roles
                 lastName:
                   type: string
                   example: Dev
+                  description: All roles
                 phone:
                   type: string
                   example: "01712345678"
-                bio:
-                  type: string
-                  example: "Senior Frontend Web Developer specializing in UI UX"
+                  description: All roles
                 avatar:
                   type: string
                   example: "https://example.com/uploads/avatar.jpg"
-                coverPhoto:
+                  description: All roles
+                bio:
                   type: string
-                  example: "https://example.com/uploads/cover.jpg"
+                  example: "Senior Frontend Web Developer specializing in UI UX"
+                  description: Student & Instructor only
                 linkedinUrl:
                   type: string
                   example: "https://linkedin.com/in/adittodev"
+                  description: Student & Instructor only
                 githubUrl:
                   type: string
                   example: "https://github.com/adittodev"
+                  description: Student only
                 skills:
                   type: array
                   items:
                     type: string
-                  example: ["React", "Next.js", "TypeScript", "Tailwind CSS"]
+                  example: ["React", "Next.js", "TypeScript"]
+                  description: Student only (saved as areaOfExpertise)
+                coverPhoto:
+                  type: string
+                  example: "https://example.com/uploads/cover.jpg"
+                  description: Instructor only
+                areaOfExpertise:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Node.js", "TypeScript", "MongoDB"]
+                  description: Instructor only
+                experienceYears:
+                  type: number
+                  example: 5
+                  description: Instructor only
       responses:
         200:
           description: Profile updated successfully
@@ -516,6 +549,7 @@ paths:
                     example: "80%"
                   user:
                     type: object
+                    description: Updated role-specific user profile fields
         404:
           description: User account not found
 
