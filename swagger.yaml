@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: http://localhost:5000/api/v1
-    description: Local Development Server
   - url: https://edunext-apis.onrender.com/api/v1
     description: Production Server (Render)
+  - url: http://localhost:5000/api/v1
+    description: Local Development Server
 
 
 
@@ -295,9 +295,9 @@ paths:
         404:
           description: No account associated with this email
 
-  /auth/reset-password:
+  /auth/verify-reset-otp:
     post:
-      summary: Reset password using verification recovery OTP
+      summary: Verify reset OTP — Step 2 of password reset
       tags:
         - Authentication
       security: []
@@ -310,7 +310,6 @@ paths:
               required:
                 - email
                 - otp
-                - newPassword
               properties:
                 email:
                   type: string
@@ -318,6 +317,49 @@ paths:
                 otp:
                   type: string
                   example: "123456"
+      responses:
+        200:
+          description: OTP verified, returns a short-lived resetToken (valid 15 min)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "OTP verified successfully. You can now reset your password."
+                  data:
+                    type: object
+                    properties:
+                      resetToken:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        400:
+          description: Email or OTP missing / Wrong or expired OTP
+
+  /auth/reset-password:
+    post:
+      summary: Reset password using resetToken — Step 3 of password reset
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resetToken
+                - newPassword
+              properties:
+                resetToken:
+                  type: string
+                  description: The short-lived JWT token returned from /auth/verify-reset-otp
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 newPassword:
                   type: string
                   example: "newSecurePass123"
@@ -336,7 +378,9 @@ paths:
                     type: string
                     example: "Your account password has been reset successfully. Proceed to login."
         400:
-          description: Missing parameters / Wrong or expired OTP / Password too short
+          description: Missing parameters / Password too short
+        401:
+          description: Invalid or expired reset token
 
   /auth/change-password:
     patch:

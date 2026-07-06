@@ -5,6 +5,7 @@ import {
   changePassword,
   forgotPassword,
   resetPassword,
+  verifyResetOtp,
 } from "../controllers/passwordController.js";
 import {
   getProfile,
@@ -26,6 +27,7 @@ authRouter.post("/resend-otp", resendOtp);
 authRouter.post("/login", login);
 
 authRouter.post("/forgot-password", forgotPassword);
+authRouter.post("/verify-reset-otp", verifyResetOtp);
 authRouter.post("/reset-password", resetPassword);
 
 authRouter.get("/profile", authenticate, getProfile);

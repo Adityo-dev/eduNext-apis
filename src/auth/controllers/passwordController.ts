@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
+import jwt from "jsonwebtoken";
 import { config } from "../../config/config.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 import AuthModel from "../models/authModel.js";
@@ -44,19 +45,50 @@ export const forgotPassword = async (
   }
 };
 
-// 2. Reset Password
+// 2. Verify Reset OTP
+export const verifyResetOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp)
+      return next(createHttpError(400, "Email and OTP are required."));
+
+    const otpRecord = await OtpModel.findOne({ email, otp });
+    if (!otpRecord)
+      return next(createHttpError(400, "The recovery OTP code is wrong or expired."));
+
+    // Generate a temporary reset token valid for 15 minutes
+    const resetToken = jwt.sign({ email }, config.jwtSecret as string, { expiresIn: "15m" });
+
+    // Delete the OTP as it has been verified
+    await OtpModel.deleteOne({ _id: otpRecord._id });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully. You can now reset your password.",
+      data: { resetToken },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 3. Reset Password
 export const resetPassword = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { email, otp, newPassword } = req.body;
-    if (!email || !otp || !newPassword)
+    const { resetToken, newPassword } = req.body;
+    if (!resetToken || !newPassword)
       return next(
         createHttpError(
           400,
-          "Email, OTP, and new secure password are required fields.",
+          "Reset token and new secure password are required.",
         ),
       );
     if (newPassword.length < 6)
@@ -67,15 +99,16 @@ export const resetPassword = async (
         ),
       );
 
-    const otpRecord = await OtpModel.findOne({ email, otp });
-    if (!otpRecord)
-      return next(
-        createHttpError(400, "The recovery OTP code is wrong or expired."),
-      );
+    let decoded: any;
+    try {
+      decoded = jwt.verify(resetToken, config.jwtSecret as string);
+    } catch (err) {
+      return next(createHttpError(401, "Invalid or expired reset token. Please request a new OTP."));
+    }
 
+    const email = decoded.email;
     const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
     await AuthModel.findOneAndUpdate({ email }, { password: hashedPassword });
-    await OtpModel.deleteOne({ _id: otpRecord._id });
 
     res.status(200).json({
       success: true,
