@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -3102,3 +3102,276 @@ paths:
           description: Unauthorized – token required
         403:
           description: Only admins can access this endpoint
+
+  /reviews/course/{courseId}:
+    get:
+      summary: Get reviews for a specific course (Public)
+      tags: [Reviews]
+      security: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  /reviews:
+    post:
+      summary: Submit a course review (Student)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [courseId, rating, comment]
+              properties:
+                courseId:
+                  type: string
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Review submitted successfully
+  /reviews/student/stats:
+    get:
+      summary: Get student review stats
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+  /reviews/student/submitted:
+    get:
+      summary: Get reviews submitted by student
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+  /reviews/student/unreviewed-courses:
+    get:
+      summary: Get purchased courses that haven't been reviewed
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+  /reviews/student/{reviewId}:
+    put:
+      summary: Update a submitted review (Student)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete a submitted review (Student)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  /reviews/admin:
+    get:
+      summary: Get all reviews with filters (Admin)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, approved, rejected]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  /reviews/admin/stats:
+    get:
+      summary: Get admin review stats
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+  /reviews/admin/pending:
+    get:
+      summary: Get pending reviews (Admin)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+  /reviews/admin/{reviewId}:
+    delete:
+      summary: Delete a review (Admin)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Success
+  /reviews/admin/{reviewId}/publish:
+    patch:
+      summary: Approve/Publish a review (Admin)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  /reviews/admin/{reviewId}/reject:
+    patch:
+      summary: Reject a review (Admin)
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rejectionReason]
+              properties:
+                rejectionReason:
+                  type: string
+      responses:
+        '200':
+          description: Success
+  /reviews/instructor/stats:
+    get:
+      summary: Get instructor review stats
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
+  /reviews/instructor/dashboard:
+    get:
+      summary: Get reviews for instructor's courses
+      tags: [Reviews]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: courseId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success

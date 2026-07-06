@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import { Types } from "mongoose";
+import AuthModel from "../../auth/models/authModel.js";
 import CourseModel from "../../course/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
@@ -126,6 +127,149 @@ export const rejectReview = async (
       success: true,
       message: "Review rejected successfully",
       data: review,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 4. Get Admin Review Stats (Admin Only)
+export const getAdminReviewStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const stats = await ReviewModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          pending: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+          },
+          published: {
+            $sum: { $cond: [{ $eq: ["$status", "published"] }, 1, 0] },
+          },
+          rejected: {
+            $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    const data = stats.length > 0 ? stats[0] : { pending: 0, published: 0, rejected: 0 };
+    delete data._id;
+
+    res.status(200).json({
+      success: true,
+      message: "Admin review stats fetched successfully",
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 5. Get All Reviews with Filters and Pagination (Admin Only)
+export const getAllReviews = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const skip = (page - 1) * limit;
+
+    const status = req.query.status as string; // all, pending, published, rejected
+    const search = req.query.search as string;
+
+    const query: any = {};
+
+    if (status && status !== "all") {
+      // Map 'approved' from UI to 'published' in DB
+      query.status = status === "approved" ? "published" : status;
+    }
+
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search.trim(), "i");
+      
+      // Find matching users and courses
+      const [matchedUsers, matchedCourses] = await Promise.all([
+        AuthModel.find({
+          $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+        }).select("_id"),
+        CourseModel.find({ title: searchRegex }).select("_id"),
+      ]);
+
+      const userIds = matchedUsers.map((u) => u._id);
+      const courseIds = matchedCourses.map((c) => c._id);
+
+      query.$or = [
+        { student: { $in: userIds } },
+        { course: { $in: courseIds } },
+      ];
+    }
+
+    const [reviews, total] = await Promise.all([
+      ReviewModel.find(query)
+        .populate("student", "firstName lastName avatar email")
+        .populate("course", "title thumbnail")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      ReviewModel.countDocuments(query),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      message: "Reviews fetched successfully",
+      data: reviews,
+      total,
+      page,
+      limit,
+      totalPages,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 6. Delete a Review (Admin Only)
+export const deleteReviewAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const reviewId = req.params.reviewId as string;
+    const { reason } = req.body; 
+
+    if (!Types.ObjectId.isValid(reviewId)) {
+      return next(createHttpError(400, "Invalid reviewId"));
+    }
+
+    const review = await ReviewModel.findByIdAndDelete(reviewId);
+    if (!review) {
+      return next(createHttpError(404, "Review not found"));
+    }
+
+    // Recalculate course rating if the deleted review was published
+    if (review.status === "published") {
+      const stats = await ReviewModel.aggregate([
+        { $match: { course: review.course, status: "published" } },
+        { $group: { _id: "$course", avgRating: { $avg: "$rating" } } },
+      ]);
+
+      const newAverageRating = stats.length > 0 ? Math.round(stats[0].avgRating * 10) / 10 : 0;
+      await CourseModel.findByIdAndUpdate(review.course, { rating: newAverageRating });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Review deleted successfully",
     });
   } catch (error) {
     next(error);
