@@ -1,28 +1,35 @@
 import type { NextFunction, Request, Response } from "express";
+import { Types } from "mongoose";
 import CourseModel from "../../course/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
-// ─── Get Instructor Dashboard Reviews (Instructor Only)
-export const getInstructorReviews = async (
+// ─── Get All Reviews Received by Instructor (Instructor Only)
+// Supports: search by course title, filter by courseId, filter by rating, pagination
+export const getInstructorMyReviews = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const instructorId = req.user?._id || req.user?.id;
+    const instructorId = new Types.ObjectId(req.user?._id || req.user?.id);
 
     // Pagination
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const skip = (page - 1) * limit;
 
-    // Course filter
+    // Filters
     const courseId = req.query.courseId as string | undefined;
+    const search = req.query.search as string | undefined;       // search by course title
+    const rating = req.query.rating as string | undefined;       // filter by star rating (1-5)
 
-    // Get all courses owned by this instructor
+    // Build course query for this instructor
     const instructorCourseQuery: any = { instructor: instructorId };
     if (courseId) {
       instructorCourseQuery._id = courseId;
+    }
+    if (search && search.trim()) {
+      instructorCourseQuery.title = { $regex: search.trim(), $options: "i" };
     }
 
     const instructorCourses = await CourseModel.find(instructorCourseQuery).select("_id title");
@@ -41,11 +48,18 @@ export const getInstructorReviews = async (
       return;
     }
 
-    // Build review query — only published reviews for instructor dashboard
+    // Build review query
     const reviewQuery: any = {
       course: { $in: courseIds },
       status: "published",
     };
+
+    if (rating) {
+      const ratingNum = parseInt(rating);
+      if (!isNaN(ratingNum) && ratingNum >= 1 && ratingNum <= 5) {
+        reviewQuery.rating = ratingNum;
+      }
+    }
 
     const [reviews, total] = await Promise.all([
       ReviewModel.find(reviewQuery)
@@ -73,6 +87,7 @@ export const getInstructorReviews = async (
   }
 };
 
+
 // ─── Get Instructor Review Stats (Instructor Only)
 export const getInstructorReviewStats = async (
   req: Request,
@@ -80,7 +95,7 @@ export const getInstructorReviewStats = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const instructorId = req.user?._id || req.user?.id;
+    const instructorId = new Types.ObjectId(req.user?._id || req.user?.id);
 
     // Get all courses owned by this instructor
     const instructorCourses = await CourseModel.find({ instructor: instructorId }).select("_id rating");

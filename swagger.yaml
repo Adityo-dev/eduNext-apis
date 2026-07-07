@@ -3184,7 +3184,7 @@ paths:
   /reviews/course/{courseId}:
     get:
       summary: Get reviews for a specific course (Public)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security: []
       parameters:
         - name: courseId
@@ -3198,7 +3198,7 @@ paths:
   /reviews:
     post:
       summary: Submit a course review (Student)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       requestBody:
@@ -3223,7 +3223,7 @@ paths:
   /reviews/student/stats:
     get:
       summary: Get student review stats
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       responses:
@@ -3232,7 +3232,7 @@ paths:
   /reviews/student/submitted:
     get:
       summary: Get reviews submitted by student
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3252,7 +3252,7 @@ paths:
   /reviews/student/unreviewed-courses:
     get:
       summary: Get purchased courses that haven't been reviewed
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3272,7 +3272,7 @@ paths:
   /reviews/student/{reviewId}:
     put:
       summary: Update a submitted review (Student)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3296,24 +3296,10 @@ paths:
       responses:
         '200':
           description: Success
-    delete:
-      summary: Delete a submitted review (Student)
-      tags: [Reviews]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: reviewId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Success
   /reviews/admin:
     get:
       summary: Get all reviews with filters (Admin)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3342,16 +3328,7 @@ paths:
   /reviews/admin/stats:
     get:
       summary: Get admin review stats
-      tags: [Reviews]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Success
-  /reviews/admin/pending:
-    get:
-      summary: Get pending reviews (Admin)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       responses:
@@ -3360,7 +3337,7 @@ paths:
   /reviews/admin/{reviewId}:
     delete:
       summary: Delete a review (Admin)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3383,7 +3360,7 @@ paths:
   /reviews/admin/{reviewId}/publish:
     patch:
       summary: Approve/Publish a review (Admin)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3398,7 +3375,7 @@ paths:
   /reviews/admin/{reviewId}/reject:
     patch:
       summary: Reject a review (Admin)
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
@@ -3423,33 +3400,144 @@ paths:
   /reviews/instructor/stats:
     get:
       summary: Get instructor review stats
-      tags: [Reviews]
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       responses:
         '200':
           description: Success
-  /reviews/instructor/dashboard:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      averageRating:
+                        type: number
+                        example: 4.3
+                      totalReviews:
+                        type: integer
+                        example: 128
+                      starDistribution:
+                        type: object
+                        properties:
+                          '5':
+                            type: integer
+                          '4':
+                            type: integer
+                          '3':
+                            type: integer
+                          '2':
+                            type: integer
+                          '1':
+                            type: integer
+  /reviews/instructor/reviews:
     get:
-      summary: Get reviews for instructor's courses
-      tags: [Reviews]
+      summary: Get all reviews received by instructor (with search & filters)
+      description: >
+        Returns all published reviews for the logged-in instructor's courses.
+        Supports searching by course title, filtering by courseId or star rating, and pagination.
+      tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
       parameters:
+        - name: search
+          in: query
+          description: Search reviews by course title (case-insensitive, partial match)
+          schema:
+            type: string
+            example: JavaScript
+        - name: courseId
+          in: query
+          description: Filter reviews by a specific course ID
+          schema:
+            type: string
+            example: 64abc123def456
+        - name: rating
+          in: query
+          description: Filter reviews by star rating (1–5)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+            example: 5
         - name: page
           in: query
+          description: Page number (default 1)
           schema:
             type: integer
             default: 1
         - name: limit
           in: query
+          description: Results per page (default 10, max 50)
           schema:
             type: integer
             default: 10
-        - name: courseId
-          in: query
-          schema:
-            type: string
+            maximum: 50
       responses:
         '200':
-          description: Success
+          description: List of reviews fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        rating:
+                          type: integer
+                        comment:
+                          type: string
+                        status:
+                          type: string
+                          example: published
+                        student:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            firstName:
+                              type: string
+                            lastName:
+                              type: string
+                            avatar:
+                              type: string
+                        course:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            title:
+                              type: string
+                            thumbnail:
+                              type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (instructor only)

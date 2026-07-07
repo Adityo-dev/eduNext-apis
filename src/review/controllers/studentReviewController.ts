@@ -1,7 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import { Types } from "mongoose";
-import CourseModel from "../../course/courseModel.js";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
@@ -13,13 +12,19 @@ export const createCourseReview = async (
 ): Promise<void> => {
   try {
     const { courseId, rating, comment } = req.body;
-    const studentId = req.user?._id || req.user?.id;
+    const rawStudentId = req.user?._id || req.user?.id;
 
     if (!courseId || !rating || !comment) {
       return next(
         createHttpError(400, "courseId, rating and comment are required"),
       );
     }
+
+    if (!Types.ObjectId.isValid(rawStudentId)) {
+      return next(createHttpError(401, "Invalid or missing student identity"));
+    }
+
+    const studentId = new Types.ObjectId(rawStudentId);
 
     // Verify Student is Enrolled
     const isEnrolled = await EnrollmentModel.findOne({
@@ -110,7 +115,7 @@ export const getStudentSubmittedReviews = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const studentId = req.user?._id || req.user?.id;
+    const studentId = new Types.ObjectId(req.user?._id || req.user?.id);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const skip = (page - 1) * limit;
@@ -151,7 +156,7 @@ export const getStudentUnreviewedCourses = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const studentId = req.user?._id || req.user?.id;
+    const studentId = new Types.ObjectId(req.user?._id || req.user?.id);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const skip = (page - 1) * limit;
@@ -206,11 +211,17 @@ export const updateCourseReview = async (
   try {
     const reviewId = req.params.reviewId as string;
     const { rating, comment } = req.body;
-    const studentId = req.user?._id || req.user?.id;
+    const rawStudentId = req.user?._id || req.user?.id;
 
     if (!Types.ObjectId.isValid(reviewId)) {
       return next(createHttpError(400, "Invalid reviewId"));
     }
+
+    if (!Types.ObjectId.isValid(rawStudentId)) {
+      return next(createHttpError(401, "Invalid or missing student identity"));
+    }
+
+    const studentId = new Types.ObjectId(rawStudentId);
 
     const review = await ReviewModel.findOne({ _id: reviewId, student: studentId });
     if (!review) {
@@ -234,41 +245,3 @@ export const updateCourseReview = async (
   }
 };
 
-// ─── Delete Course Review (Student Only)
-export const deleteCourseReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const reviewId = req.params.reviewId as string;
-    const studentId = req.user?._id || req.user?.id;
-
-    if (!Types.ObjectId.isValid(reviewId)) {
-      return next(createHttpError(400, "Invalid reviewId"));
-    }
-
-    const review = await ReviewModel.findOneAndDelete({ _id: reviewId, student: studentId });
-    if (!review) {
-      return next(createHttpError(404, "Review not found or you are not authorized"));
-    }
-
-    // Recalculate course rating if the deleted review was published
-    if (review.status === "published") {
-      const stats = await ReviewModel.aggregate([
-        { $match: { course: review.course, status: "published" } },
-        { $group: { _id: "$course", avgRating: { $avg: "$rating" } } },
-      ]);
-
-      const newAverageRating = stats.length > 0 ? Math.round(stats[0].avgRating * 10) / 10 : 0;
-      await CourseModel.findByIdAndUpdate(review.course, { rating: newAverageRating });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Review deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};

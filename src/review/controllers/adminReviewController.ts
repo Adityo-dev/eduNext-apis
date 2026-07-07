@@ -5,28 +5,6 @@ import AuthModel from "../../auth/models/authModel.js";
 import CourseModel from "../../course/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
-// ─── 1. Get All Pending Reviews (Admin Only)
-export const getAllPendingReviews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const reviews = await ReviewModel.find({ status: "pending" })
-      .populate("student", "firstName lastName avatar email")
-      .populate("course", "title thumbnail")
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      message: "Pending reviews fetched successfully",
-      total: reviews.length,
-      data: reviews,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // ─── 2. Publish a Review (Admin Only)
 export const publishReview = async (

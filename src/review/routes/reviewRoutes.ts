@@ -3,19 +3,17 @@ import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
   deleteReviewAdmin,
   getAdminReviewStats,
-  getAllPendingReviews,
   getAllReviews,
   publishReview,
   rejectReview,
 } from "../controllers/adminReviewController.js";
 import {
-  getInstructorReviews,
+  getInstructorMyReviews,
   getInstructorReviewStats,
 } from "../controllers/instructorReviewController.js";
 import { getCourseReviews } from "../controllers/publicReviewController.js";
 import {
   createCourseReview,
-  deleteCourseReview,
   getStudentReviewStats,
   getStudentSubmittedReviews,
   getStudentUnreviewedCourses,
@@ -36,20 +34,14 @@ reviewRouter.get("/student/submitted", authorize(["student"]), getStudentSubmitt
 reviewRouter.get("/student/unreviewed-courses", authorize(["student"]), getStudentUnreviewedCourses);
 reviewRouter.post("/", authorize(["student"]), createCourseReview);
 reviewRouter.put("/student/:reviewId", authorize(["student"]), updateCourseReview);
-reviewRouter.delete("/student/:reviewId", authorize(["student"]), deleteCourseReview);
 
 // ─── Instructor Routes
 reviewRouter.get("/instructor/stats", authorize(["instructor"]), getInstructorReviewStats);
-reviewRouter.get(
-  "/instructor/dashboard",
-  authorize(["instructor"]),
-  getInstructorReviews,
-);
+reviewRouter.get("/instructor/reviews", authorize(["instructor"]), getInstructorMyReviews);
 
 // ─── Admin Routes
 reviewRouter.get("/admin/stats", authorize(["admin"]), getAdminReviewStats);
 reviewRouter.get("/admin", authorize(["admin"]), getAllReviews);
-reviewRouter.get("/admin/pending", authorize(["admin"]), getAllPendingReviews);
 reviewRouter.patch(
   "/admin/:reviewId/publish",
   authorize(["admin"]),
