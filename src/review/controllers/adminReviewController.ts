@@ -243,7 +243,7 @@ export const getAllReviews = async (
         andConditions.push({ $or: searchOr });
       } else {
         // Search term matched nothing — return empty immediately
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           message: "Reviews fetched successfully",
           data: [],
@@ -252,6 +252,7 @@ export const getAllReviews = async (
           limit,
           totalPages: 0,
         });
+        return;
       }
     }
 
