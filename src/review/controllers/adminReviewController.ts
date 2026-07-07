@@ -201,11 +201,10 @@ export const getAllReviews = async (
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const skip = (page - 1) * limit;
 
-    // Normalize: trim whitespace + lowercase to avoid silent mismatch
+    // Normalize status and search
     const rawStatus = (req.query.status as string | undefined)?.trim().toLowerCase();
     const search = (req.query.search as string | undefined)?.trim();
 
-    // Map UI value → DB value
     const statusMap: Record<string, string> = {
       approved: "published",
       published: "published",
@@ -213,16 +212,18 @@ export const getAllReviews = async (
       rejected: "rejected",
     };
 
-    const query: any = {};
+    // Build conditions array for $and
+    const andConditions: any[] = [];
 
+    // Status filter
     if (rawStatus && rawStatus !== "all" && statusMap[rawStatus]) {
-      query.status = statusMap[rawStatus];
+      andConditions.push({ status: statusMap[rawStatus] });
     }
 
-    if (search && search !== "") {
+    // Search filter — only apply if search string is non-empty
+    if (search && search.length > 0) {
       const searchRegex = new RegExp(search, "i");
 
-      // Find matching users and courses
       const [matchedUsers, matchedCourses] = await Promise.all([
         AuthModel.find({
           $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
@@ -233,21 +234,29 @@ export const getAllReviews = async (
       const userIds = matchedUsers.map((u) => u._id);
       const courseIds = matchedCourses.map((c) => c._id);
 
-      const searchCondition = {
-        $or: [
-          { student: { $in: userIds } },
-          { course: { $in: courseIds } },
-        ],
-      };
-
-      // Combine status filter AND search with $and so they don't override each other
-      if (query.status) {
-        query.$and = [{ status: query.status }, searchCondition];
-        delete query.status;
+      // ⚠️ Only add search condition if at least one match exists
+      // Empty $in arrays in $or cause MongoDB to match NOTHING
+      if (userIds.length > 0 || courseIds.length > 0) {
+        const searchOr: any[] = [];
+        if (userIds.length > 0) searchOr.push({ student: { $in: userIds } });
+        if (courseIds.length > 0) searchOr.push({ course: { $in: courseIds } });
+        andConditions.push({ $or: searchOr });
       } else {
-        query.$or = searchCondition.$or;
+        // Search term matched nothing — return empty immediately
+        return res.status(200).json({
+          success: true,
+          message: "Reviews fetched successfully",
+          data: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        });
       }
     }
+
+    // Build final query
+    const query = andConditions.length > 0 ? { $and: andConditions } : {};
 
     const [reviews, total] = await Promise.all([
       ReviewModel.find(query)
@@ -259,8 +268,6 @@ export const getAllReviews = async (
       ReviewModel.countDocuments(query),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
-
     res.status(200).json({
       success: true,
       message: "Reviews fetched successfully",
@@ -268,7 +275,7 @@ export const getAllReviews = async (
       total,
       page,
       limit,
-      totalPages,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     next(error);
