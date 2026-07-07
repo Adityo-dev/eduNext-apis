@@ -153,42 +153,6 @@ export const getAdminReviewStats = async (
   }
 };
 
-// ─── 5. Get All Pending Reviews with Pagination (Admin Only)
-export const getAllPendingReviews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
-    const skip = (page - 1) * limit;
-
-    const [reviews, total] = await Promise.all([
-      ReviewModel.find({ status: "pending" })
-        .populate("student", "firstName lastName avatar email")
-        .populate("course", "title thumbnail")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      ReviewModel.countDocuments({ status: "pending" }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    res.status(200).json({
-      success: true,
-      message: "Pending reviews fetched successfully",
-      data: reviews,
-      total,
-      page,
-      limit,
-      totalPages,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // ─── 6. Get All Reviews with Filters and Pagination (Admin Only)
 export const getAllReviews = async (
