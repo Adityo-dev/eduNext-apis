@@ -3,6 +3,7 @@ import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
   deleteReviewAdmin,
   getAdminReviewStats,
+  getAllPendingReviews,
   getAllReviews,
   publishReview,
   rejectReview,
@@ -41,6 +42,7 @@ reviewRouter.get("/instructor/reviews", authorize(["instructor"]), getInstructor
 
 // ─── Admin Routes
 reviewRouter.get("/admin/stats", authorize(["admin"]), getAdminReviewStats);
+reviewRouter.get("/admin/pending", authorize(["admin"]), getAllPendingReviews);
 reviewRouter.get("/admin", authorize(["admin"]), getAllReviews);
 reviewRouter.patch(
   "/admin/:reviewId/publish",

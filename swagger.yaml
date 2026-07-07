@@ -3299,6 +3299,10 @@ paths:
   /reviews/admin:
     get:
       summary: Get all reviews with filters (Admin)
+      description: >
+        Returns paginated reviews. Supports filtering by status and searching by student name or course title.
+        When both `status` and `search` are provided, they are combined with AND logic.
+        `approved` is accepted as an alias for `published`.
       tags: [Course Reviews & Ratings]
       security:
         - bearerAuth: []
@@ -3313,18 +3317,46 @@ paths:
           schema:
             type: integer
             default: 10
+            maximum: 50
         - name: status
           in: query
+          description: Filter by review status. Use `all` or omit to get all reviews.
           schema:
             type: string
-            enum: [all, pending, approved, rejected]
+            enum: [all, pending, published, approved, rejected]
+            example: pending
         - name: search
           in: query
+          description: Search by student first/last name or course title
           schema:
             type: string
+            example: John
       responses:
         '200':
-          description: Success
+          description: Reviews fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
   /reviews/admin/stats:
     get:
       summary: Get admin review stats
@@ -3333,7 +3365,79 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: Success
+          description: Stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 150
+                      pending:
+                        type: integer
+                        example: 30
+                      published:
+                        type: integer
+                        example: 100
+                      rejected:
+                        type: integer
+                        example: 20
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
+  /reviews/admin/pending:
+    get:
+      summary: Get all pending reviews with pagination (Admin)
+      tags: [Course Reviews & Ratings]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Pending reviews fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  totalPages:
+                    type: integer
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
   /reviews/admin/{reviewId}:
     delete:
       summary: Delete a review (Admin)

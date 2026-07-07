@@ -131,24 +131,66 @@ export const getAdminReviewStats = async (
           rejected: {
             $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] },
           },
+          total: { $sum: 1 },
         },
       },
     ]);
 
-    const data = stats.length > 0 ? stats[0] : { pending: 0, published: 0, rejected: 0 };
-    delete data._id;
+    const raw = stats.length > 0 ? stats[0] : { pending: 0, published: 0, rejected: 0, total: 0 };
 
     res.status(200).json({
       success: true,
       message: "Admin review stats fetched successfully",
-      data,
+      data: {
+        total: raw.total,
+        pending: raw.pending,
+        published: raw.published,
+        rejected: raw.rejected,
+      },
     });
   } catch (error) {
     next(error);
   }
 };
 
-// ─── 5. Get All Reviews with Filters and Pagination (Admin Only)
+// ─── 5. Get All Pending Reviews with Pagination (Admin Only)
+export const getAllPendingReviews = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const skip = (page - 1) * limit;
+
+    const [reviews, total] = await Promise.all([
+      ReviewModel.find({ status: "pending" })
+        .populate("student", "firstName lastName avatar email")
+        .populate("course", "title thumbnail")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      ReviewModel.countDocuments({ status: "pending" }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      message: "Pending reviews fetched successfully",
+      data: reviews,
+      total,
+      page,
+      limit,
+      totalPages,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 6. Get All Reviews with Filters and Pagination (Admin Only)
 export const getAllReviews = async (
   req: Request,
   res: Response,
@@ -159,19 +201,27 @@ export const getAllReviews = async (
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const skip = (page - 1) * limit;
 
-    const status = req.query.status as string; // all, pending, published, rejected
-    const search = req.query.search as string;
+    // Normalize: trim whitespace + lowercase to avoid silent mismatch
+    const rawStatus = (req.query.status as string | undefined)?.trim().toLowerCase();
+    const search = (req.query.search as string | undefined)?.trim();
+
+    // Map UI value → DB value
+    const statusMap: Record<string, string> = {
+      approved: "published",
+      published: "published",
+      pending: "pending",
+      rejected: "rejected",
+    };
 
     const query: any = {};
 
-    if (status && status !== "all") {
-      // Map 'approved' from UI to 'published' in DB
-      query.status = status === "approved" ? "published" : status;
+    if (rawStatus && rawStatus !== "all" && statusMap[rawStatus]) {
+      query.status = statusMap[rawStatus];
     }
 
-    if (search && search.trim() !== "") {
-      const searchRegex = new RegExp(search.trim(), "i");
-      
+    if (search && search !== "") {
+      const searchRegex = new RegExp(search, "i");
+
       // Find matching users and courses
       const [matchedUsers, matchedCourses] = await Promise.all([
         AuthModel.find({
@@ -183,10 +233,20 @@ export const getAllReviews = async (
       const userIds = matchedUsers.map((u) => u._id);
       const courseIds = matchedCourses.map((c) => c._id);
 
-      query.$or = [
-        { student: { $in: userIds } },
-        { course: { $in: courseIds } },
-      ];
+      const searchCondition = {
+        $or: [
+          { student: { $in: userIds } },
+          { course: { $in: courseIds } },
+        ],
+      };
+
+      // Combine status filter AND search with $and so they don't override each other
+      if (query.status) {
+        query.$and = [{ status: query.status }, searchCondition];
+        delete query.status;
+      } else {
+        query.$or = searchCondition.$or;
+      }
     }
 
     const [reviews, total] = await Promise.all([
@@ -215,7 +275,7 @@ export const getAllReviews = async (
   }
 };
 
-// ─── 6. Delete a Review (Admin Only)
+// ─── 7. Delete a Review (Admin Only)
 export const deleteReviewAdmin = async (
   req: Request,
   res: Response,
