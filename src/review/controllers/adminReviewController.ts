@@ -5,8 +5,7 @@ import AuthModel from "../../auth/models/authModel.js";
 import CourseModel from "../../course/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
-
-// ─── 2. Publish a Review (Admin Only)
+// ─── 1. Publish a Review (Admin Only)
 export const publishReview = async (
   req: Request,
   res: Response,
@@ -55,7 +54,7 @@ export const publishReview = async (
   }
 };
 
-// ─── 3. Reject a Review (Admin Only)
+// ─── 2. Reject a Review (Admin Only)
 export const rejectReview = async (
   req: Request,
   res: Response,
@@ -71,7 +70,10 @@ export const rejectReview = async (
 
     if (!rejectionReason || rejectionReason.trim() === "") {
       return next(
-        createHttpError(400, "Rejection reason is required when rejecting a review"),
+        createHttpError(
+          400,
+          "Rejection reason is required when rejecting a review",
+        ),
       );
     }
 
@@ -111,7 +113,7 @@ export const rejectReview = async (
   }
 };
 
-// ─── 4. Get Admin Review Stats (Admin Only)
+// ─── 3. Get Admin Review Stats (Admin Only)
 export const getAdminReviewStats = async (
   req: Request,
   res: Response,
@@ -136,7 +138,10 @@ export const getAdminReviewStats = async (
       },
     ]);
 
-    const raw = stats.length > 0 ? stats[0] : { pending: 0, published: 0, rejected: 0, total: 0 };
+    const raw =
+      stats.length > 0
+        ? stats[0]
+        : { pending: 0, published: 0, rejected: 0, total: 0 };
 
     res.status(200).json({
       success: true,
@@ -153,8 +158,7 @@ export const getAdminReviewStats = async (
   }
 };
 
-
-// ─── 6. Get All Reviews with Filters and Pagination (Admin Only)
+// ─── 4. Get All Reviews with Filters and Pagination (Admin Only)
 export const getAllReviews = async (
   req: Request,
   res: Response,
@@ -162,11 +166,16 @@ export const getAllReviews = async (
 ): Promise<void> => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit as string) || 10),
+    );
     const skip = (page - 1) * limit;
 
     // Normalize status and search
-    const rawStatus = (req.query.status as string | undefined)?.trim().toLowerCase();
+    const rawStatus = (req.query.status as string | undefined)
+      ?.trim()
+      .toLowerCase();
     const search = (req.query.search as string | undefined)?.trim();
 
     const statusMap: Record<string, string> = {
@@ -198,8 +207,6 @@ export const getAllReviews = async (
       const userIds = matchedUsers.map((u) => u._id);
       const courseIds = matchedCourses.map((c) => c._id);
 
-      // ⚠️ Only add search condition if at least one match exists
-      // Empty $in arrays in $or cause MongoDB to match NOTHING
       if (userIds.length > 0 || courseIds.length > 0) {
         const searchOr: any[] = [];
         if (userIds.length > 0) searchOr.push({ student: { $in: userIds } });
@@ -247,7 +254,7 @@ export const getAllReviews = async (
   }
 };
 
-// ─── 7. Delete a Review (Admin Only)
+// ─── 5. Delete a Review (Admin Only)
 export const deleteReviewAdmin = async (
   req: Request,
   res: Response,
@@ -255,7 +262,7 @@ export const deleteReviewAdmin = async (
 ): Promise<void> => {
   try {
     const reviewId = req.params.reviewId as string;
-    const { reason } = req.body; 
+    const { reason } = req.body;
 
     if (!Types.ObjectId.isValid(reviewId)) {
       return next(createHttpError(400, "Invalid reviewId"));
@@ -273,8 +280,11 @@ export const deleteReviewAdmin = async (
         { $group: { _id: "$course", avgRating: { $avg: "$rating" } } },
       ]);
 
-      const newAverageRating = stats.length > 0 ? Math.round(stats[0].avgRating * 10) / 10 : 0;
-      await CourseModel.findByIdAndUpdate(review.course, { rating: newAverageRating });
+      const newAverageRating =
+        stats.length > 0 ? Math.round(stats[0].avgRating * 10) / 10 : 0;
+      await CourseModel.findByIdAndUpdate(review.course, {
+        rating: newAverageRating,
+      });
     }
 
     res.status(200).json({

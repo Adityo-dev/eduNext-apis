@@ -62,7 +62,8 @@ export const createCourseReview = async (
 
     res.status(201).json({
       success: true,
-      message: "Review submitted successfully. It will be visible after admin approval.",
+      message:
+        "Review submitted successfully. It will be visible after admin approval.",
       data: review,
     });
   } catch (error) {
@@ -95,7 +96,8 @@ export const getStudentReviewStats = async (
       },
     ]);
 
-    const data = stats.length > 0 ? stats[0] : { total: 0, published: 0, pending: 0 };
+    const data =
+      stats.length > 0 ? stats[0] : { total: 0, published: 0, pending: 0 };
     delete data._id;
 
     res.status(200).json({
@@ -117,7 +119,10 @@ export const getStudentSubmittedReviews = async (
   try {
     const studentId = new Types.ObjectId(req.user?._id || req.user?.id);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit as string) || 10),
+    );
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await Promise.all([
@@ -158,11 +163,16 @@ export const getStudentUnreviewedCourses = async (
   try {
     const studentId = new Types.ObjectId(req.user?._id || req.user?.id);
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.limit as string) || 10),
+    );
     const skip = (page - 1) * limit;
 
     // Get all courses the student has reviewed
-    const reviewedCourses = await ReviewModel.find({ student: studentId }).distinct("course");
+    const reviewedCourses = await ReviewModel.find({
+      student: studentId,
+    }).distinct("course");
 
     // Find enrollments where the course is not in the reviewedCourses list
     const [enrollments, total] = await Promise.all([
@@ -223,14 +233,19 @@ export const updateCourseReview = async (
 
     const studentId = new Types.ObjectId(rawStudentId);
 
-    const review = await ReviewModel.findOne({ _id: reviewId, student: studentId });
+    const review = await ReviewModel.findOne({
+      _id: reviewId,
+      student: studentId,
+    });
     if (!review) {
-      return next(createHttpError(404, "Review not found or you are not authorized"));
+      return next(
+        createHttpError(404, "Review not found or you are not authorized"),
+      );
     }
 
     if (rating) review.rating = Number(rating);
     if (comment) review.comment = comment;
-    
+
     review.status = "pending";
 
     await review.save();
@@ -244,4 +259,3 @@ export const updateCourseReview = async (
     next(error);
   }
 };
-

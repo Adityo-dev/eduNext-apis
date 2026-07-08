@@ -4,7 +4,6 @@ import CourseModel from "../../course/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
 // ─── Get All Reviews Received by Instructor (Instructor Only)
-// Supports: search by course title, filter by courseId, filter by rating, pagination
 export const getInstructorMyReviews = async (
   req: Request,
   res: Response,
@@ -20,8 +19,8 @@ export const getInstructorMyReviews = async (
 
     // Filters
     const courseId = req.query.courseId as string | undefined;
-    const search = req.query.search as string | undefined;       // search by course title
-    const rating = req.query.rating as string | undefined;       // filter by star rating (1-5)
+    const search = req.query.search as string | undefined;      
+    const rating = req.query.rating as string | undefined;      
 
     // Build course query for this instructor
     const instructorCourseQuery: any = { instructor: instructorId };
