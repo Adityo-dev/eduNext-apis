@@ -142,8 +142,8 @@ const courseSchema = new Schema<ICourseDocument>(
     },
 
     // Requirements
-    requirements: [{ type: String }],
-    whatYouLearn: [{ type: String }],
+    requirements: { type: String, default: "" },
+    whatYouLearn: { type: String, default: "" },
   },
   {
     timestamps: true,

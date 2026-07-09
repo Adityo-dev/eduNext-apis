@@ -59,8 +59,8 @@ export interface ICourse {
   badge?: "Best Seller" | "Top Rated" | "New" | null;
 
   // Requirements
-  requirements: string[];
-  whatYouLearn: string[];
+  requirements: string;
+  whatYouLearn: string;
 }
 
 export interface ICourseDocument extends ICourse, Document {

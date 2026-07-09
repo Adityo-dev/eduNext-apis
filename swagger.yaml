@@ -967,20 +967,11 @@ paths:
                   type: boolean
                   example: true
                 requirements:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    ["Basic HTML, CSS and JavaScript", "ES6+ concepts cleared"]
+                  type: string
+                  example: "<p>Basic HTML, CSS and JavaScript</p>"
                 whatYouLearn:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    [
-                      "Next.js 15 App Routing Architecture",
-                      "Advanced Server Side Rendering (SSR)",
-                    ]
+                  type: string
+                  example: "<p>Next.js 15 App Routing Architecture</p>"
                 sections:
                   type: array
                   items:
@@ -1276,13 +1267,9 @@ paths:
                 hasCertificate:
                   type: boolean
                 requirements:
-                  type: array
-                  items:
-                    type: string
+                  type: string
                 whatYouLearn:
-                  type: array
-                  items:
-                    type: string
+                  type: string
                 totalDuration:
                   type: string
                 status:
