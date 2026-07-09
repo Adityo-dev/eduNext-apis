@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import CourseModel from "./courseModel.js";
 import { EnrollmentModel } from "../enrollment/enrollmentModel.js";
+import CourseModel from "./courseModel.js";
 
 // ─── Helper Response Function
 const sendResponse = (
@@ -74,7 +74,14 @@ export const createCourse = async (
     } = req.body;
 
     // Validation
-    if (!title || !subtitle || !description || !price || !category || !thumbnail) {
+    if (
+      !title ||
+      !subtitle ||
+      !description ||
+      !price ||
+      !category ||
+      !thumbnail
+    ) {
       return next(
         createHttpError(
           400,
@@ -267,19 +274,40 @@ export const getCourseBySlug = async (
       status: "published",
     }).populate(
       "instructor",
-      "firstName lastName email avatar bio totalStudents totalCourses rating",
+      "firstName lastName email avatar bio",
     );
 
     if (!course) {
       return next(createHttpError(404, "Course not found"));
     }
 
-    const sanitizedSections = (course.sections || []).map((section: any) => {
-      const sectionObj =
-        typeof section.toObject === "function" ? section.toObject() : section;
+    const courseObj = course.toObject();
+
+    // Calculate instructor stats dynamically
+    if (courseObj.instructor && (courseObj.instructor as any)._id) {
+      const instructorObj = courseObj.instructor as any;
+      const instructorCourses = await CourseModel.find({ 
+        instructor: instructorObj._id, 
+        status: "published" 
+      }).select("enrolledCount rating");
+
+      const totalCourses = instructorCourses.length;
+      const totalStudents = instructorCourses.reduce((sum, c) => sum + (c.enrolledCount || 0), 0);
+      
+      const coursesWithRating = instructorCourses.filter(c => c.rating > 0);
+      const averageRating = coursesWithRating.length > 0 
+        ? coursesWithRating.reduce((sum, c) => sum + (c.rating || 0), 0) / coursesWithRating.length
+        : 0;
+
+      instructorObj.totalCourses = totalCourses;
+      instructorObj.totalStudents = totalStudents;
+      instructorObj.rating = Number(averageRating.toFixed(1));
+    }
+
+    const sanitizedSections = (courseObj.sections || []).map((section: any) => {
       return {
-        ...sectionObj,
-        lessons: (sectionObj.lessons || []).map((lesson: any) => ({
+        ...section,
+        lessons: (section.lessons || []).map((lesson: any) => ({
           ...lesson,
           videoUrl: lesson.isFree ? lesson.videoUrl : null,
         })),
@@ -287,7 +315,7 @@ export const getCourseBySlug = async (
     });
 
     sendResponse(res, 200, true, "Course fetched successfully", {
-      ...course.toObject(),
+      ...courseObj,
       sections: sanitizedSections,
     });
   } catch (error) {
@@ -435,18 +463,37 @@ export const deleteCourse = async (
       return next(createHttpError(404, "Course not found"));
     }
 
-    if (userRole !== "admin" && course.instructor.toString() !== userId.toString()) {
+    if (
+      userRole !== "admin" &&
+      course.instructor.toString() !== userId.toString()
+    ) {
       return next(createHttpError(403, "Unauthorized to delete this course"));
     }
 
-    if (userRole === "admin" && course.status !== "draft" && course.status !== "rejected") {
-      return next(createHttpError(400, "Admins can only delete courses in 'draft' or 'rejected' status. For 'published' courses, use suspend."));
+    if (
+      userRole === "admin" &&
+      course.status !== "draft" &&
+      course.status !== "rejected"
+    ) {
+      return next(
+        createHttpError(
+          400,
+          "Admins can only delete courses in 'draft' or 'rejected' status. For 'published' courses, use suspend.",
+        ),
+      );
     }
 
     // Check for active enrollments
-    const enrollmentsCount = await EnrollmentModel.countDocuments({ course: id });
+    const enrollmentsCount = await EnrollmentModel.countDocuments({
+      course: id,
+    });
     if (enrollmentsCount > 0) {
-      return next(createHttpError(400, "Cannot delete course because there are active enrollments."));
+      return next(
+        createHttpError(
+          400,
+          "Cannot delete course because there are active enrollments.",
+        ),
+      );
     }
 
     await CourseModel.findByIdAndDelete(id);
@@ -467,7 +514,13 @@ export const updateCourseStatus = async (
     const { id } = req.params;
     const { status, rejectedReason, suspendedReason, badge } = req.body;
 
-    const validStatuses = ["draft", "pending", "published", "rejected", "suspended"];
+    const validStatuses = [
+      "draft",
+      "pending",
+      "published",
+      "rejected",
+      "suspended",
+    ];
 
     if (!validStatuses.includes(status)) {
       return next(
@@ -485,10 +538,20 @@ export const updateCourseStatus = async (
 
     // Enforce status transition rules
     if (status === "published" && course.status !== "pending") {
-      return next(createHttpError(400, "Cannot approve (publish) a course unless it is in 'pending' status."));
+      return next(
+        createHttpError(
+          400,
+          "Cannot approve (publish) a course unless it is in 'pending' status.",
+        ),
+      );
     }
     if (status === "suspended" && course.status !== "published") {
-      return next(createHttpError(400, "Cannot suspend a course unless it is currently 'published'."));
+      return next(
+        createHttpError(
+          400,
+          "Cannot suspend a course unless it is currently 'published'.",
+        ),
+      );
     }
 
     const updates: Record<string, unknown> = { status };
