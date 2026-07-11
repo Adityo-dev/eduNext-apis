@@ -1172,10 +1172,13 @@ paths:
 
   /courses/{slug}:
     get:
-      summary: Get a single published course details by slug (Public)
+      summary: Get a single published course details by slug (Optionally Authenticated)
+      description: Fetches course details. If an authenticated user is enrolled, all video URLs are included. Otherwise, only free video URLs are provided.
       tags:
         - Course Management
-      security: [] # Public
+      security:
+        - {}
+        - bearerAuth: []
       parameters:
         - name: slug
           in: path

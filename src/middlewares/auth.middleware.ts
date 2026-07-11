@@ -45,6 +45,35 @@ export const authenticate = async (
   next();
 };
 
+// Optional Authentication Middleware
+export const optionalAuthenticate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (token) {
+    try {
+      const decoded: any = jwt.verify(token, JWT_SECRET);
+      req.user = { id: decoded.id, role: decoded.role };
+    } catch (error) {
+      // Ignore token verification errors for optional authentication
+    }
+  }
+
+  next();
+};
+
 // Role Authorization Middleware (Multi-role checking)
 export const authorize = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {

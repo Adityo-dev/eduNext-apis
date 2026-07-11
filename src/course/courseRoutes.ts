@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "../middlewares/auth.middleware.js";
+import { authenticate, authorize, optionalAuthenticate } from "../middlewares/auth.middleware.js";
 import {
   createCourse,
   deleteCourse,
@@ -17,7 +17,7 @@ const courseRouter = Router();
 
 // ─── Public Routes
 courseRouter.get("/", getAllCourses);
-courseRouter.get("/:slug", getCourseBySlug);
+courseRouter.get("/:slug", optionalAuthenticate, getCourseBySlug);
 
 // ─── Instructor Routes
 courseRouter.post("/", authenticate, authorize(["instructor"]), createCourse);

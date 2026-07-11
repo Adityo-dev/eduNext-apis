@@ -283,6 +283,27 @@ export const getCourseBySlug = async (
 
     const courseObj = course.toObject();
 
+    // Check user access permissions for videos
+    let hasAccess = false;
+    if ((req as any).user && (req as any).user.id) {
+      const userId = (req as any).user.id;
+      const userRole = (req as any).user.role;
+      const instructorId = (courseObj.instructor as any)?._id?.toString() || courseObj.instructor?.toString();
+
+      if (userRole === "admin" || userId === instructorId) {
+        hasAccess = true;
+      } else {
+        const enrollment = await EnrollmentModel.findOne({
+          course: courseObj._id,
+          student: userId,
+          paymentStatus: "completed"
+        });
+        if (enrollment) {
+          hasAccess = true;
+        }
+      }
+    }
+
     // Calculate instructor stats dynamically
     if (courseObj.instructor && (courseObj.instructor as any)._id) {
       const instructorObj = courseObj.instructor as any;
@@ -314,7 +335,7 @@ export const getCourseBySlug = async (
         ...section,
         lessons: (section.lessons || []).map((lesson: any) => ({
           ...lesson,
-          videoUrl: lesson.isFree ? lesson.videoUrl : null,
+          videoUrl: (lesson.isFree || hasAccess) ? lesson.videoUrl : null,
         })),
       };
     });
