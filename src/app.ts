@@ -12,6 +12,7 @@ import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
 import platformConfigRouter from "./platformConfig/routes/platformConfigRoutes.js";
 import ReviewRouter from "./review/routes/reviewRoutes.js";
 import uploadRouter from "./upload/uploadRoutes.js";
+import wishlistRouter from "./wishlist/wishlistRoutes.js";
 
 const app = express();
 
@@ -57,6 +58,9 @@ app.use("/api/v1/upload", uploadRouter);
 
 // Platform Config routes ->
 app.use("/api/v1/platform-config", platformConfigRouter);
+
+// Wishlist routes ->
+app.use("/api/v1/wishlists", wishlistRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);

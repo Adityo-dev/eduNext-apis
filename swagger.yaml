@@ -3538,3 +3538,75 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden (instructor only)
+
+  /wishlists:
+    post:
+      summary: Add a course to the user's wishlist
+      tags:
+        - Wishlist
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - courseId
+              properties:
+                courseId:
+                  type: string
+                  example: "65f8a1b2c3d4e5f6a7b8c9d0"
+      responses:
+        '201':
+          description: Course added to wishlist successfully
+        '200':
+          description: Course is already in your wishlist
+        '400':
+          description: Course ID is required
+        '404':
+          description: Course not found
+    get:
+      summary: Get the authenticated user's wishlist
+      tags:
+        - Wishlist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number (default 1)
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Results per page (default 10, max 50)
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Wishlist fetched successfully
+
+  /wishlists/{courseId}:
+    delete:
+      summary: Remove a course from the user's wishlist
+      tags:
+        - Wishlist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The ID of the course to remove from the wishlist
+          schema:
+            type: string
+            example: "65f8a1b2c3d4e5f6a7b8c9d0"
+      responses:
+        '200':
+          description: Course removed from wishlist successfully
+        '404':
+          description: Course not found in wishlist
