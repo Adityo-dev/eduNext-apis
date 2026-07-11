@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { authenticate, authorize, optionalAuthenticate } from "../middlewares/auth.middleware.js";
+import {
+  authenticate,
+  authorize,
+  optionalAuthenticate,
+} from "../middlewares/auth.middleware.js";
 import {
   createCourse,
   deleteCourse,
@@ -8,9 +12,9 @@ import {
   getCourseBySlug,
   getCoursesManagementStats,
   getInstructorCourses,
+  requestCoursePublish,
   updateCourse,
   updateCourseStatus,
-  requestCoursePublish,
 } from "./courseController.js";
 
 const courseRouter = Router();
