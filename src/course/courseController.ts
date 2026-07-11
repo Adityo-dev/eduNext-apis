@@ -274,7 +274,7 @@ export const getCourseBySlug = async (
       status: "published",
     }).populate(
       "instructor",
-      "firstName lastName email avatar bio",
+      "fullName email avatar bio experienceYears badge",
     );
 
     if (!course) {
@@ -286,18 +286,23 @@ export const getCourseBySlug = async (
     // Calculate instructor stats dynamically
     if (courseObj.instructor && (courseObj.instructor as any)._id) {
       const instructorObj = courseObj.instructor as any;
-      const instructorCourses = await CourseModel.find({ 
-        instructor: instructorObj._id, 
-        status: "published" 
+      const instructorCourses = await CourseModel.find({
+        instructor: instructorObj._id,
+        status: "published",
       }).select("enrolledCount rating");
 
       const totalCourses = instructorCourses.length;
-      const totalStudents = instructorCourses.reduce((sum, c) => sum + (c.enrolledCount || 0), 0);
-      
-      const coursesWithRating = instructorCourses.filter(c => c.rating > 0);
-      const averageRating = coursesWithRating.length > 0 
-        ? coursesWithRating.reduce((sum, c) => sum + (c.rating || 0), 0) / coursesWithRating.length
-        : 0;
+      const totalStudents = instructorCourses.reduce(
+        (sum, c) => sum + (c.enrolledCount || 0),
+        0,
+      );
+
+      const coursesWithRating = instructorCourses.filter((c) => c.rating > 0);
+      const averageRating =
+        coursesWithRating.length > 0
+          ? coursesWithRating.reduce((sum, c) => sum + (c.rating || 0), 0) /
+            coursesWithRating.length
+          : 0;
 
       instructorObj.totalCourses = totalCourses;
       instructorObj.totalStudents = totalStudents;
@@ -424,7 +429,6 @@ export const updateCourse = async (
       }
     }
 
-    // সেকশন আপডেট হলে লেসন সংখ্যা রিক্যালকুলেট করা
     if (updates.sections && Array.isArray(updates.sections)) {
       updates.lessonsCount = updates.sections.reduce(
         (total: number, section: any) => total + (section.lessons?.length || 0),
@@ -432,7 +436,6 @@ export const updateCourse = async (
       );
     }
 
-    // কোর্সটি অলরেডি পাবলিশড থাকলে, যেকোনো এডিটের পর সেটি আবার রিভিউতে (pending) চলে যাবে
     if (course.status === "published") {
       updates.status = "pending";
     }

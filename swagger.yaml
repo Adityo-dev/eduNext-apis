@@ -1190,6 +1190,43 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Course fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "65f8a1b2c3d4e5f6a7b8c9d0"
+                      title:
+                        type: string
+                        example: "Mastering Next.js 15"
+                      instructor:
+                        type: object
+                        properties:
+                          fullName:
+                            type: string
+                            example: "Aditto Dev"
+                          email:
+                            type: string
+                            example: "aditto@example.com"
+                          avatar:
+                            type: string
+                            example: "https://example.com/avatar.jpg"
+                          bio:
+                            type: string
+                            example: "Expert Full-Stack Instructor"
+                          experienceYears:
+                            type: integer
+                            example: 5
+                          badge:
+                            type: string
+                            example: "bronze"
         404:
           description: Course not found
 
