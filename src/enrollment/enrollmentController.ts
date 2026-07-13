@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import CourseModel from "../course/courseModel.js";
+import CourseModel from "../course/models/courseModel.js";
 import { EnrollmentModel } from "./enrollmentModel.js";
 
 // ─── 1. Enroll In Course

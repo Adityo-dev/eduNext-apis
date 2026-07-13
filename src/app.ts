@@ -5,7 +5,7 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 import adminRouter from "./admin/adminRoutes.js";
 import authRouter from "./auth/routes/authRoutes.js";
-import courseRouter from "./course/courseRoutes.js";
+import courseRouter from "./course/routes/courseRoutes.js";
 import enrollmentRouter from "./enrollment/enrollmentRoutes.js";
 import liveSessionRouter from "./liveSession/routes/liveSessionRoutes.js";
 import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";

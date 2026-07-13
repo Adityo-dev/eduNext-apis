@@ -3,7 +3,7 @@ import {
   authenticate,
   authorize,
   optionalAuthenticate,
-} from "../middlewares/auth.middleware.js";
+} from "../../middlewares/auth.middleware.js";
 import {
   createCourse,
   deleteCourse,
@@ -15,7 +15,7 @@ import {
   requestCoursePublish,
   updateCourse,
   updateCourseStatus,
-} from "./courseController.js";
+} from "../controllers/courseController.js";
 
 const courseRouter = Router();
 

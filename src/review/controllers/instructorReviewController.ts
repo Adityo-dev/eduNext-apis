@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { Types } from "mongoose";
-import CourseModel from "../../course/courseModel.js";
+import CourseModel from "../../course/models/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
 // ─── Get All Reviews Received by Instructor (Instructor Only)
@@ -145,7 +145,15 @@ export const getInstructorReviewStats = async (
     const distribution =
       stats.length > 0
         ? stats[0]
-        : { total: 0, avgRating: 0, star5: 0, star4: 0, star3: 0, star2: 0, star1: 0 };
+        : {
+            total: 0,
+            avgRating: 0,
+            star5: 0,
+            star4: 0,
+            star3: 0,
+            star2: 0,
+            star1: 0,
+          };
 
     const averageRating =
       distribution.total > 0 ? Math.round(distribution.avgRating * 10) / 10 : 0;

@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import CourseModel from "../../course/courseModel.js";
+import CourseModel from "../../course/models/courseModel.js";
 import { WishlistModel } from "../models/wishlistModel.js";
 
 // ─── 1. Add to Wishlist

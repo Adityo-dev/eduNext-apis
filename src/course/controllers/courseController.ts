@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import { EnrollmentModel } from "../enrollment/enrollmentModel.js";
-import CourseModel from "./courseModel.js";
+import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
+import CourseModel from "../models/courseModel.js";
 
 // ─── Helper Response Function
 const sendResponse = (
@@ -288,7 +288,9 @@ export const getCourseBySlug = async (
     if ((req as any).user && (req as any).user.id) {
       const userId = (req as any).user.id;
       const userRole = (req as any).user.role;
-      const instructorId = (courseObj.instructor as any)?._id?.toString() || courseObj.instructor?.toString();
+      const instructorId =
+        (courseObj.instructor as any)?._id?.toString() ||
+        courseObj.instructor?.toString();
 
       if (userRole === "admin" || userId === instructorId) {
         hasAccess = true;
@@ -296,7 +298,7 @@ export const getCourseBySlug = async (
         const enrollment = await EnrollmentModel.findOne({
           course: courseObj._id,
           student: userId,
-          paymentStatus: "completed"
+          paymentStatus: "completed",
         });
         if (enrollment) {
           hasAccess = true;
@@ -335,7 +337,7 @@ export const getCourseBySlug = async (
         ...section,
         lessons: (section.lessons || []).map((lesson: any) => ({
           ...lesson,
-          videoUrl: (lesson.isFree || hasAccess) ? lesson.videoUrl : null,
+          videoUrl: lesson.isFree || hasAccess ? lesson.videoUrl : null,
         })),
       };
     });

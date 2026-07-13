@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import { Types } from "mongoose";
 import AuthModel from "../../auth/models/authModel.js";
-import CourseModel from "../../course/courseModel.js";
+import CourseModel from "../../course/models/courseModel.js";
 import { ReviewModel } from "../models/reviewModel.js";
 
 // ─── 1. Publish a Review (Admin Only)

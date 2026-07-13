@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import type { ICourseDocument } from "./courseType.js";
+import type { ICourseDocument } from "../types/courseType.js";
 
 // ─── Lesson Schema ─
 const lessonSchema = new Schema(
