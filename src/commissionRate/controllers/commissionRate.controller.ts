@@ -30,7 +30,8 @@ export const updateCommissionRate = async (req: Request, res: Response) => {
   try {
     const { newRate } = req.body;
 
-    const adminId = req.user?._id;
+    const adminId = req.user?.id;
+
 
     if (!newRate || newRate < 5 || newRate > 50) {
       return res.status(400).json({
