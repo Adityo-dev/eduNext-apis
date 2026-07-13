@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import CourseModel from "../course/courseModel.js";
-import { WishlistModel } from "./wishlistModel.js";
+import CourseModel from "../../course/courseModel.js";
+import { WishlistModel } from "../models/wishlistModel.js";
 
 // ─── 1. Add to Wishlist
 export const addToWishlist = async (
@@ -99,10 +99,10 @@ export const getUserWishlist = async (
         .populate({
           path: "course",
           select:
-            "title slug thumbnail price estimatedPrice category level language rating enrolledCount status instructor",
+            "title slug thumbnail price estimatedPrice category level language rating enrolledCount status instructor totalDuration hasCertificate",
           populate: {
             path: "instructor",
-            select: "firstName lastName fullName email avatar",
+            select: "fullName avatar",
           },
         }),
       WishlistModel.countDocuments({ user: userId }),

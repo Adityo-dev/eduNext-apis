@@ -12,7 +12,7 @@ import globalErrorHandler from "./middlewares/GlobalErrorHandler.js";
 import platformConfigRouter from "./platformConfig/routes/platformConfigRoutes.js";
 import ReviewRouter from "./review/routes/reviewRoutes.js";
 import uploadRouter from "./upload/uploadRoutes.js";
-import wishlistRouter from "./wishlist/wishlistRoutes.js";
+import wishlistRouter from "./wishlist/routes/wishlistRoutes.js";
 
 const app = express();
 
