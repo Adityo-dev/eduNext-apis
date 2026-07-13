@@ -3611,9 +3611,43 @@ paths:
         '404':
           description: Course not found in wishlist
 
+  /commission/current:
+    get:
+      summary: Fetch the current platform commission rate (Instructor)
+      tags:
+        - Commission Rate
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current platform commission rate fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Current platform commission rate fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      commissionRate:
+                        type: number
+                        example: 20
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (Instructor only)
+        '500':
+          description: Internal server error
+
   /commission:
     get:
-      summary: Fetch the current platform commission rate and change history
+      summary: Fetch the current platform commission rate and change history (Admin Only)
       tags:
         - Commission Rate
       security:
@@ -3658,6 +3692,8 @@ paths:
                               example: "2026-07-13T14:52:45.000Z"
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden (Admin only)
         '500':
           description: Internal server error
     put:

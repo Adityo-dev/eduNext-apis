@@ -13,6 +13,7 @@ import platformConfigRouter from "./platformConfig/routes/platformConfigRoutes.j
 import ReviewRouter from "./review/routes/reviewRoutes.js";
 import uploadRouter from "./upload/uploadRoutes.js";
 import wishlistRouter from "./wishlist/routes/wishlistRoutes.js";
+import { commissionRoutes } from "./commissionRate/routes/commissionRate.routes.js";
 
 const app = express();
 
@@ -61,6 +62,9 @@ app.use("/api/v1/platform-config", platformConfigRouter);
 
 // Wishlist routes ->
 app.use("/api/v1/wishlists", wishlistRouter);
+
+// Commission routes ->
+app.use("/api/v1", commissionRoutes);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);
