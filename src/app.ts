@@ -14,6 +14,8 @@ import ReviewRouter from "./review/routes/reviewRoutes.js";
 import uploadRouter from "./upload/uploadRoutes.js";
 import wishlistRouter from "./wishlist/routes/wishlistRoutes.js";
 import { commissionRoutes } from "./commissionRate/routes/commissionRate.routes.js";
+import { paymentRoutes } from "./payment/routes/payment.routes.js";
+import { withdrawalRoutes } from "./payment/routes/withdrawal.routes.js";
 
 const app = express();
 
@@ -65,6 +67,12 @@ app.use("/api/v1/wishlists", wishlistRouter);
 
 // Commission routes ->
 app.use("/api/v1", commissionRoutes);
+
+// Payment routes ->
+app.use("/api/v1/payment", paymentRoutes);
+
+// Withdrawal routes ->
+app.use("/api/v1/withdrawal", withdrawalRoutes);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);

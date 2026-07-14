@@ -91,10 +91,10 @@ export const initiatePayment = async (req: Request, res: Response) => {
         phone: student.phone,
       },
       productName: course.title,
-      successUrl: `${BACKEND_BASE_URL}/api/payment/success`,
-      failUrl: `${BACKEND_BASE_URL}/api/payment/fail`,
-      cancelUrl: `${BACKEND_BASE_URL}/api/payment/cancel`,
-      ipnUrl: `${BACKEND_BASE_URL}/api/payment/ipn`,
+      successUrl: `${BACKEND_BASE_URL}/api/v1/payment/success`,
+      failUrl: `${BACKEND_BASE_URL}/api/v1/payment/fail`,
+      cancelUrl: `${BACKEND_BASE_URL}/api/v1/payment/cancel`,
+      ipnUrl: `${BACKEND_BASE_URL}/api/v1/payment/ipn`,
     });
 
     if (

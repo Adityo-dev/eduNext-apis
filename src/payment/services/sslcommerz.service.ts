@@ -1,22 +1,10 @@
-/**
- * SSLCommerz service layer.
- * Uses the built-in `fetch` (Node.js >= 18) — no extra HTTP dependency needed.
- *
- * Required env vars:
- *   SSLCOMMERZ_STORE_ID
- *   SSLCOMMERZ_STORE_PASSWORD
- *   SSLCOMMERZ_IS_LIVE        ("true" | "false", default "false")
- *   BACKEND_BASE_URL          e.g. https://edunext-api.onrender.com
- *   FRONTEND_BASE_URL         e.g. https://edunext-six.vercel.app
- */
-
 const STORE_ID = process.env.SSLCOMMERZ_STORE_ID as string;
 const STORE_PASSWORD = process.env.SSLCOMMERZ_STORE_PASSWORD as string;
-const IS_LIVE = process.env.SSLCOMMERZ_IS_LIVE === "true";
+const IS_SANDBOX = process.env.IS_SANDBOX === "true";
 
-const BASE_URL = IS_LIVE
-  ? "https://securepay.sslcommerz.com"
-  : "https://sandbox.sslcommerz.com";
+const BASE_URL = IS_SANDBOX
+  ? "https://sandbox.sslcommerz.com"
+  : "https://securepay.sslcommerz.com";
 
 const SESSION_API_URL = `${BASE_URL}/gwprocess/v4/api.php`;
 const VALIDATION_API_URL = `${BASE_URL}/validator/api/validationserverAPI.php`;

@@ -3768,7 +3768,6 @@ paths:
 # Tag used: "Payment" and "Withdrawal" — add them to your top-level `tags:`
 # list too if you keep one.
 # ─────────────────────────────────────────────────────────────────────────
-
 paths:
   /api/payment/initiate/{courseId}:
     post:
@@ -3997,6 +3996,132 @@ paths:
       responses:
         "200":
           description: Withdrawal processed
+
+  /payment/initiate/{courseId}:
+    post:
+      tags: [Payment]
+      summary: Student — Initiate payment for a course
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment session created successfully
+
+  /payment/my-payments:
+    get:
+      tags: [Payment]
+      summary: Student — Get list of own payments
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of payments
+
+  /payment/success:
+    post:
+      tags: [Payment]
+      summary: Public — Payment success callback from SSLCommerz
+      responses:
+        "303":
+          description: Redirects to frontend success page
+
+  /payment/fail:
+    post:
+      tags: [Payment]
+      summary: Public — Payment fail callback from SSLCommerz
+      responses:
+        "303":
+          description: Redirects to frontend fail page
+
+  /payment/cancel:
+    post:
+      tags: [Payment]
+      summary: Public — Payment cancel callback from SSLCommerz
+      responses:
+        "303":
+          description: Redirects to frontend cancel page
+
+  /payment/ipn:
+    post:
+      tags: [Payment]
+      summary: Public — IPN listener for SSLCommerz
+      responses:
+        "200":
+          description: IPN received
+
+  /payment/refund/{paymentId}:
+    post:
+      tags: [Payment]
+      summary: Student — Request refund
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: paymentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        "200":
+          description: Refund requested successfully
+
+  /payment/refund-requests:
+    get:
+      tags: [Payment]
+      summary: Admin — Get refund requests
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of refund requests
+
+  /payment/refund/{paymentId}/process:
+    put:
+      tags: [Payment]
+      summary: Admin — Process a refund request
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: paymentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [approve, reject] }
+                adminNote: { type: string }
+      responses:
+        "200":
+          description: Refund processed
+
+  /payment/instructor/earnings:
+    get:
+      tags: [Payment]
+      summary: Instructor — Get earnings summary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Earnings summary
 
 components:
   schemas:
