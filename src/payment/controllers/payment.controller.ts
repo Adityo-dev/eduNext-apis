@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
 import type { Request, Response } from "express";
 
 import AuthModel from "../../auth/models/authModel.js";
@@ -251,10 +252,11 @@ export const requestRefund = async (req: Request, res: Response) => {
     const { paymentId } = req.params;
     const { reason } = req.body;
 
-    const payment = await PaymentModel.findOne({
-      _id: paymentId,
-      student: studentId,
-    });
+    const query = mongoose.isValidObjectId(paymentId)
+      ? { _id: paymentId, student: studentId }
+      : { tranId: paymentId, student: studentId };
+
+    const payment = await PaymentModel.findOne(query);
     if (!payment) {
       return res
         .status(404)
@@ -329,7 +331,11 @@ export const processRefund = async (req: Request, res: Response) => {
       });
     }
 
-    const payment = await PaymentModel.findById(paymentId);
+    const query = mongoose.isValidObjectId(paymentId)
+      ? { _id: paymentId }
+      : { tranId: paymentId };
+
+    const payment = await PaymentModel.findOne(query);
     if (!payment) {
       return res
         .status(404)

@@ -24,6 +24,7 @@ const swaggerDocument = YAML.load(path.join(process.cwd(), "swagger.yaml"));
 
 //  middleware ->
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // SSLCommerz callback data (form-encoded)
 
 app.use(cors({ origin: true, credentials: true }));
 
