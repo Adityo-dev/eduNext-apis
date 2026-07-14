@@ -168,7 +168,7 @@ async function finalizeSuccessfulPayment(tranId: string, valId: string) {
 // ─── 2. Browser redirect after successful payment (SSLCommerz POSTs here) ──
 export const paymentSuccess = async (req: Request, res: Response) => {
   try {
-    const { tran_id, val_id } = req.body;
+    const { tran_id, val_id } = req.body || {};
     const result = await finalizeSuccessfulPayment(tran_id, val_id);
     const redirectUrl = result.ok
       ? `${FRONTEND_BASE_URL}/payment/success?tran_id=${tran_id}`
@@ -220,7 +220,7 @@ export const paymentCancel = async (req: Request, res: Response) => {
 // ─── 5. Server-to-server IPN listener (SSLCommerz calls this independently) ─
 export const paymentIPN = async (req: Request, res: Response) => {
   try {
-    const { tran_id, val_id } = req.body;
+    const { tran_id, val_id } = req.body || {};
     if (!tran_id || !val_id) {
       return res.status(400).send("Missing tran_id or val_id");
     }

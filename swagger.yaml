@@ -15,6 +15,56 @@ security:
   - bearerAuth: []
 
 components:
+
+  schemas:
+    Payment:
+      type: object
+      properties:
+        _id: { type: string }
+        student: { type: string }
+        course: { type: string }
+        instructor: { type: string }
+        enrollment: { type: string }
+        tranId: { type: string }
+        amount: { type: number }
+        commissionRate: { type: number }
+        commissionAmount: { type: number }
+        instructorEarning: { type: number }
+        status:
+          type: string
+          enum: [pending, paid, failed, cancelled, refunded]
+        payoutStatus:
+          type: string
+          enum: [not_applicable, available, withdrawal_pending, withdrawn]
+        paidAt: { type: string, format: date-time }
+        refund:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [none, requested, approved, rejected, refunded]
+            reason: { type: string }
+            requestedAt: { type: string, format: date-time }
+            processedAt: { type: string, format: date-time }
+            refundRefId: { type: string }
+            refundedAmount: { type: number }
+
+    Withdrawal:
+      type: object
+      properties:
+        _id: { type: string }
+        instructor: { type: string }
+        amount: { type: number }
+        payments:
+          type: array
+          items: { type: string }
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        accountInfo: { type: string }
+        adminNote: { type: string }
+        requestedAt: { type: string, format: date-time }
+        processedAt: { type: string, format: date-time }
   securitySchemes:
     bearerAuth:
       type: http
@@ -3762,14 +3812,7 @@ paths:
         '500':
           description: Internal server error
 
-# ─────────────────────────────────────────────────────────────────────────
-# Merge these `paths` and `components.schemas` blocks into your existing
-# swagger.yaml (under the top-level `paths:` and `components.schemas:` keys).
-# Tag used: "Payment" and "Withdrawal" — add them to your top-level `tags:`
-# list too if you keep one.
-# ─────────────────────────────────────────────────────────────────────────
-paths:
-  /api/payment/initiate/{courseId}:
+  /payment/initiate/{courseId}:
     post:
       tags: [Payment]
       summary: Student initiates payment/enrollment for a course
@@ -3783,19 +3826,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Payment session created — redirect the user to paymentUrl
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success: { type: boolean, example: true }
-                  message: { type: string }
-                  data:
-                    type: object
-                    properties:
-                      paymentUrl: { type: string, example: "https://sandbox.sslcommerz.com/EasyCheckOut/testxxxx" }
-                      tranId: { type: string, example: "EDU-1737800000000-a1b2c3d4" }
+          description: Payment session created
         "400":
           description: Already enrolled / invalid request
         "404":
@@ -3803,7 +3834,7 @@ paths:
         "502":
           description: SSLCommerz session creation failed
 
-  /api/payment/my-payments:
+  /payment/my-payments:
     get:
       tags: [Payment]
       summary: Student — list own payment history
@@ -3812,53 +3843,43 @@ paths:
       responses:
         "200":
           description: List of payments
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success: { type: boolean }
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Payment"
 
-  /api/payment/success:
+  /payment/success:
     post:
       tags: [Payment]
-      summary: SSLCommerz success callback (browser redirect, form-encoded). Not called directly by clients.
+      summary: SSLCommerz success callback
       responses:
         "303":
-          description: Redirects to frontend success/fail page
+          description: Redirects to frontend success page
 
-  /api/payment/fail:
+  /payment/fail:
     post:
       tags: [Payment]
-      summary: SSLCommerz fail callback (browser redirect, form-encoded). Not called directly by clients.
+      summary: SSLCommerz fail callback
       responses:
         "303":
           description: Redirects to frontend fail page
 
-  /api/payment/cancel:
+  /payment/cancel:
     post:
       tags: [Payment]
-      summary: SSLCommerz cancel callback (browser redirect, form-encoded). Not called directly by clients.
+      summary: SSLCommerz cancel callback
       responses:
         "303":
           description: Redirects to frontend cancel page
 
-  /api/payment/ipn:
+  /payment/ipn:
     post:
       tags: [Payment]
-      summary: SSLCommerz server-to-server IPN listener. Not called directly by clients.
+      summary: SSLCommerz server-to-server IPN listener
       responses:
         "200":
           description: IPN acknowledged
 
-  /api/payment/refund/{paymentId}:
+  /payment/refund/{paymentId}:
     post:
       tags: [Payment]
-      summary: Student requests a refund (must be within 7 days of payment)
+      summary: Student requests a refund
       security:
         - bearerAuth: []
       parameters:
@@ -3873,14 +3894,14 @@ paths:
             schema:
               type: object
               properties:
-                reason: { type: string, example: "Course content not as described" }
+                reason: { type: string }
       responses:
         "200":
           description: Refund request submitted
         "400":
-          description: Refund window expired / already requested / not eligible
+          description: Refund window expired / already requested
 
-  /api/payment/refund-requests:
+  /payment/refund-requests:
     get:
       tags: [Payment]
       summary: Admin — list all pending refund requests
@@ -3888,9 +3909,9 @@ paths:
         - bearerAuth: []
       responses:
         "200":
-          description: List of payments with refund.status = requested
+          description: List of refund requests
 
-  /api/payment/refund/{paymentId}/process:
+  /payment/refund/{paymentId}/process:
     put:
       tags: [Payment]
       summary: Admin — approve or reject a refund request
@@ -3915,24 +3936,24 @@ paths:
         "200":
           description: Refund processed
         "400":
-          description: No pending refund request / already withdrawn
+          description: No pending refund request
         "502":
           description: SSLCommerz refund initiation failed
 
-  /api/payment/instructor/earnings:
+  /payment/instructor/earnings:
     get:
       tags: [Payment]
-      summary: Instructor — earnings summary (available / pending / withdrawn)
+      summary: Instructor — earnings summary
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: Earnings breakdown
+          description: Earnings summary
 
-  /api/withdrawals:
+  /withdrawal:
     post:
       tags: [Withdrawal]
-      summary: Instructor requests withdrawal of full available balance
+      summary: Instructor requests withdrawal
       security:
         - bearerAuth: []
       requestBody:
@@ -3962,7 +3983,7 @@ paths:
         "200":
           description: List of withdrawal requests
 
-  /api/withdrawals/my-requests:
+  /withdrawal/my-requests:
     get:
       tags: [Withdrawal]
       summary: Instructor — list own withdrawal requests
@@ -3972,10 +3993,10 @@ paths:
         "200":
           description: List of own withdrawal requests
 
-  /api/withdrawals/{withdrawalId}/process:
+  /withdrawal/{withdrawalId}/process:
     put:
       tags: [Withdrawal]
-      summary: Admin — approve (mark paid) or reject a withdrawal request
+      summary: Admin — approve or reject a withdrawal request
       security:
         - bearerAuth: []
       parameters:
@@ -3997,179 +4018,3 @@ paths:
         "200":
           description: Withdrawal processed
 
-  /payment/initiate/{courseId}:
-    post:
-      tags: [Payment]
-      summary: Student — Initiate payment for a course
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: courseId
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Payment session created successfully
-
-  /payment/my-payments:
-    get:
-      tags: [Payment]
-      summary: Student — Get list of own payments
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: List of payments
-
-  /payment/success:
-    post:
-      tags: [Payment]
-      summary: Public — Payment success callback from SSLCommerz
-      responses:
-        "303":
-          description: Redirects to frontend success page
-
-  /payment/fail:
-    post:
-      tags: [Payment]
-      summary: Public — Payment fail callback from SSLCommerz
-      responses:
-        "303":
-          description: Redirects to frontend fail page
-
-  /payment/cancel:
-    post:
-      tags: [Payment]
-      summary: Public — Payment cancel callback from SSLCommerz
-      responses:
-        "303":
-          description: Redirects to frontend cancel page
-
-  /payment/ipn:
-    post:
-      tags: [Payment]
-      summary: Public — IPN listener for SSLCommerz
-      responses:
-        "200":
-          description: IPN received
-
-  /payment/refund/{paymentId}:
-    post:
-      tags: [Payment]
-      summary: Student — Request refund
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: paymentId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason: { type: string }
-      responses:
-        "200":
-          description: Refund requested successfully
-
-  /payment/refund-requests:
-    get:
-      tags: [Payment]
-      summary: Admin — Get refund requests
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: List of refund requests
-
-  /payment/refund/{paymentId}/process:
-    put:
-      tags: [Payment]
-      summary: Admin — Process a refund request
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: paymentId
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [action]
-              properties:
-                action: { type: string, enum: [approve, reject] }
-                adminNote: { type: string }
-      responses:
-        "200":
-          description: Refund processed
-
-  /payment/instructor/earnings:
-    get:
-      tags: [Payment]
-      summary: Instructor — Get earnings summary
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: Earnings summary
-
-components:
-  schemas:
-    Payment:
-      type: object
-      properties:
-        _id: { type: string }
-        student: { type: string }
-        course: { type: string }
-        instructor: { type: string }
-        enrollment: { type: string }
-        tranId: { type: string }
-        amount: { type: number }
-        commissionRate: { type: number }
-        commissionAmount: { type: number }
-        instructorEarning: { type: number }
-        status:
-          type: string
-          enum: [pending, paid, failed, cancelled, refunded]
-        payoutStatus:
-          type: string
-          enum: [not_applicable, available, withdrawal_pending, withdrawn]
-        paidAt: { type: string, format: date-time }
-        refund:
-          type: object
-          properties:
-            status:
-              type: string
-              enum: [none, requested, approved, rejected, refunded]
-            reason: { type: string }
-            requestedAt: { type: string, format: date-time }
-            processedAt: { type: string, format: date-time }
-            refundRefId: { type: string }
-            refundedAmount: { type: number }
-
-    Withdrawal:
-      type: object
-      properties:
-        _id: { type: string }
-        instructor: { type: string }
-        amount: { type: number }
-        payments:
-          type: array
-          items: { type: string }
-        status:
-          type: string
-          enum: [pending, approved, rejected]
-        accountInfo: { type: string }
-        adminNote: { type: string }
-        requestedAt: { type: string, format: date-time }
-        processedAt: { type: string, format: date-time }
