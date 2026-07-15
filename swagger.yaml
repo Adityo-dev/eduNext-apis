@@ -3949,6 +3949,33 @@ paths:
       responses:
         "200":
           description: Earnings summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      totalEarned:
+                        type: number
+                      available:
+                        type: number
+                      holding:
+                        type: number
+                        description: Earnings from payments made in the last 7 days (cannot be withdrawn yet)
+                      pendingWithdrawal:
+                        type: number
+                      withdrawn:
+                        type: number
+                      totalRefunded:
+                        type: number
+                      payments:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Payment'
 
   /withdrawal:
     post:

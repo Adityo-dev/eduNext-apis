@@ -19,10 +19,14 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
       });
     }
 
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     const availablePayments = await PaymentModel.find({
       instructor: instructorId,
       status: "paid",
       payoutStatus: "available",
+      paidAt: { $lte: sevenDaysAgo },
     });
 
     const amount = availablePayments.reduce(

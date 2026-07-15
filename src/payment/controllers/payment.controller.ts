@@ -423,28 +423,51 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
 
     const payments = await PaymentModel.find({
       instructor: instructorId,
-      status: "paid",
+      status: { $in: ["paid", "refunded"] },
     })
       .populate("course", "title")
       .sort({ createdAt: -1 });
 
-    const totalEarned = payments.reduce(
-      (sum, p) => sum + p.instructorEarning,
-      0,
-    );
-    const available = payments
-      .filter((p) => p.payoutStatus === "available")
-      .reduce((sum, p) => sum + p.instructorEarning, 0);
-    const pendingWithdrawal = payments
-      .filter((p) => p.payoutStatus === "withdrawal_pending")
-      .reduce((sum, p) => sum + p.instructorEarning, 0);
-    const withdrawn = payments
-      .filter((p) => p.payoutStatus === "withdrawn")
-      .reduce((sum, p) => sum + p.instructorEarning, 0);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    let totalEarned = 0;
+    let available = 0;
+    let pendingWithdrawal = 0;
+    let withdrawn = 0;
+    let holding = 0;
+    let totalRefunded = 0;
+
+    payments.forEach((p) => {
+      if (p.status === "refunded") {
+        totalRefunded += p.instructorEarning;
+      } else {
+        totalEarned += p.instructorEarning;
+        if (p.payoutStatus === "available") {
+          if (p.paidAt && p.paidAt <= sevenDaysAgo) {
+            available += p.instructorEarning;
+          } else {
+            holding += p.instructorEarning;
+          }
+        } else if (p.payoutStatus === "withdrawal_pending") {
+          pendingWithdrawal += p.instructorEarning;
+        } else if (p.payoutStatus === "withdrawn") {
+          withdrawn += p.instructorEarning;
+        }
+      }
+    });
 
     return res.status(200).json({
       success: true,
-      data: { totalEarned, available, pendingWithdrawal, withdrawn, payments },
+      data: {
+        totalEarned,
+        available,
+        holding,
+        pendingWithdrawal,
+        withdrawn,
+        totalRefunded,
+        payments,
+      },
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
