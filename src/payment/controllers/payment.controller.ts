@@ -498,3 +498,60 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ─── 11. Instructor — Weekly Revenue Chart
+export const getWeeklyRevenue = async (req: Request, res: Response) => {
+  try {
+    const instructorId = req.user?.id;
+
+    // Get current date
+    const now = new Date();
+
+    // Find the Monday of the current week
+    const dayOfWeek = now.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() + diffToMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const payments = await PaymentModel.find({
+      instructor: instructorId,
+      status: "paid",
+      paidAt: { $gte: startOfWeek, $lte: endOfWeek },
+    });
+
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const chartData = days.map((day) => ({ day, revenue: 0 }));
+
+    let totalThisWeek = 0;
+
+    payments.forEach((p) => {
+      if (p.paidAt) {
+        const jsDay = p.paidAt.getDay();
+        const chartIndex = jsDay === 0 ? 6 : jsDay - 1;
+
+        const dayData = chartData[chartIndex];
+        if (dayData) {
+          dayData.revenue += p.instructorEarning;
+        }
+        totalThisWeek += p.instructorEarning;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Weekly revenue fetched successfully",
+      data: {
+        totalThisWeek,
+        chartData,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
   getInstructorEarnings,
+  getWeeklyRevenue,
   getMyPayments,
   getRefundRequests,
   initiatePayment,
@@ -54,6 +55,13 @@ router.get(
   authenticate,
   authorize(["instructor"]),
   getInstructorEarnings,
+);
+
+router.get(
+  "/instructor/weekly-revenue",
+  authenticate,
+  authorize(["instructor"]),
+  getWeeklyRevenue,
 );
 
 export const paymentRoutes = router;
