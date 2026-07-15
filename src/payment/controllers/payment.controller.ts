@@ -420,13 +420,31 @@ export const processRefund = async (req: Request, res: Response) => {
 export const getInstructorEarnings = async (req: Request, res: Response) => {
   try {
     const instructorId = req.user?.id;
+    const { page = "1", limit = "10", courseId, status } = req.query;
 
-    const payments = await PaymentModel.find({
+    const filter: any = {
       instructor: instructorId,
       status: { $in: ["paid", "refunded"] },
-    })
+    };
+
+    if (courseId) {
+      filter.course = courseId;
+    }
+    if (status) {
+      // If client requests a specific status, override the default
+      filter.status = status;
+    }
+
+    const allPayments = await PaymentModel.find(filter)
       .populate("course", "title")
       .sort({ createdAt: -1 });
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.min(50, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    const total = allPayments.length;
+    const paginatedPayments = allPayments.slice(skip, skip + limitNum);
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -438,7 +456,7 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
     let holding = 0;
     let totalRefunded = 0;
 
-    payments.forEach((p) => {
+    allPayments.forEach((p) => {
       if (p.status === "refunded") {
         totalRefunded += p.instructorEarning;
       } else {
@@ -459,6 +477,7 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
+      message: "Earnings summary fetched successfully",
       data: {
         totalEarned,
         available,
@@ -466,7 +485,13 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
         pendingWithdrawal,
         withdrawn,
         totalRefunded,
-        payments,
+        payments: paginatedPayments,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
       },
     });
   } catch (error: any) {
