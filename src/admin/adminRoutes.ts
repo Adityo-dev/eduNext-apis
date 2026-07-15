@@ -8,12 +8,16 @@ import {
   approveInstructor,
   cancelBadge,
   getUserManagementStats,
+  getOverviewStats,
+  getQuickActionStats,
   updateUserStatus,
 } from "./adminController.js";
 
 const adminRouter = Router();
 
 // adminRouter.use(authenticate, authorize(["admin"]));
+adminRouter.get("/overview-stats", getOverviewStats);
+adminRouter.get("/quick-action-stats", getQuickActionStats);
 adminRouter.get("/user-stats", getUserManagementStats);
 adminRouter.get("/users", getAllUsers);
 adminRouter.patch("/users/:id/status", updateUserStatus);

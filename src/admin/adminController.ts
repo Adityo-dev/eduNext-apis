@@ -1,7 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import AuthModel from "../auth/models/authModel.js";
+import CourseModel from "../course/models/courseModel.js";
+import { PaymentModel } from "../payment/models/payment.model.js";
+import { WithdrawalModel } from "../payment/models/withdrawal.model.js";
+import { ReviewModel } from "../review/models/reviewModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
-
 // 1.Get User Management Stats
 export const getUserManagementStats = async (
   req: Request,
@@ -462,4 +465,103 @@ export const deleteUser = async (
     success: true,
     message: "User account has been permanently deleted from EduNext",
   });
+};
+
+// 10. Get Admin Dashboard Overview Stats
+export const getOverviewStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      totalUsers,
+      newUsersThisMonth,
+      totalCourses,
+      newCoursesThisMonth,
+      revenueStats,
+      currentMonthRevenueStats
+    ] = await Promise.all([
+      AuthModel.countDocuments(),
+      AuthModel.countDocuments({ createdAt: { $gte: startOfCurrentMonth } }),
+      CourseModel.countDocuments(),
+      CourseModel.countDocuments({ createdAt: { $gte: startOfCurrentMonth } }),
+      PaymentModel.aggregate([
+        { $match: { status: "paid" } },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: "$amount" },
+            totalCommission: { $sum: "$commissionAmount" }
+          }
+        }
+      ]),
+      PaymentModel.aggregate([
+        { $match: { status: "paid", paidAt: { $gte: startOfCurrentMonth } } },
+        {
+          $group: {
+            _id: null,
+            newRevenueThisMonth: { $sum: "$amount" }
+          }
+        }
+      ])
+    ]);
+
+    const totalRevenue = revenueStats[0]?.totalRevenue || 0;
+    const totalCommission = revenueStats[0]?.totalCommission || 0;
+    const newRevenueThisMonth = currentMonthRevenueStats[0]?.newRevenueThisMonth || 0;
+
+    res.status(200).json({
+      success: true,
+      message: "Overview stats fetched successfully",
+      data: {
+        totalUsers,
+        newUsersThisMonth,
+        totalCourses,
+        newCoursesThisMonth,
+        totalRevenue,
+        newRevenueThisMonth,
+        totalCommission,
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 11. Get Admin Quick Action Stats
+export const getQuickActionStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const [
+      pendingBadgeRequests,
+      pendingWithdrawals,
+      pendingReviews,
+      pendingCourses
+    ] = await Promise.all([
+      AuthModel.countDocuments({ role: "instructor", "badgeRequest.status": "pending" }),
+      WithdrawalModel.countDocuments({ status: "pending" }),
+      ReviewModel.countDocuments({ status: "pending" }),
+      CourseModel.countDocuments({ status: "pending" }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Quick action stats fetched successfully",
+      data: {
+        pendingBadgeRequests,
+        pendingWithdrawals,
+        pendingReviews,
+        pendingCourses,
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };

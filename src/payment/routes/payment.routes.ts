@@ -3,6 +3,7 @@ import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
   getInstructorEarnings,
   getWeeklyRevenue,
+  getAdminRevenueOverview,
   getMyPayments,
   getRefundRequests,
   initiatePayment,
@@ -48,6 +49,13 @@ router.put(
   authenticate,
   authorize(["admin"]),
   processRefund,
+);
+
+router.get(
+  "/admin/revenue-overview",
+  authenticate,
+  authorize(["admin"]),
+  getAdminRevenueOverview,
 );
 
 router.get(

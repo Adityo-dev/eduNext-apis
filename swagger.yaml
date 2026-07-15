@@ -4009,6 +4009,43 @@ paths:
                           limit: { type: integer }
                           totalPages: { type: integer }
 
+  /payment/admin/revenue-overview:
+    get:
+      tags: [Payment]
+      summary: Admin — Last 6 months revenue overview chart
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Revenue overview fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      summary:
+                        type: object
+                        properties:
+                          totalRevenue: { type: number }
+                          totalCommission: { type: number }
+                          totalInstructorEarnings: { type: number }
+                      chartData:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            month: { type: string }
+                            totalRevenue: { type: number }
+                            commission: { type: number }
+                            instructorEarning: { type: number }
+
   /payment/instructor/weekly-revenue:
     get:
       tags: [Payment]
@@ -4041,6 +4078,61 @@ paths:
                               type: string
                             revenue:
                               type: number
+
+  /admin/overview-stats:
+    get:
+      tags: [Admin]
+      summary: Admin dashboard overview statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Overview stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      totalUsers: { type: number }
+                      newUsersThisMonth: { type: number }
+                      totalCourses: { type: number }
+                      newCoursesThisMonth: { type: number }
+                      totalRevenue: { type: number }
+                      newRevenueThisMonth: { type: number }
+                      totalCommission: { type: number }
+
+  /admin/quick-action-stats:
+    get:
+      tags: [Admin]
+      summary: Admin dashboard quick action statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Quick action stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      pendingBadgeRequests: { type: number }
+                      pendingWithdrawals: { type: number }
+                      pendingReviews: { type: number }
+                      pendingCourses: { type: number }
 
   /withdrawal:
     post:

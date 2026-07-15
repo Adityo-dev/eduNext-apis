@@ -555,3 +555,106 @@ export const getWeeklyRevenue = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ─── 12. Admin — Monthly Revenue Overview (Last 6 Months) ───────────────────
+export const getAdminRevenueOverview = async (req: Request, res: Response) => {
+  try {
+    const now = new Date();
+
+    // Set to 1st of current month, then go back 5 months to get last 6 months total
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const startOfPeriod = new Date(startOfCurrentMonth);
+    startOfPeriod.setMonth(startOfPeriod.getMonth() - 5);
+
+    const endOfPeriod = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const payments = await PaymentModel.find({
+      status: "paid",
+      paidAt: { $gte: startOfPeriod, $lte: endOfPeriod },
+    });
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const chartData: any[] = [];
+
+    // Create skeleton for the last 6 months in chronological order
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      chartData.push({
+        month: months[d.getMonth()],
+        year: d.getFullYear(),
+        monthIndex: d.getMonth(),
+        totalRevenue: 0,
+        commission: 0,
+        instructorEarning: 0,
+      });
+    }
+
+    let summaryTotalRevenue = 0;
+    let summaryTotalCommission = 0;
+    let summaryTotalInstructorEarnings = 0;
+
+    payments.forEach((p) => {
+      if (p.paidAt) {
+        summaryTotalRevenue += p.amount;
+        summaryTotalCommission += p.commissionAmount;
+        summaryTotalInstructorEarnings += p.instructorEarning;
+
+        const pYear = p.paidAt.getFullYear();
+        const pMonth = p.paidAt.getMonth();
+
+        const monthData = chartData.find(
+          (m) => m.year === pYear && m.monthIndex === pMonth,
+        );
+        if (monthData) {
+          monthData.totalRevenue += p.amount;
+          monthData.commission += p.commissionAmount;
+          monthData.instructorEarning += p.instructorEarning;
+        }
+      }
+    });
+
+    const formattedChartData = chartData.map((m) => ({
+      month: m.month,
+      totalRevenue: m.totalRevenue,
+      commission: m.commission,
+      instructorEarning: m.instructorEarning,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Revenue overview fetched successfully",
+      data: {
+        summary: {
+          totalRevenue: summaryTotalRevenue,
+          totalCommission: summaryTotalCommission,
+          totalInstructorEarnings: summaryTotalInstructorEarnings,
+        },
+        chartData: formattedChartData,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
