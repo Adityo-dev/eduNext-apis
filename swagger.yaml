@@ -1538,6 +1538,30 @@ paths:
         - Course Enrollment
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by course title
+        - in: query
+          name: stats
+          schema:
+            type: string
+            enum: [completed, in-progress]
+          description: Filter by course progress status
+        - in: query
+          name: page
+          schema:
+            type: string
+            default: "1"
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: string
+            default: "10"
+          description: Number of items per page
       responses:
         200:
           description: Enrolled courses fetched successfully

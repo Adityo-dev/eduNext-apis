@@ -3,6 +3,7 @@ import createHttpError from "http-errors";
 import CourseModel from "../course/models/courseModel.js";
 import { EnrollmentModel } from "./enrollmentModel.js";
 import { ProgressModel } from "../progress/models/progressModel.js";
+import mongoose from "mongoose";
 
 // ─── 1. Enroll In Course
 export const enrollInCourse = async (
@@ -59,7 +60,6 @@ export const enrollInCourse = async (
   }
 };
 
-// ─── 2. Get My Enrolled Courses
 export const getMyEnrolledCourses = async (
   req: Request,
   res: Response,
@@ -67,35 +67,111 @@ export const getMyEnrolledCourses = async (
 ): Promise<void> => {
   try {
     const studentId = (req as any).user?._id || (req as any).user?.id;
+    const studentObjectId = new mongoose.Types.ObjectId(studentId);
 
-    // Fetch enrollments with enhanced course & instructor data
-    const enrollments = await EnrollmentModel.find({ student: studentId })
-      .populate({
-        path: "course",
-        select: "title thumbnail category lessonsCount totalDuration rating",
-        populate: { path: "instructor", select: "firstName lastName avatar" },
-      })
-      .sort({ createdAt: -1 })
-      .lean();
+    const { search, stats, page = "1", limit = "10" } = req.query;
 
-    // Fetch all progress records for this student
-    const progresses = await ProgressModel.find({ student: studentId }).lean();
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
 
-    // Map progress data for easy lookup
-    const progressMap = new Map();
-    progresses.forEach((p: any) => {
-      progressMap.set(p.course.toString(), p);
-    });
+    const pipeline: mongoose.PipelineStage[] = [
+      { $match: { student: studentObjectId } },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "course",
+        },
+      },
+      { $unwind: "$course" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "course.instructor",
+          foreignField: "_id",
+          as: "course.instructor",
+        },
+      },
+      {
+        $unwind: {
+          path: "$course.instructor",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "progresses",
+          let: { studentId: "$student", courseId: "$course._id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$student", "$$studentId"] },
+                    { $eq: ["$course", "$$courseId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "progressData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$progressData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
 
-    // Format the response to perfectly match the UI design
+    if (search) {
+      pipeline.push({
+        $match: {
+          "course.title": { $regex: search as string, $options: "i" },
+        },
+      });
+    }
+
+    if (stats === "completed") {
+      pipeline.push({
+        $match: {
+          "progressData.isCourseCompleted": true,
+        },
+      });
+    } else if (stats === "in-progress") {
+      pipeline.push({
+        $match: {
+          "progressData.isCourseCompleted": { $ne: true },
+        },
+      });
+    }
+
+    pipeline.push({ $sort: { createdAt: -1 } });
+
+    const countPipeline = [...pipeline, { $count: "total" }];
+
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: limitNumber });
+
+    const [enrollments, countResult] = await Promise.all([
+      EnrollmentModel.aggregate(pipeline),
+      EnrollmentModel.aggregate(countPipeline),
+    ]);
+
+    const total = countResult[0]?.total || 0;
+
     const formattedCourses = enrollments.map((e: any) => {
       const course = e.course;
-      const progress = progressMap.get(course._id.toString());
+      const progress = e.progressData;
 
       const totalLessons = course.lessonsCount || 0;
-      const completedLessonsCount = progress
-        ? progress.completedLessons.length
-        : 0;
+      const completedLessonsCount =
+        progress && progress.completedLessons
+          ? progress.completedLessons.length
+          : 0;
       const percentage =
         totalLessons > 0
           ? Math.round((completedLessonsCount / totalLessons) * 100)
@@ -113,7 +189,13 @@ export const getMyEnrolledCourses = async (
           lessonsCount: totalLessons,
           totalDuration: course.totalDuration,
           rating: course.rating,
-          instructor: course.instructor,
+          instructor: course.instructor
+            ? {
+                _id: course.instructor._id,
+                fullName: course.instructor.fullName,
+                avatar: course.instructor.avatar,
+              }
+            : null,
         },
         progress: {
           completedLessonsCount,
@@ -128,7 +210,15 @@ export const getMyEnrolledCourses = async (
     res.status(200).json({
       success: true,
       message: "Enrolled courses fetched successfully",
-      data: formattedCourses,
+      data: {
+        courses: formattedCourses,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(total / limitNumber),
+        },
+      },
     });
   } catch (error) {
     next(error);
