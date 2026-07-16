@@ -16,6 +16,7 @@ import wishlistRouter from "./wishlist/routes/wishlistRoutes.js";
 import { commissionRoutes } from "./commissionRate/routes/commissionRate.routes.js";
 import { paymentRoutes } from "./payment/routes/payment.routes.js";
 import { withdrawalRoutes } from "./payment/routes/withdrawal.routes.js";
+import progressRouter from "./progress/routes/progressRoutes.js";
 
 const app = express();
 
@@ -50,6 +51,9 @@ app.use("/api/v1/courses", courseRouter);
 
 // Enrollment routes ->
 app.use("/api/v1/enrollments", enrollmentRouter);
+
+// Progress routes ->
+app.use("/api/v1/progress", progressRouter);
 
 // Live Session routes ->
 app.use("/api/v1/live-sessions", liveSessionRouter);

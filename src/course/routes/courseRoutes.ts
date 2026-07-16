@@ -15,6 +15,7 @@ import {
   requestCoursePublish,
   updateCourse,
   updateCourseStatus,
+  getCourseForPlayback,
 } from "../controllers/courseController.js";
 
 const courseRouter = Router();
@@ -22,6 +23,7 @@ const courseRouter = Router();
 // ─── Public Routes
 courseRouter.get("/", getAllCourses);
 courseRouter.get("/:slug", optionalAuthenticate, getCourseBySlug);
+courseRouter.get("/:id/play", authenticate, getCourseForPlayback);
 
 // ─── Instructor Routes
 courseRouter.post("/", authenticate, authorize(["instructor"]), createCourse);
