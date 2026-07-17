@@ -76,8 +76,8 @@ const courseSchema = new Schema<ICourseDocument>(
     },
     language: {
       type: String,
-      enum: ["বাংলা", "English"],
-      default: "বাংলা",
+      enum: ["Bangla", "English", "Hindi"],
+      default: "Bangla",
     },
     tags: [{ type: String }],
 
@@ -152,7 +152,7 @@ const courseSchema = new Schema<ICourseDocument>(
 );
 
 // ─── Mongoose Hooks (Pre-save Middleware)
-courseSchema.pre("save", function () {
+courseSchema.pre("save", function (this: ICourseDocument) {
   // auto generate slug
   if (this.isModified("title")) {
     this.slug = this.title
@@ -164,24 +164,24 @@ courseSchema.pre("save", function () {
   //  auto calculate lessons count and total duration
   if (this.isModified("sections")) {
     let totalLessons = 0;
-    let totalMinutes = 0;
+    let totalSeconds = 0;
 
     this.sections.forEach((section: any) => {
       if (section.lessons && Array.isArray(section.lessons)) {
         totalLessons += section.lessons.length;
-        
+
         section.lessons.forEach((lesson: any) => {
           if (lesson.duration) {
             const parts = lesson.duration.split(":").map(Number);
             if (parts.length === 2) {
               // MM:SS
-              totalMinutes += parts[0] + parts[1] / 60;
+              totalSeconds += parts[0] * 60 + parts[1];
             } else if (parts.length === 3) {
               // HH:MM:SS
-              totalMinutes += parts[0] * 60 + parts[1] + parts[2] / 60;
+              totalSeconds += parts[0] * 3600 + parts[1] * 60 + parts[2];
             } else if (parts.length === 1 && !isNaN(parts[0])) {
               // Just minutes
-              totalMinutes += parts[0];
+              totalSeconds += parts[0] * 60;
             }
           }
         });
@@ -190,15 +190,17 @@ courseSchema.pre("save", function () {
 
     this.lessonsCount = totalLessons;
 
-    const roundedMinutes = Math.round(totalMinutes);
-    const hrs = Math.floor(roundedMinutes / 60);
-    const mins = roundedMinutes % 60;
-    
-    if (hrs > 0) {
-      this.totalDuration = `${hrs} hrs ${mins} mins`;
-    } else {
-      this.totalDuration = `${mins} mins`;
-    }
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    const durationParts = [];
+    if (hrs > 0) durationParts.push(`${hrs} hr${hrs > 1 ? "s" : ""}`);
+    if (mins > 0) durationParts.push(`${mins} min${mins > 1 ? "s" : ""}`);
+    if (secs > 0) durationParts.push(`${secs} sec${secs > 1 ? "s" : ""}`);
+
+    this.totalDuration =
+      durationParts.length > 0 ? durationParts.join(" ") : "0 mins";
   }
 });
 

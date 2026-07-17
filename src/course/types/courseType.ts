@@ -33,7 +33,7 @@ export interface ICourse {
   // Classification
   category: string;
   level: "Beginner" | "Intermediate" | "Advanced";
-  language: "বাংলা" | "English";
+  language: "Bangla" | "English" | "Hindi";
   tags?: string[];
 
   // Instructor

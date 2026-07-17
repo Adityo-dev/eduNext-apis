@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -1006,8 +1006,8 @@ paths:
                   example: Beginner
                 language:
                   type: string
-                  enum: ["à¦¬à¦¾à¦‚à¦²à¦¾", "English"]
-                  example: "à¦¬à¦¾à¦‚à¦²à¦¾"
+                  enum: ["Bangla", "English", "Hindi"]
+                  example: "Bangla"
                 tags:
                   type: array
                   items:
@@ -1094,7 +1094,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ["à¦¬à¦¾à¦‚à¦²à¦¾", "English"]
+            enum: ["Bangla", "English", "Hindi"]
         - name: minPrice
           in: query
           required: false
@@ -1374,7 +1374,7 @@ paths:
                   enum: [Beginner, Intermediate, Advanced]
                 language:
                   type: string
-                  enum: ["à¦¬à¦¾à¦‚à¦²à¦¾", "English"]
+                  enum: ["Bangla", "English", "Hindi"]
                 tags:
                   type: array
                   items:
@@ -1385,8 +1385,7 @@ paths:
                   type: string
                 whatYouLearn:
                   type: string
-                totalDuration:
-                  type: string
+
                 status:
                   type: string
                   enum: [draft, pending]

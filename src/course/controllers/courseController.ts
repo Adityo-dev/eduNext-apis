@@ -426,7 +426,6 @@ export const updateCourse = async (
       "hasCertificate",
       "requirements",
       "whatYouLearn",
-      "totalDuration",
       "status",
     ];
 
@@ -451,13 +450,6 @@ export const updateCourse = async (
       if (!allowedStatuses.includes(updates.status as string)) {
         return next(createHttpError(400, "Invalid status update request"));
       }
-    }
-
-    if (updates.sections && Array.isArray(updates.sections)) {
-      updates.lessonsCount = updates.sections.reduce(
-        (total: number, section: any) => total + (section.lessons?.length || 0),
-        0,
-      );
     }
 
     if (course.status === "published") {
