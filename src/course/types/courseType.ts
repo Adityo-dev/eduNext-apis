@@ -48,6 +48,7 @@ export interface ICourse {
   enrolledCount: number;
   rating: number;
   totalReviews: number;
+  totalViews: number;
 
   // Certificate
   hasCertificate: boolean;

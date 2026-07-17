@@ -114,6 +114,10 @@ const courseSchema = new Schema<ICourseDocument>(
       type: Number,
       default: 0,
     },
+    totalViews: {
+      type: Number,
+      default: 0,
+    },
 
     // Certificate
     hasCertificate: {

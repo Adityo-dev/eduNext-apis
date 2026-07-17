@@ -3,6 +3,7 @@ import createHttpError from "http-errors";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
 import { ProgressModel } from "../../progress/models/progressModel.js";
 import CourseModel from "../models/courseModel.js";
+import { CourseViewModel } from "../models/courseViewModel.js";
 
 // ─── Helper Response Function
 const sendResponse = (
@@ -194,7 +195,7 @@ export const getAllCourses = async (
         .skip(skip)
         .limit(limitNum)
         .populate("instructor", "firstName lastName email avatar")
-        .select("-sections"),
+        .select("-sections -totalViews"),
       CourseModel.countDocuments(filter),
     ]);
 
@@ -273,13 +274,52 @@ export const getCourseBySlug = async (
     const course = await CourseModel.findOne({
       slug,
       status: "published",
-    }).populate(
-      "instructor",
-      "fullName email avatar bio experienceYears badge",
-    );
+    })
+      .populate("instructor", "fullName email avatar bio experienceYears badge")
+      .select("-totalViews");
 
     if (!course) {
       return next(createHttpError(404, "Course not found"));
+    }
+
+    //  Analytics: Record Course View
+    try {
+      const ipAddress = (req.headers["x-forwarded-for"] ||
+        req.socket.remoteAddress ||
+        req.ip) as string;
+      const userId = (req as any).user?.id || (req as any).user?._id || null;
+
+      // Check for view in the last 24 hours
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const viewQuery: any = {
+        course: course._id,
+        createdAt: { $gte: twentyFourHoursAgo },
+      };
+
+      if (userId) {
+        viewQuery.user = userId;
+      } else {
+        viewQuery.ipAddress = ipAddress;
+      }
+
+      const recentView = await CourseViewModel.findOne(viewQuery);
+
+      if (!recentView) {
+        // Record new view
+        await CourseViewModel.create({
+          course: course._id,
+          user: userId,
+          ipAddress: ipAddress,
+        });
+
+        // Increment total views safely
+        await CourseModel.findByIdAndUpdate(course._id, {
+          $inc: { totalViews: 1 },
+        });
+      }
+    } catch (analyticsError) {
+      console.error("Failed to record course view:", analyticsError);
     }
 
     const courseObj = course.toObject();
@@ -401,23 +441,45 @@ export const getInstructorCourseStats = async (
   try {
     const instructorId = (req as any).user?._id || (req as any).user?.id;
 
-    const [totalCourses, published, pending, draft, rejected, suspended] = await Promise.all([
-      CourseModel.countDocuments({ instructor: instructorId }),
-      CourseModel.countDocuments({ instructor: instructorId, status: "published" }),
-      CourseModel.countDocuments({ instructor: instructorId, status: "pending" }),
-      CourseModel.countDocuments({ instructor: instructorId, status: "draft" }),
-      CourseModel.countDocuments({ instructor: instructorId, status: "rejected" }),
-      CourseModel.countDocuments({ instructor: instructorId, status: "suspended" }),
-    ]);
+    const [totalCourses, published, pending, draft, rejected, suspended] =
+      await Promise.all([
+        CourseModel.countDocuments({ instructor: instructorId }),
+        CourseModel.countDocuments({
+          instructor: instructorId,
+          status: "published",
+        }),
+        CourseModel.countDocuments({
+          instructor: instructorId,
+          status: "pending",
+        }),
+        CourseModel.countDocuments({
+          instructor: instructorId,
+          status: "draft",
+        }),
+        CourseModel.countDocuments({
+          instructor: instructorId,
+          status: "rejected",
+        }),
+        CourseModel.countDocuments({
+          instructor: instructorId,
+          status: "suspended",
+        }),
+      ]);
 
-    sendResponse(res, 200, true, "Instructor course stats fetched successfully", {
-      totalCourses,
-      published,
-      pending,
-      draft,
-      rejected,
-      suspended,
-    });
+    sendResponse(
+      res,
+      200,
+      true,
+      "Instructor course stats fetched successfully",
+      {
+        totalCourses,
+        published,
+        pending,
+        draft,
+        rejected,
+        suspended,
+      },
+    );
   } catch (error) {
     next(error);
   }
