@@ -266,3 +266,320 @@ export const getMyStats = async (
     next(error);
   }
 };
+
+
+// ─── 4. Get Instructor's Enrolled Students Stats
+export const getInstructorStudentStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const instructorId = (req as any).user?._id || (req as any).user?.id;
+    const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
+
+    const pipeline: mongoose.PipelineStage[] = [
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "courseObj",
+        },
+      },
+      { $unwind: "$courseObj" },
+      {
+        $match: {
+          "courseObj.instructor": instructorObjectId,
+        },
+      },
+      {
+        $lookup: {
+          from: "progresses",
+          let: { studentId: "$student", courseId: "$course" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$student", "$$studentId"] },
+                    { $eq: ["$course", "$$courseId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "progressData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$progressData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          let: { studentId: "$student", courseId: "$course" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$student", "$$studentId"] },
+                    { $eq: ["$course", "$$courseId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "reviewData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$reviewData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalStudents: { $sum: 1 },
+          activeThisWeek: {
+            $sum: {
+              $cond: [
+                {
+                  $gte: [
+                    "$progressData.updatedAt",
+                    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+          completed: {
+            $sum: {
+              $cond: ["$progressData.isCourseCompleted", 1, 0],
+            },
+          },
+          withReviews: {
+            $sum: {
+              $cond: [{ $ifNull: ["$reviewData._id", false] }, 1, 0],
+            },
+          },
+        },
+      }
+    ];
+
+    const result = await EnrollmentModel.aggregate(pipeline);
+    const stats = result[0] || {
+      totalStudents: 0,
+      activeThisWeek: 0,
+      completed: 0,
+      withReviews: 0,
+    };
+    if (stats._id === null) delete stats._id;
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor student stats fetched successfully",
+      data: stats,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── 5. Get Instructor's Enrolled Students (List)
+export const getInstructorStudents = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const instructorId = (req as any).user?._id || (req as any).user?.id;
+    const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
+
+    const { courseId, search, page = "1", limit = "10" } = req.query;
+
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const pipeline: mongoose.PipelineStage[] = [
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "courseObj",
+        },
+      },
+      { $unwind: "$courseObj" },
+      {
+        $match: {
+          "courseObj.instructor": instructorObjectId,
+        },
+      },
+    ];
+
+    if (courseId) {
+      pipeline.push({
+        $match: {
+          "courseObj._id": new mongoose.Types.ObjectId(courseId as string),
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: "users",
+          localField: "student",
+          foreignField: "_id",
+          as: "studentObj",
+        },
+      },
+      { $unwind: "$studentObj" },
+    );
+
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { "studentObj.name": { $regex: search as string, $options: "i" } },
+            { "studentObj.email": { $regex: search as string, $options: "i" } },
+            { "studentObj.firstName": { $regex: search as string, $options: "i" } },
+            { "studentObj.lastName": { $regex: search as string, $options: "i" } },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: "progresses",
+          let: { studentId: "$student", courseId: "$course" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$student", "$$studentId"] },
+                    { $eq: ["$course", "$$courseId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "progressData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$progressData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          let: { studentId: "$student", courseId: "$course" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$student", "$$studentId"] },
+                    { $eq: ["$course", "$$courseId"] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "reviewData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$reviewData",
+          preserveNullAndEmptyArrays: true,
+        },
+      }
+    );
+
+    pipeline.push({ $sort: { createdAt: -1 } });
+
+    const facetPipeline: mongoose.PipelineStage[] = [
+      ...pipeline,
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [{ $skip: skip }, { $limit: limitNumber }],
+        },
+      },
+    ];
+
+    const result = await EnrollmentModel.aggregate(facetPipeline);
+
+    const total = result[0].metadata[0]?.total || 0;
+    const rawData = result[0].data;
+
+    const formattedStudents = rawData.map((item: any) => {
+      const student = item.studentObj;
+      const course = item.courseObj;
+      const progress = item.progressData;
+      const review = item.reviewData;
+
+      const totalLessons = course.lessonsCount || 0;
+      const completedLessonsCount =
+        progress && progress.completedLessons
+          ? progress.completedLessons.length
+          : 0;
+      const percentage =
+        totalLessons > 0
+          ? Math.round((completedLessonsCount / totalLessons) * 100)
+          : 0;
+
+      const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
+
+      return {
+        _id: item._id, // enrollment id
+        student: {
+          _id: student._id,
+          name: studentName || "Unknown Student",
+          email: student.email,
+          avatar: student.avatar || "https://placeholder.com/avatar.png",
+        },
+        course: {
+          _id: course._id,
+          title: course.title,
+        },
+        progress: percentage,
+        rating: review ? review.rating : 0,
+        lastActive: progress?.updatedAt || item.createdAt,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor students fetched successfully",
+      data: {
+        students: formattedStudents,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(total / limitNumber),
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

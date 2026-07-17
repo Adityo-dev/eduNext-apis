@@ -1625,6 +1625,153 @@ paths:
         401:
           description: Unauthorized
 
+  /enrollments/instructor/students/stats:
+    get:
+      summary: Get Enrolled Students Stats (Instructor Only)
+      tags:
+        - Enrollment
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Instructor students stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Instructor student stats fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      totalStudents:
+                        type: number
+                        example: 6
+                      activeThisWeek:
+                        type: number
+                        example: 3
+                      completed:
+                        type: number
+                        example: 1
+                      withReviews:
+                        type: number
+                        example: 4
+
+  /enrollments/instructor/students:
+    get:
+      summary: Get Enrolled Students (Instructor Only)
+      tags:
+        - Enrollment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: query
+          description: Filter students by a specific course ID
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search students by name or email
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        200:
+          description: Instructor students fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Instructor students fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      stats:
+                        type: object
+                        properties:
+                          totalStudents:
+                            type: number
+                            example: 6
+                          activeThisWeek:
+                            type: number
+                            example: 3
+                          completed:
+                            type: number
+                            example: 1
+                          withReviews:
+                            type: number
+                            example: 4
+                      students:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            student:
+                              type: object
+                              properties:
+                                _id:
+                                  type: string
+                                name:
+                                  type: string
+                                email:
+                                  type: string
+                                avatar:
+                                  type: string
+                            course:
+                              type: object
+                              properties:
+                                _id:
+                                  type: string
+                                title:
+                                  type: string
+                            progress:
+                              type: number
+                              example: 72
+                            rating:
+                              type: number
+                              example: 5
+                            lastActive:
+                              type: string
+                              format: date-time
+                      pagination:
+                        type: object
+                        properties:
+                          total:
+                            type: number
+                          page:
+                            type: number
+                          limit:
+                            type: number
+                          totalPages:
+                            type: number
+
   /reviews:
     post:
       summary: Add a rating and review to a purchased course (Student Only)
