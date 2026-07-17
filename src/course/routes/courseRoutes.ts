@@ -1,5 +1,12 @@
 import { Router } from "express";
 import {
+  getInstructorAnalyticsStats,
+  getInstructorAnalyticsGrowth,
+  getInstructorRevenueOverview,
+  getInstructorCoursePerformance,
+} from "../controllers/courseAnalyticsController.js";
+
+import {
   authenticate,
   authorize,
   optionalAuthenticate,
@@ -27,6 +34,34 @@ courseRouter.get("/:slug", optionalAuthenticate, getCourseBySlug);
 courseRouter.get("/:id/play", authenticate, getCourseForPlayback);
 
 // ─── Instructor Routes
+
+// ─── Instructor Analytics Routes
+courseRouter.get(
+  "/instructor/analytics/stats",
+  authenticate,
+  authorize(["instructor"]),
+  getInstructorAnalyticsStats,
+);
+
+courseRouter.get(
+  "/instructor/analytics/growth",
+  authenticate,
+  authorize(["instructor"]),
+  getInstructorAnalyticsGrowth,
+);
+
+courseRouter.get(
+  "/instructor/analytics/revenue-overview",
+  authenticate,
+  authorize(["instructor"]),
+  getInstructorRevenueOverview,
+);
+courseRouter.get(
+  "/instructor/analytics/performance",
+  authenticate,
+  authorize(["instructor"]),
+  getInstructorCoursePerformance,
+);
 courseRouter.post("/", authenticate, authorize(["instructor"]), createCourse);
 courseRouter.get(
   "/instructor/my-courses",
