@@ -12,6 +12,7 @@ import {
   getCourseBySlug,
   getCoursesManagementStats,
   getInstructorCourses,
+  getInstructorCourseStats,
   requestCoursePublish,
   updateCourse,
   updateCourseStatus,
@@ -32,6 +33,12 @@ courseRouter.get(
   authenticate,
   authorize(["instructor"]),
   getInstructorCourses,
+);
+courseRouter.get(
+  "/instructor/course-stats",
+  authenticate,
+  authorize(["instructor"]),
+  getInstructorCourseStats,
 );
 courseRouter.patch(
   "/:id",
@@ -55,22 +62,22 @@ courseRouter.post(
 // ─── Admin Routes
 courseRouter.patch(
   "/:id/status",
-  // authenticate,
-  // authorize(["admin"]),
+  authenticate,
+  authorize(["admin"]),
   updateCourseStatus,
 );
 
 courseRouter.get(
   "/admin/courses",
-  // authenticate,
-  // authorize(["admin"]),
+  authenticate,
+  authorize(["admin"]),
   getAllCoursesAdmin,
 );
 
 courseRouter.get(
   "/admin/course-stats",
-  // authenticate,
-  // authorize(["admin"]),
+  authenticate,
+  authorize(["admin"]),
   getCoursesManagementStats,
 );
 

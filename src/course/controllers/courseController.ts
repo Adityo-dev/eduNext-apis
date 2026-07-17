@@ -392,6 +392,37 @@ export const getInstructorCourses = async (
   }
 };
 
+// ─── 6.5 Get Instructor Course Stats
+export const getInstructorCourseStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const instructorId = (req as any).user?._id || (req as any).user?.id;
+
+    const [totalCourses, published, pending, draft, rejected, suspended] = await Promise.all([
+      CourseModel.countDocuments({ instructor: instructorId }),
+      CourseModel.countDocuments({ instructor: instructorId, status: "published" }),
+      CourseModel.countDocuments({ instructor: instructorId, status: "pending" }),
+      CourseModel.countDocuments({ instructor: instructorId, status: "draft" }),
+      CourseModel.countDocuments({ instructor: instructorId, status: "rejected" }),
+      CourseModel.countDocuments({ instructor: instructorId, status: "suspended" }),
+    ]);
+
+    sendResponse(res, 200, true, "Instructor course stats fetched successfully", {
+      totalCourses,
+      published,
+      pending,
+      draft,
+      rejected,
+      suspended,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ─── 7. Update Course & Handle Publish Requests (Optimized)
 export const updateCourse = async (
   req: Request,
@@ -556,14 +587,18 @@ export const updateCourseStatus = async (
     }
 
     // Enforce status transition rules
-    if (status === "published" && course.status !== "pending") {
+    if (
+      status === "published" &&
+      !["pending", "suspended"].includes(course.status)
+    ) {
       return next(
         createHttpError(
           400,
-          "Cannot approve (publish) a course unless it is in 'pending' status.",
+          "Cannot approve or unsuspend a course unless it is in 'pending' or 'suspended' status.",
         ),
       );
     }
+
     if (status === "suspended" && course.status !== "published") {
       return next(
         createHttpError(
