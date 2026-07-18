@@ -45,10 +45,23 @@ export const getCourseLiveSessions = async (
       .sort({ startTime: 1 })
       .populate("instructor", "firstName lastName avatar");
 
+    // Hide meeting link if session is not live yet and user is a student
+    const sanitizedSessions = sessions.map((session) => {
+      const sessionObj = session.toObject();
+      if (
+        userRole === "student" &&
+        sessionObj.status === "upcoming"
+      ) {
+        sessionObj.meetingLink =
+          "Link will be available when the session is live";
+      }
+      return sessionObj;
+    });
+
     res.status(200).json({
       success: true,
       message: "Live sessions fetched successfully",
-      data: sessions,
+      data: sanitizedSessions,
     });
   } catch (error) {
     next(error);

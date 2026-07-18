@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: http://localhost:5000/api/v1
-    description: Local Development Server
   - url: https://edunext-apis.onrender.com/api/v1
     description: Production Server (Render)
+  - url: http://localhost:5000/api/v1
+    description: Local Development Server
 
 
 
@@ -2165,7 +2165,8 @@ paths:
                           example: "Deep dive into context optimization and custom hooks."
                         meetingLink:
                           type: string
-                          example: "https://zoom.us/j/12345678"
+                          description: "Hidden until instructor starts the session"
+                          example: "Link will be available when the session is live"
                         meetingPlatform:
                           type: string
                           enum: [Zoom, Google Meet, Custom]
@@ -2281,6 +2282,7 @@ paths:
   /live-sessions:
     post:
       summary: Schedule a new live session (Instructor Only)
+      description: Schedules a new live session with status 'upcoming'. A reminder email will be automatically sent to enrolled students 10 minutes before the startTime.
       tags:
         - Live Sessions Management
       requestBody:
@@ -2330,7 +2332,7 @@ paths:
   /live-sessions/course/{courseId}:
     get:
       summary: Get all live sessions assigned to a specific course
-      description: Verifies roles and access configurations before populating all sessions matching a target course ID.
+      description: Verifies roles and access configurations before populating all sessions matching a target course ID. Hides meeting links for students if the session status is upcoming.
       tags:
         - Live Sessions Management
       parameters:
@@ -2347,6 +2349,7 @@ paths:
   /live-sessions/{sessionId}:
     patch:
       summary: Update details, meeting credentials, or status of a session
+      description: Updating the status to 'live' will instantly trigger an email notification to all enrolled students with the meeting link.
       tags:
         - Live Sessions Management
       parameters:
