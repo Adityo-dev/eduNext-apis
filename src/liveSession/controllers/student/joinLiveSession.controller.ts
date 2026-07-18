@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
-import LiveSessionModel from "../models/liveSessionModel.js";
+import { EnrollmentModel } from "../../../enrollment/enrollmentModel.js";
+import LiveSessionModel from "../../models/liveSessionModel.js";
 
 // ─── 1. Join Live Session (Student Only)
 export const joinLiveSession = async (
