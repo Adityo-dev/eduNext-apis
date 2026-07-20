@@ -1,12 +1,19 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
-import {
-  getCommissionRate,
-  getCommissionRateForInstructor,
-  updateCommissionRate,
-} from "../controllers/commissionRate.controller.js";
+import { getCommissionRate } from "../controllers/admin/getCommissionRate.controller.js";
+import { getCommissionStats } from "../controllers/admin/getCommissionStats.controller.js";
+import { updateCommissionRate } from "../controllers/admin/updateCommissionRate.controller.js";
+import { getCommissionRateForInstructor } from "../controllers/instructor/getCommissionRateForInstructor.controller.js";
 
 const router = Router();
+
+// Admin: get overall commission stats
+router.get(
+  "/commission/stats",
+  authenticate,
+  authorize(["admin"]),
+  getCommissionStats,
+);
 
 // Admin: get full commission history
 router.get(
@@ -24,6 +31,7 @@ router.get(
   getCommissionRateForInstructor,
 );
 
+// Admin can update commission rate only
 router.put(
   "/commission",
   authenticate,
