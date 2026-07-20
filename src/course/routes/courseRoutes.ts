@@ -1,8 +1,4 @@
 import { Router } from "express";
-import { getInstructorAnalyticsStats } from "../controllers/instructor/getInstructorAnalyticsStats.controller.js";
-import { getInstructorAnalyticsGrowth } from "../controllers/instructor/getInstructorAnalyticsGrowth.controller.js";
-import { getInstructorRevenueOverview } from "../controllers/instructor/getInstructorRevenueOverview.controller.js";
-import { getInstructorCoursePerformance } from "../controllers/instructor/getInstructorCoursePerformance.controller.js";
 
 import {
   authenticate,
@@ -21,44 +17,14 @@ import { getInstructorCourseStats } from "../controllers/instructor/getInstructo
 import { requestCoursePublish } from "../controllers/instructor/requestCoursePublish.controller.js";
 import { updateCourse } from "../controllers/instructor/updateCourse.controller.js";
 import { updateCourseStatus } from "../controllers/admin/updateCourseStatus.controller.js";
-import { getCourseForPlayback } from "../controllers/student/getCourseForPlayback.controller.js";
 
 const courseRouter = Router();
 
 // ─── Public Routes
 courseRouter.get("/", getAllCourses);
 courseRouter.get("/:slug", optionalAuthenticate, getCourseBySlug);
-courseRouter.get("/:id/play", authenticate, getCourseForPlayback);
 
-// ─── Instructor Analytics Routes
-courseRouter.get(
-  "/instructor/analytics/stats",
-  authenticate,
-  authorize(["instructor"]),
-  getInstructorAnalyticsStats,
-);
-
-courseRouter.get(
-  "/instructor/analytics/growth",
-  authenticate,
-  authorize(["instructor"]),
-  getInstructorAnalyticsGrowth,
-);
-
-courseRouter.get(
-  "/instructor/analytics/revenue-overview",
-  authenticate,
-  authorize(["instructor"]),
-  getInstructorRevenueOverview,
-);
-
-courseRouter.get(
-  "/instructor/analytics/performance",
-  authenticate,
-  authorize(["instructor"]),
-  getInstructorCoursePerformance,
-);
-
+// ─── Instructor Course Management Routes
 courseRouter.post("/", authenticate, authorize(["instructor"]), createCourse);
 
 courseRouter.get(
@@ -96,7 +62,7 @@ courseRouter.post(
   requestCoursePublish,
 );
 
-// ─── Admin Routes
+// ─── Admin Course Management Routes
 courseRouter.patch(
   "/:id/status",
   authenticate,

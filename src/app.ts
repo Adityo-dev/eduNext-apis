@@ -17,7 +17,8 @@ import { commissionRoutes } from "./commissionRate/routes/commissionRate.routes.
 import { paymentRoutes } from "./payment/routes/payment.routes.js";
 import { withdrawalRoutes } from "./payment/routes/withdrawal.routes.js";
 import progressRouter from "./progress/routes/progressRoutes.js";
-
+import analyticsRouter from "./analytics/routes/analyticsRoutes.js";
+import playerRouter from "./player/routes/playerRoutes.js";
 const app = express();
 
 // Load Swagger YAML file
@@ -48,6 +49,12 @@ app.use("/api/v1/admin", adminRouter);
 
 // Course routes ->
 app.use("/api/v1/courses", courseRouter);
+
+// Analytics routes ->
+app.use("/api/v1/analytics", analyticsRouter);
+
+// Player routes ->
+app.use("/api/v1/player", playerRouter);
 
 // Enrollment routes ->
 app.use("/api/v1/enrollments", enrollmentRouter);

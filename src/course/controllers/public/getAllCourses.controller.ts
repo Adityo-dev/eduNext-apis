@@ -41,6 +41,7 @@ export const getAllCourses = async (
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
         { category: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
       ];
     }
 

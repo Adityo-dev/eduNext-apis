@@ -1283,12 +1283,12 @@ paths:
         404:
           description: Course not found
 
-  /courses/{id}/play:
+  /player/course/{id}:
     get:
       summary: Get course data for student playback (Enrolled Only)
       description: Returns the full course structure (all videos unlocked) along with the student's progress (completed lessons). Used for the learning dashboard video player.
       tags:
-        - Course Management
+        - Course Enrollment
       security:
         - bearerAuth: []
       parameters:
@@ -1351,11 +1351,11 @@ paths:
                         type: number
                         example: 1
 
-  /courses/instructor/analytics/stats:
+  /analytics/instructor/stats:
     get:
       summary: Get Instructor Analytics Stats (Cards)
       tags:
-        - Course
+        - Instructor Analytics
       security:
         - bearerAuth: []
       responses:
@@ -1412,11 +1412,11 @@ paths:
                             type: number
                             example: 185
 
-  /courses/instructor/analytics/growth:
+  /analytics/instructor/growth:
     get:
       summary: Get Instructor Analytics Growth Rates
       tags:
-        - Course
+        - Instructor Analytics
       security:
         - bearerAuth: []
       responses:
@@ -1449,11 +1449,11 @@ paths:
                         type: number
                         example: 0.1
 
-  /courses/instructor/analytics/revenue-overview:
+  /analytics/instructor/revenue-overview:
     get:
       summary: Get Instructor Revenue Overview (Last 6 Months Chart)
       tags:
-        - Course
+        - Instructor Analytics
       security:
         - bearerAuth: []
       responses:
@@ -1494,11 +1494,11 @@ paths:
                               type: number
                               example: 45
 
-  /courses/instructor/analytics/performance:
+  /analytics/instructor/performance:
     get:
       summary: Get Instructor Course Performance (Table)
       tags:
-        - Course
+        - Instructor Analytics
       security:
         - bearerAuth: []
       parameters:
