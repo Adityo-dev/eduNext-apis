@@ -48,10 +48,7 @@ export const getCourseLiveSessions = async (
     // Hide meeting link if session is not live yet and user is a student
     const sanitizedSessions = sessions.map((session) => {
       const sessionObj = session.toObject();
-      if (
-        userRole === "student" &&
-        sessionObj.status === "upcoming"
-      ) {
+      if (userRole === "student" && sessionObj.status === "upcoming") {
         sessionObj.meetingLink =
           "Link will be available when the session is live";
       }

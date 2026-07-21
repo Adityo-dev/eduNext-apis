@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { GlobalSettingModel } from "../../models/commissionRate.model.js";
 import { PaymentModel } from "../../../payment/models/payment.model.js";
+import { GlobalSettingModel } from "../../models/commissionRate.model.js";
 
 export const getCommissionStats = async (req: Request, res: Response) => {
   try {

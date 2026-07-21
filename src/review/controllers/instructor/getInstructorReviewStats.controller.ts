@@ -90,11 +90,26 @@ export const getInstructorReviewStats = async (
           1: distribution.star1,
         },
         starPercentage: {
-          5: distribution.total > 0 ? Math.round((distribution.star5 / distribution.total) * 100) : 0,
-          4: distribution.total > 0 ? Math.round((distribution.star4 / distribution.total) * 100) : 0,
-          3: distribution.total > 0 ? Math.round((distribution.star3 / distribution.total) * 100) : 0,
-          2: distribution.total > 0 ? Math.round((distribution.star2 / distribution.total) * 100) : 0,
-          1: distribution.total > 0 ? Math.round((distribution.star1 / distribution.total) * 100) : 0,
+          5:
+            distribution.total > 0
+              ? Math.round((distribution.star5 / distribution.total) * 100)
+              : 0,
+          4:
+            distribution.total > 0
+              ? Math.round((distribution.star4 / distribution.total) * 100)
+              : 0,
+          3:
+            distribution.total > 0
+              ? Math.round((distribution.star3 / distribution.total) * 100)
+              : 0,
+          2:
+            distribution.total > 0
+              ? Math.round((distribution.star2 / distribution.total) * 100)
+              : 0,
+          1:
+            distribution.total > 0
+              ? Math.round((distribution.star1 / distribution.total) * 100)
+              : 0,
         },
       },
     });

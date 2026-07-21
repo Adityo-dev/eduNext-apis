@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
-  getInstructorEarnings,
-  getWeeklyRevenue,
   getAdminRevenueOverview,
+  getInstructorEarnings,
   getMyPayments,
   getRefundRequests,
+  getWeeklyRevenue,
   initiatePayment,
   paymentCancel,
   paymentFail,

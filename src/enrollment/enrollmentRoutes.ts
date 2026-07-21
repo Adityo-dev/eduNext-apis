@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { authenticate } from "../middlewares/auth.middleware.js";
+import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import {
   enrollInCourse,
-  getMyEnrolledCourses,
-  getMyStats,
   getInstructorStudents,
   getInstructorStudentStats,
+  getMyEnrolledCourses,
+  getMyStats,
 } from "./enrollmentController.js";
-import { authorize } from "../middlewares/auth.middleware.js";
 
 const enrollmentRouter = Router();
 

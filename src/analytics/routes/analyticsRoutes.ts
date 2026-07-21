@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { getInstructorAnalyticsStats } from "../controllers/instructor/getInstructorAnalyticsStats.controller.js";
-import { getInstructorAnalyticsGrowth } from "../controllers/instructor/getInstructorAnalyticsGrowth.controller.js";
-import { getInstructorRevenueOverview } from "../controllers/instructor/getInstructorRevenueOverview.controller.js";
-import { getInstructorCoursePerformance } from "../controllers/instructor/getInstructorCoursePerformance.controller.js";
 import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
+import { getInstructorAnalyticsGrowth } from "../controllers/instructor/getInstructorAnalyticsGrowth.controller.js";
+import { getInstructorAnalyticsStats } from "../controllers/instructor/getInstructorAnalyticsStats.controller.js";
+import { getInstructorCoursePerformance } from "../controllers/instructor/getInstructorCoursePerformance.controller.js";
+import { getInstructorRevenueOverview } from "../controllers/instructor/getInstructorRevenueOverview.controller.js";
 
 const analyticsRouter = Router();
 

@@ -6,17 +6,17 @@ import {
   optionalAuthenticate,
 } from "../../middlewares/auth.middleware.js";
 
-import { createCourse } from "../controllers/instructor/createCourse.controller.js";
-import { deleteCourse } from "../controllers/shared/deleteCourse.controller.js";
-import { getAllCourses } from "../controllers/public/getAllCourses.controller.js";
 import { getAllCoursesAdmin } from "../controllers/admin/getAllCoursesAdmin.controller.js";
-import { getCourseBySlug } from "../controllers/public/getCourseBySlug.controller.js";
 import { getCoursesManagementStats } from "../controllers/admin/getCoursesManagementStats.controller.js";
+import { updateCourseStatus } from "../controllers/admin/updateCourseStatus.controller.js";
+import { createCourse } from "../controllers/instructor/createCourse.controller.js";
 import { getInstructorCourses } from "../controllers/instructor/getInstructorCourses.controller.js";
 import { getInstructorCourseStats } from "../controllers/instructor/getInstructorCourseStats.controller.js";
 import { requestCoursePublish } from "../controllers/instructor/requestCoursePublish.controller.js";
 import { updateCourse } from "../controllers/instructor/updateCourse.controller.js";
-import { updateCourseStatus } from "../controllers/admin/updateCourseStatus.controller.js";
+import { getAllCourses } from "../controllers/public/getAllCourses.controller.js";
+import { getCourseBySlug } from "../controllers/public/getCourseBySlug.controller.js";
+import { deleteCourse } from "../controllers/shared/deleteCourse.controller.js";
 
 const courseRouter = Router();
 

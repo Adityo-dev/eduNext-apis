@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import mongoose from "mongoose";
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
 
 import AuthModel from "../../auth/models/authModel.js";
 import { GlobalSettingModel } from "../../commissionRate/models/commissionRate.model.js";

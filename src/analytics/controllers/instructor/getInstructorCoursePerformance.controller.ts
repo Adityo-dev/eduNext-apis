@@ -1,9 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import CourseModel from "../../../course/models/courseModel.js";
-import { CourseViewModel } from "../../../course/models/courseViewModel.js";
-import { EnrollmentModel } from "../../../enrollment/enrollmentModel.js";
-import { ReviewModel } from "../../../review/models/reviewModel.js";
 
 const sendResponse = (
   res: Response,

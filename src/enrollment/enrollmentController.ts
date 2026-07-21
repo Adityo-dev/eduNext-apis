@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import CourseModel from "../course/models/courseModel.js";
-import { EnrollmentModel } from "./enrollmentModel.js";
-import { ProgressModel } from "../progress/models/progressModel.js";
 import mongoose from "mongoose";
+import CourseModel from "../course/models/courseModel.js";
+import { ProgressModel } from "../progress/models/progressModel.js";
+import { EnrollmentModel } from "./enrollmentModel.js";
 
 // ─── 1. Enroll In Course
 export const enrollInCourse = async (
@@ -267,7 +267,6 @@ export const getMyStats = async (
   }
 };
 
-
 // ─── 4. Get Instructor's Enrolled Students Stats
 export const getInstructorStudentStats = async (
   req: Request,
@@ -372,7 +371,7 @@ export const getInstructorStudentStats = async (
             },
           },
         },
-      }
+      },
     ];
 
     const result = await EnrollmentModel.aggregate(pipeline);
@@ -453,8 +452,18 @@ export const getInstructorStudents = async (
           $or: [
             { "studentObj.name": { $regex: search as string, $options: "i" } },
             { "studentObj.email": { $regex: search as string, $options: "i" } },
-            { "studentObj.firstName": { $regex: search as string, $options: "i" } },
-            { "studentObj.lastName": { $regex: search as string, $options: "i" } },
+            {
+              "studentObj.firstName": {
+                $regex: search as string,
+                $options: "i",
+              },
+            },
+            {
+              "studentObj.lastName": {
+                $regex: search as string,
+                $options: "i",
+              },
+            },
           ],
         },
       });
@@ -510,7 +519,7 @@ export const getInstructorStudents = async (
           path: "$reviewData",
           preserveNullAndEmptyArrays: true,
         },
-      }
+      },
     );
 
     pipeline.push({ $sort: { createdAt: -1 } });
@@ -546,7 +555,9 @@ export const getInstructorStudents = async (
           ? Math.round((completedLessonsCount / totalLessons) * 100)
           : 0;
 
-      const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
+      const studentName =
+        student.name ||
+        `${student.firstName || ""} ${student.lastName || ""}`.trim();
 
       return {
         _id: item._id, // enrollment id

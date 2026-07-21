@@ -1,9 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import createHttpError from "http-errors";
-import { EnrollmentModel } from "../../../enrollment/enrollmentModel.js";
-import { ProgressModel } from "../../../progress/models/progressModel.js";
 import CourseModel from "../../models/courseModel.js";
-import { CourseViewModel } from "../../models/courseViewModel.js";
 
 const sendResponse = (
   res: Response,

@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
-import LiveSessionModel from "../../models/liveSessionModel.js";
 import { EnrollmentModel } from "../../../enrollment/enrollmentModel.js";
 import { sendEmail } from "../../../utils/sendEmail.js";
+import LiveSessionModel from "../../models/liveSessionModel.js";
 
 // ─── 2. Update Live session Stats And Link (Instructor Only)
 export const updateLiveSession = async (
