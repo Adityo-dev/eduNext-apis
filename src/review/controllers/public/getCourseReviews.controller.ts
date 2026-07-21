@@ -61,6 +61,13 @@ export const getCourseReviews = async (
         "4": stats.star4,
         "5": stats.star5,
       },
+      starPercentage: {
+        "1": stats.totalReviews > 0 ? Math.round((stats.star1 / stats.totalReviews) * 100) : 0,
+        "2": stats.totalReviews > 0 ? Math.round((stats.star2 / stats.totalReviews) * 100) : 0,
+        "3": stats.totalReviews > 0 ? Math.round((stats.star3 / stats.totalReviews) * 100) : 0,
+        "4": stats.totalReviews > 0 ? Math.round((stats.star4 / stats.totalReviews) * 100) : 0,
+        "5": stats.totalReviews > 0 ? Math.round((stats.star5 / stats.totalReviews) * 100) : 0,
+      },
     };
 
     res.status(200).json({

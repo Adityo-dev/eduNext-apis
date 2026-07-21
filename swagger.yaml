@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -3971,6 +3971,14 @@ paths:
                               '3': { type: integer, example: 0 }
                               '4': { type: integer, example: 0 }
                               '5': { type: integer, example: 1 }
+                          starPercentage:
+                            type: object
+                            properties:
+                              '1': { type: integer, example: 0 }
+                              '2': { type: integer, example: 0 }
+                              '3': { type: integer, example: 0 }
+                              '4': { type: integer, example: 0 }
+                              '5': { type: integer, example: 100 }
                       total: { type: integer, example: 1 }
                       reviews:
                         type: array

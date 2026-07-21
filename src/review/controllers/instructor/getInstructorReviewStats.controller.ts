@@ -31,6 +31,13 @@ export const getInstructorReviewStats = async (
             2: 0,
             1: 0,
           },
+          starPercentage: {
+            5: 0,
+            4: 0,
+            3: 0,
+            2: 0,
+            1: 0,
+          },
         },
       });
       return;
@@ -81,6 +88,13 @@ export const getInstructorReviewStats = async (
           3: distribution.star3,
           2: distribution.star2,
           1: distribution.star1,
+        },
+        starPercentage: {
+          5: distribution.total > 0 ? Math.round((distribution.star5 / distribution.total) * 100) : 0,
+          4: distribution.total > 0 ? Math.round((distribution.star4 / distribution.total) * 100) : 0,
+          3: distribution.total > 0 ? Math.round((distribution.star3 / distribution.total) * 100) : 0,
+          2: distribution.total > 0 ? Math.round((distribution.star2 / distribution.total) * 100) : 0,
+          1: distribution.total > 0 ? Math.round((distribution.star1 / distribution.total) * 100) : 0,
         },
       },
     });
