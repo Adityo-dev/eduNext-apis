@@ -17,6 +17,18 @@ security:
 components:
 
   schemas:
+    Category:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
     Payment:
       type: object
       properties:
@@ -960,6 +972,124 @@ paths:
       responses:
         200:
           description: User deleted successfully
+
+  /categories:
+    get:
+      summary: Get all categories
+      tags:
+        - Category Management
+      parameters:
+        - in: query
+          name: all
+          schema:
+            type: boolean
+          description: If true, returns all categories including inactive ones.
+        - in: query
+          name: nested
+          schema:
+            type: boolean
+          description: If true, returns only main categories and populates their subCategories.
+      responses:
+        '200':
+          description: Categories fetched successfully
+    post:
+      summary: Create a new category
+      tags:
+        - Category Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "Web Development"
+                description:
+                  type: string
+                  example: "Learn modern web development"
+                icon:
+                  type: string
+                  example: "https://icon.com/icon.png"
+                parentId:
+                  type: string
+                  example: "64b5f8e2c9a1d4e3b1234567"
+      responses:
+        '201':
+          description: Category created successfully
+
+  /categories/{id}:
+    get:
+      summary: Get category by ID
+      tags:
+        - Category Management
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category fetched successfully
+        '404':
+          description: Category not found
+    patch:
+      summary: Update a category
+      tags:
+        - Category Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                icon:
+                  type: string
+                isActive:
+                  type: boolean
+                parentId:
+                  type: string
+      responses:
+        '200':
+          description: Category updated successfully
+        '404':
+          description: Category not found
+    delete:
+      summary: Delete a category
+      tags:
+        - Category Management
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category deleted successfully
+        '404':
+          description: Category not found
 
   /courses:
     post:
@@ -4225,3 +4355,4 @@ paths:
       responses:
         '200':
           description: Success
+
