@@ -41,7 +41,7 @@ export const getAllCoursesAdmin = async (
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum)
-        .populate("instructor", "firstName lastName email avatar"),
+        .populate("instructor", "fullName email avatar"),
       CourseModel.countDocuments(filter),
     ]);
 

@@ -103,7 +103,7 @@ export const updateCourseStatus = async (
       id,
       { $set: updates },
       { new: true, runValidators: true },
-    ).populate("instructor", "firstName lastName email");
+    ).populate("instructor", "fullName email");
 
     if (!updatedCourse) {
       return next(createHttpError(404, "Failed to update course"));
