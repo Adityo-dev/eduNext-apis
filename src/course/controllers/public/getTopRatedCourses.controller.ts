@@ -22,7 +22,7 @@ export const getTopRatedCourses = async (
       .limit(8)
       .populate("instructor", "fullName avatar")
       .select(
-        "title slug thumbnail category level language instructor rating enrolledCount totalDuration price estimatedPrice",
+        "title slug thumbnail category level language instructor rating enrolledCount totalDuration price estimatedPrice hasCertificate",
       );
 
     sendResponse(res, 200, true, "Top rated courses fetched successfully", {

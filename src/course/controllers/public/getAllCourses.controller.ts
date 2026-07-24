@@ -75,7 +75,7 @@ export const getAllCourses = async (
         .limit(limitNum)
         .populate("instructor", "fullName avatar")
         .select(
-          "title slug thumbnail category level language instructor rating enrolledCount totalDuration price estimatedPrice",
+          "title slug thumbnail category level language instructor rating enrolledCount totalDuration price estimatedPrice hasCertificate",
         ),
       CourseModel.countDocuments(filter),
     ]);
