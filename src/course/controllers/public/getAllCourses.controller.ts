@@ -73,8 +73,10 @@ export const getAllCourses = async (
         .sort(sortOption as any)
         .skip(skip)
         .limit(limitNum)
-        .populate("instructor", "firstName lastName email avatar")
-        .select("-sections -totalViews"),
+        .populate("instructor", "fullName avatar")
+        .select(
+          "title slug thumbnail category level language instructor rating enrolledCount totalDuration price estimatedPrice",
+        ),
       CourseModel.countDocuments(filter),
     ]);
 

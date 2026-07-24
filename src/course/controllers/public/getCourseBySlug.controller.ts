@@ -26,8 +26,8 @@ export const getCourseBySlug = async (
       slug,
       status: "published",
     })
-      .populate("instructor", "fullName email avatar bio experienceYears badge")
-      .select("-totalViews");
+      .populate("instructor", "fullName avatar bio experienceYears badge")
+      .select("-totalViews -rejectedReason -suspendedReason");
 
     if (!course) {
       return next(createHttpError(404, "Course not found"));

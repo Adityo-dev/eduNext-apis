@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Schema, model } from "mongoose";
 import type { ICourseDocument } from "../types/courseType.js";
 
@@ -46,7 +47,6 @@ const courseSchema = new Schema<ICourseDocument>(
       required: [true, "Course description is required"],
     },
 
-    // Pricing
     price: {
       type: Number,
       required: [true, "Course price is required"],
@@ -57,13 +57,11 @@ const courseSchema = new Schema<ICourseDocument>(
       min: [0, "Estimated price cannot be negative"],
     },
 
-    // Media
     thumbnail: {
       type: String,
-      default: "https://placeholder.com/course-thumbnail.png",
+      required: [true, "Course thumbnail is required"],
     },
 
-    // Classification
     category: {
       type: String,
       required: [true, "Course category is required"],
@@ -81,7 +79,6 @@ const courseSchema = new Schema<ICourseDocument>(
     },
     tags: [{ type: String }],
 
-    // Instructor
     instructor: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -99,7 +96,6 @@ const courseSchema = new Schema<ICourseDocument>(
       default: "0 hrs",
     },
 
-    // Stats
     enrolledCount: {
       type: Number,
       default: 0,
@@ -119,13 +115,11 @@ const courseSchema = new Schema<ICourseDocument>(
       default: 0,
     },
 
-    // Certificate
     hasCertificate: {
       type: Boolean,
       default: true,
     },
 
-    // Status
     status: {
       type: String,
       enum: ["draft", "pending", "published", "rejected", "suspended"],
@@ -145,7 +139,6 @@ const courseSchema = new Schema<ICourseDocument>(
       default: null,
     },
 
-    // Requirements
     requirements: { type: String, default: "" },
     whatYouLearn: { type: String, default: "" },
   },
@@ -159,10 +152,13 @@ const courseSchema = new Schema<ICourseDocument>(
 courseSchema.pre("save", function (this: ICourseDocument) {
   // auto generate slug
   if (this.isModified("title")) {
-    this.slug = this.title
+    const baseSlug = this.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
+
+    const uniqueId = crypto.randomBytes(3).toString("hex");
+    this.slug = `${baseSlug}-${uniqueId}`;
   }
 
   //  auto calculate lessons count and total duration

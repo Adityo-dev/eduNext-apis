@@ -560,12 +560,12 @@ export const getInstructorStudents = async (
         `${student.firstName || ""} ${student.lastName || ""}`.trim();
 
       return {
-        _id: item._id, // enrollment id
+        _id: item._id,
         student: {
           _id: student._id,
           name: studentName || "Unknown Student",
           email: student.email,
-          avatar: student.avatar || "https://placeholder.com/avatar.png",
+          avatar: student.avatar,
         },
         course: {
           _id: course._id,

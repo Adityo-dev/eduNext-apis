@@ -1273,6 +1273,50 @@ paths:
       responses:
         200:
           description: Courses fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Courses fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      courses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id: { type: string }
+                            title: { type: string }
+                            slug: { type: string }
+                            thumbnail: { type: string }
+                            category: { type: string }
+                            level: { type: string }
+                            language: { type: string }
+                            rating: { type: number }
+                            enrolledCount: { type: number }
+                            totalDuration: { type: string }
+                            price: { type: number }
+                            estimatedPrice: { type: number }
+                            instructor:
+                              type: object
+                              properties:
+                                _id: { type: string }
+                                fullName: { type: string }
+                                avatar: { type: string }
+                      pagination:
+                        type: object
+                        properties:
+                          total: { type: number }
+                          page: { type: number }
+                          limit: { type: number }
+                          totalPages: { type: number }
 
   /courses/top-rated:
     get:
