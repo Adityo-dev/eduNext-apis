@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -1273,6 +1273,53 @@ paths:
       responses:
         200:
           description: Courses fetched successfully
+
+  /courses/top-rated:
+    get:
+      summary: Get top 8 rated courses (Public)
+      tags:
+        - Course Management
+      security: []
+      responses:
+        '200':
+          description: Top rated courses fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Top rated courses fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      courses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id: { type: string }
+                            title: { type: string }
+                            slug: { type: string }
+                            thumbnail: { type: string }
+                            category: { type: string }
+                            level: { type: string }
+                            language: { type: string }
+                            rating: { type: number }
+                            enrolledCount: { type: number }
+                            totalDuration: { type: string }
+                            price: { type: number }
+                            estimatedPrice: { type: number }
+                            instructor:
+                              type: object
+                              properties:
+                                _id: { type: string }
+                                fullName: { type: string }
+                                avatar: { type: string }
 
   /courses/admin/courses:
     get:
