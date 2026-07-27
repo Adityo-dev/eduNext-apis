@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import {
-  enrollInCourse,
   getInstructorStudents,
   getInstructorStudentStats,
   getMyEnrolledCourses,
@@ -11,8 +10,6 @@ import {
 const enrollmentRouter = Router();
 
 enrollmentRouter.use(authenticate);
-
-enrollmentRouter.post("/enroll", enrollInCourse);
 
 enrollmentRouter.get("/my-enrolled", getMyEnrolledCourses);
 

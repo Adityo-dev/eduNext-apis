@@ -2003,30 +2003,6 @@ paths:
         404:
           description: Course not found
 
-  /enrollments/enroll:
-    post:
-      summary: Enroll/Purchase a course (Student Only)
-      tags:
-        - Course Enrollment
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - courseId
-              properties:
-                courseId:
-                  type: string
-                  example: "65f8a1b2c3d4e5f6a7b8c9d0"
-      responses:
-        201:
-          description: Successfully enrolled in the course
-        400:
-          description: Already enrolled or invalid request
-        403:
-          description: Unauthorized
 
   /enrollments/my-enrolled:
     get:
