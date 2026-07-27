@@ -3,6 +3,7 @@ import { authenticate, authorize } from "../middlewares/auth.middleware.js";
 import {
   getInstructorStudents,
   getInstructorStudentStats,
+  getMyBasicStats,
   getMyEnrolledCourses,
   getMyStats,
 } from "./enrollmentController.js";
@@ -11,9 +12,11 @@ const enrollmentRouter = Router();
 
 enrollmentRouter.use(authenticate);
 
-enrollmentRouter.get("/my-enrolled", getMyEnrolledCourses);
+enrollmentRouter.get("/my-courses", getMyEnrolledCourses);
 
-enrollmentRouter.get("/my-stats", getMyStats);
+enrollmentRouter.get("/my-basic-stats", getMyBasicStats);
+
+enrollmentRouter.get("/my-course-stats", getMyStats);
 
 enrollmentRouter.get(
   "/instructor/students/stats",

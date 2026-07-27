@@ -10,6 +10,7 @@ import {
 const router = Router();
 
 router.post("/", authenticate, authorize(["instructor"]), requestWithdrawal);
+
 router.get(
   "/my-requests",
   authenticate,
@@ -18,6 +19,7 @@ router.get(
 );
 
 router.get("/", authenticate, authorize(["admin"]), getWithdrawals);
+
 router.put(
   "/:withdrawalId/process",
   authenticate,
