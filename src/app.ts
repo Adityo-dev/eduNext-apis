@@ -20,6 +20,7 @@ import progressRouter from "./progress/routes/progressRoutes.js";
 import analyticsRouter from "./analytics/routes/analyticsRoutes.js";
 import playerRouter from "./player/routes/playerRoutes.js";
 import categoryRouter from "./category/routes/categoryRoutes.js";
+import ticketRouter from "./ticket/routes/ticketRoutes.js";
 const app = express();
 
 // Load Swagger YAML file
@@ -89,6 +90,9 @@ app.use("/api/v1/withdrawal", withdrawalRoutes);
 
 // Category routes ->
 app.use("/api/v1/categories", categoryRouter);
+
+// Support Ticket routes ->
+app.use("/api/v1/tickets", ticketRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);

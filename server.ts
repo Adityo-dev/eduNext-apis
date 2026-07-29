@@ -1,7 +1,9 @@
+import http from "http";
 import app from "./src/app.js";
 import { config } from "./src/config/config.js";
 import { initAllCronJobs } from "./src/config/cron.js";
 import connectDB from "./src/config/db.js";
+import { initSocket } from "./src/config/socket.js";
 import { verifySMTPConnection } from "./src/utils/sendEmail.js";
 
 const startServer = async () => {
@@ -15,7 +17,10 @@ const startServer = async () => {
 
       initAllCronJobs();
 
-      app.listen(port, () => {
+      const server = http.createServer(app);
+      initSocket(server);
+
+      server.listen(port, () => {
         console.log(`Server is running on port ${port}`);
       });
     } catch (error) {

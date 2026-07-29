@@ -4512,3 +4512,160 @@ paths:
         '200':
           description: Success
 
+
+  /tickets:
+    post:
+      summary: Create a new Support Ticket
+      description: |
+        **Frontend Developer Notes (Real-time):**
+        When this API is called, a ticket is created. 
+        After getting the `ticketId` from the response, you should join the socket room using `socket.emit("joinTicket", ticketId)` 
+        so you can receive new messages in real-time via `socket.on("newMessage", ...)`
+      tags:
+        - Support Tickets
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - category
+                - targetRole
+                - message
+              properties:
+                title:
+                  type: string
+                  example: "Cannot access course videos after payment"
+                category:
+                  type: string
+                  example: "Payment Issue"
+                targetRole:
+                  type: string
+                  enum: [admin, instructor]
+                  example: "admin"
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+                  example: "medium"
+                assignedTo:
+                  type: string
+                  description: "Optional User ID (Instructor/Admin) if assigning to someone specific"
+                courseId:
+                  type: string
+                  description: "Optional Course ID if the ticket is related to a specific course"
+                message:
+                  type: string
+                  description: "The initial message/description of the ticket"
+                  example: "I completed payment for Web Development course but cannot access the videos."
+      responses:
+        '201':
+          description: Ticket created successfully
+    get:
+      summary: Get list of tickets
+      description: |
+        **Frontend Developer Notes:**
+        This endpoint automatically returns tickets based on the logged-in user's role.
+        - **Students**: Will only see tickets they created.
+        - **Instructors**: Will see tickets targeted to "instructor" or tickets they created.
+        - **Admins**: Will see tickets targeted to "admin" or tickets they created.
+      tags:
+        - Support Tickets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of tickets
+
+  /tickets/{id}:
+    get:
+      summary: Get details and messages of a single ticket
+      description: |
+        **Frontend Developer Notes (Real-time):**
+        Call this when opening a ticket page to get the initial chat history.
+        Then, immediately emit `socket.emit("joinTicket", "<ticket_id>")` so you can start listening for the `newMessage` event to receive live replies without page refresh.
+      tags:
+        - Support Tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "MongoDB ObjectID of the Ticket"
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket details and array of messages
+
+  /tickets/{id}/messages:
+    post:
+      summary: Reply to a ticket
+      description: |
+        **Frontend Developer Notes (Real-time):**
+        Calling this API will automatically emit a `newMessage` socket event to all clients connected to this ticket's room.
+        You don't need to manually update the UI via polling. Just listen to the socket!
+      tags:
+        - Support Tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "MongoDB ObjectID of the Ticket"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  example: "We are checking your payment status. Please wait."
+      responses:
+        '201':
+          description: Reply added successfully
+
+  /tickets/{id}/status:
+    patch:
+      summary: Update ticket status
+      description: |
+        **Frontend Developer Notes (Real-time):**
+        Use this to mark a ticket as resolved or closed.
+        Calling this API automatically emits a `ticketStatusUpdated` socket event.
+      tags:
+        - Support Tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [open, resolved, closed]
+                  example: "resolved"
+      responses:
+        '200':
+          description: Status updated successfully
