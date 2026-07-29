@@ -54,6 +54,14 @@ const ticketSchema = new Schema<ITicketDocument>(
       ref: "Course",
       default: null,
     },
+    hasUnreadSender: {
+      type: Boolean,
+      default: false,
+    },
+    hasUnreadTarget: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

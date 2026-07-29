@@ -11,8 +11,15 @@ export const createTicket = async (
   next: NextFunction,
 ) => {
   try {
-    const { title, category, priority, targetRole, assignedTo, courseId, message } =
-      req.body;
+    const {
+      title,
+      category,
+      priority,
+      targetRole,
+      assignedTo,
+      courseId,
+      message,
+    } = req.body;
     const senderId = req.user.id;
     const senderRole = req.user.role;
 
@@ -43,6 +50,13 @@ export const createTicket = async (
       senderId,
       message,
     });
+
+    // Populate sender details for the new ticket event
+    await newTicket.populate("senderId", "fullName email avatar role");
+
+    // Emit global socket event so everyone's list can update in real-time
+    const io = getIo();
+    io.emit("newTicketCreated", newTicket);
 
     res.status(201).json({
       success: true,
@@ -135,6 +149,20 @@ export const getSingleTicket = async (
       );
     }
 
+    // Mark ticket as read for the user viewing it
+    let isModified = false;
+    if (isSender && ticket.hasUnreadSender) {
+      ticket.hasUnreadSender = false;
+      isModified = true;
+    } else if (!isSender && ticket.hasUnreadTarget) {
+      ticket.hasUnreadTarget = false;
+      isModified = true;
+    }
+
+    if (isModified) {
+      await ticket.save();
+    }
+
     // Fetch messages
     const messages = await TicketMessageModel.find({ ticketId: ticket._id })
       .populate("senderId", "fullName email avatar role")
@@ -171,9 +199,7 @@ export const replyTicket = async (
     }
 
     if (ticket.status === "closed") {
-      return next(
-        createHttpError(400, "Cannot reply to a closed ticket."),
-      );
+      return next(createHttpError(400, "Cannot reply to a closed ticket."));
     }
 
     const newMessage = await TicketMessageModel.create({
@@ -185,6 +211,14 @@ export const replyTicket = async (
     // Populate sender details for the real-time event
     await newMessage.populate("senderId", "fullName email avatar role");
 
+    // Update unread status
+    const isSender = ticket.senderId.toString() === senderId;
+    if (isSender) {
+      ticket.hasUnreadTarget = true;
+    } else {
+      ticket.hasUnreadSender = true;
+    }
+
     // Emit socket event to room `id`
     const io = getIo();
     io.to(id as string).emit("newMessage", newMessage);
@@ -192,8 +226,9 @@ export const replyTicket = async (
     // If ticket was resolved and a user replies, maybe set it back to open?
     if (ticket.status === "resolved") {
       ticket.status = "open";
-      await ticket.save();
     }
+
+    await ticket.save();
 
     res.status(201).json({
       success: true,

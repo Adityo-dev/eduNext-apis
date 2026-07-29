@@ -11,6 +11,8 @@ export interface ITicketDocument extends Document {
   targetRole: "admin" | "instructor";
   assignedTo?: Types.ObjectId;
   courseId?: Types.ObjectId;
+  hasUnreadSender: boolean;
+  hasUnreadTarget: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
