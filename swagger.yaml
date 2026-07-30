@@ -24,7 +24,7 @@ components:
         name: { type: string }
         slug: { type: string }
         description: { type: string }
-        icon: { type: string }
+        image: { type: string }
         isActive: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
@@ -1013,7 +1013,7 @@ paths:
                 description:
                   type: string
                   example: "Learn modern web development"
-                icon:
+                image:
                   type: string
                   example: "https://icon.com/icon.png"
                 parentId:
@@ -1062,7 +1062,7 @@ paths:
                   type: string
                 description:
                   type: string
-                icon:
+                image:
                   type: string
                 isActive:
                   type: boolean
@@ -1090,6 +1090,23 @@ paths:
           description: Category deleted successfully
         '404':
           description: Category not found
+
+  /categories/{id}/subcategories:
+    get:
+      summary: Get subcategories by main category ID
+      tags:
+        - Category Management
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Subcategories fetched successfully
+        '404':
+          description: Main category not found
 
   /courses:
     post:

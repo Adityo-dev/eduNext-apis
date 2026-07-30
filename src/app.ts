@@ -38,7 +38,8 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Base Route ->
 app.get("/", (req, res, next) => {
   res.json({
-    message: "Welcome to EduNext API v1.0.0 - Developed by Aditto Dev",
+    message:
+      "Welcome to EduNext API v1.0.0 - Developed by Aditto Dev Barmon (Koushik)",
     docs: "Visit /api-docs for API Documentation",
   });
 });

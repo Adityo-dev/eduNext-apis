@@ -4,6 +4,7 @@ import { deleteCategory } from "../controllers/admin/deleteCategory.controller.j
 import { updateCategory } from "../controllers/admin/updateCategory.controller.js";
 import { getAllCategories } from "../controllers/public/getAllCategories.controller.js";
 import { getCategoryById } from "../controllers/public/getCategoryById.controller.js";
+import { getSubcategoriesByCategoryId } from "../controllers/public/getSubcategoriesByCategoryId.controller.js";
 import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -11,6 +12,7 @@ const router = Router();
 // Public routes
 router.get("/", getAllCategories);
 router.get("/:id", getCategoryById);
+router.get("/:id/subcategories", getSubcategoriesByCategoryId);
 
 // Admin only routes
 router.post("/", authenticate, authorize(["admin"]), createCategory);

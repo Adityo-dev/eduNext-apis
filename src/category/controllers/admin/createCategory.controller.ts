@@ -8,7 +8,7 @@ export const createCategory = async (
   next: NextFunction,
 ) => {
   try {
-    const { name, description, icon, parentId } = req.body;
+    const { name, description, image, parentId } = req.body;
 
     if (!name) {
       return next(createHttpError(400, "Category name is required"));
@@ -28,7 +28,7 @@ export const createCategory = async (
       name,
       slug,
       description,
-      icon,
+      image,
       parentId: parentId || null,
     });
 

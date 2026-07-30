@@ -17,7 +17,7 @@ const categorySchema = new Schema<ICategoryDocument>(
     description: {
       type: String,
     },
-    icon: {
+    image: {
       type: String,
     },
     isActive: {
