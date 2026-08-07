@@ -16,7 +16,7 @@ export const getSubcategoriesByCategoryId = async (
       return next(createHttpError(404, "Main category not found"));
     }
 
-    const subCategories = await Category.find({ parentId: id, isActive: true }).sort({ createdAt: -1 });
+    const subCategories = await Category.find({ parentId: id, isActive: true }).sort({ order: 1, createdAt: -1 });
 
     res.status(200).json({
       success: true,

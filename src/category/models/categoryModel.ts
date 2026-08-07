@@ -29,6 +29,10 @@ const categorySchema = new Schema<ICategoryDocument>(
       ref: "Category",
       default: null,
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
   },
   { 
     timestamps: true,

@@ -8,7 +8,7 @@ export const createCategory = async (
   next: NextFunction,
 ) => {
   try {
-    const { name, description, image, parentId } = req.body;
+    const { name, description, image, parentId, order } = req.body;
 
     if (!name) {
       return next(createHttpError(400, "Category name is required"));
@@ -30,6 +30,7 @@ export const createCategory = async (
       description,
       image,
       parentId: parentId || null,
+      order: order !== undefined ? order : 0,
     });
 
     res.status(201).json({

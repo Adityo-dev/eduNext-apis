@@ -7,6 +7,7 @@ export interface ICategory {
   image?: string;
   isActive: boolean;
   parentId?: Types.ObjectId | null;
+  order?: number;
 }
 
 export interface ICategoryDocument extends ICategory, Document {

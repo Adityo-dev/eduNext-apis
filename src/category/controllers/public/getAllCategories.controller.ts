@@ -17,7 +17,7 @@ export const getAllCategories = async (
       filter.parentId = null;
     }
 
-    let query = Category.find(filter).sort({ createdAt: -1 });
+    let query = Category.find(filter).sort({ order: 1, createdAt: -1 });
 
     if (nested === "true") {
       // populate virtual field 'subCategories'

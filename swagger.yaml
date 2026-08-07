@@ -1019,9 +1019,46 @@ paths:
                 parentId:
                   type: string
                   example: "64b5f8e2c9a1d4e3b1234567"
+                order:
+                  type: number
+                  example: 1
       responses:
         '201':
           description: Category created successfully
+
+  /categories/reorder:
+    put:
+      summary: Reorder multiple categories
+      tags:
+        - Category Management
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - categories
+              properties:
+                categories:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - order
+                    properties:
+                      id:
+                        type: string
+                        example: "64b5f8e2c9a1d4e3b1234567"
+                      order:
+                        type: number
+                        example: 1
+      responses:
+        '200':
+          description: Categories reordered successfully
 
   /categories/{id}:
     get:
@@ -1068,6 +1105,8 @@ paths:
                   type: boolean
                 parentId:
                   type: string
+                order:
+                  type: number
       responses:
         '200':
           description: Category updated successfully

@@ -9,7 +9,7 @@ export const updateCategory = async (
 ) => {
   try {
     const { id } = req.params;
-    const { name, description, image, isActive, parentId } = req.body;
+    const { name, description, image, isActive, parentId, order } = req.body;
 
     const category = await Category.findById(id);
 
@@ -29,6 +29,7 @@ export const updateCategory = async (
     if (image !== undefined) category.image = image;
     if (isActive !== undefined) category.isActive = isActive;
     if (parentId !== undefined) category.parentId = parentId || null;
+    if (order !== undefined) category.order = order;
 
     await category.save();
 
