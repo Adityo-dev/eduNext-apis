@@ -4757,6 +4757,12 @@ paths:
   /notifications:
     get:
       summary: Get all notifications for the authenticated user
+      description: |
+        **Frontend Developer Notes (Real-time):**
+        To receive real-time notifications via Socket.io:
+        1. Connect your socket client.
+        2. Join the user's specific notification channel: `socket.emit("joinUserRoom", userId)`
+        3. Listen for incoming notifications: `socket.on("newNotification", (notification) => { ... })`
       tags:
         - Notifications
       security:
