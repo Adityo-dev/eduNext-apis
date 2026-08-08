@@ -20,6 +20,7 @@ export const getAllCourses = async (
     const {
       search,
       category,
+      subCategory,
       level,
       language,
       minPrice,
@@ -37,11 +38,13 @@ export const getAllCourses = async (
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
         { category: { $regex: search, $options: "i" } },
+        { subCategory: { $regex: search, $options: "i" } },
         { tags: { $regex: search, $options: "i" } },
       ];
     }
 
     if (category) filter.category = category;
+    if (subCategory) filter.subCategory = subCategory;
     if (level) filter.level = level;
     if (language) filter.language = language;
     if (certificate === "true") filter.hasCertificate = true;
@@ -75,7 +78,7 @@ export const getAllCourses = async (
         .limit(limitNum)
         .populate("instructor", "fullName avatar")
         .select(
-          "title slug thumbnail category level language instructor rating enrolledCount totalDuration price estimatedPrice hasCertificate",
+          "title slug thumbnail category subCategory level language instructor rating enrolledCount totalDuration price estimatedPrice hasCertificate",
         ),
       CourseModel.countDocuments(filter),
     ]);

@@ -130,6 +130,7 @@ export const getMyEnrolledCourses = async (
           title: course.title,
           thumbnail: course.thumbnail,
           category: course.category,
+          subCategory: course.subCategory,
           lessonsCount: totalLessons,
           totalDuration: course.totalDuration,
           rating: course.rating,

@@ -99,7 +99,7 @@ export const getUserWishlist = async (
         .populate({
           path: "course",
           select:
-            "title slug thumbnail price estimatedPrice category level language rating enrolledCount status instructor totalDuration hasCertificate",
+            "title slug thumbnail price estimatedPrice category subCategory level language rating enrolledCount status instructor totalDuration hasCertificate",
           populate: {
             path: "instructor",
             select: "fullName avatar",

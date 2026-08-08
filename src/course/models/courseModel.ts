@@ -67,6 +67,10 @@ const courseSchema = new Schema<ICourseDocument>(
       required: [true, "Course category is required"],
       trim: true,
     },
+    subCategory: {
+      type: String,
+      trim: true,
+    },
     level: {
       type: String,
       enum: ["Beginner", "Intermediate", "Advanced"],

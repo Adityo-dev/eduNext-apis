@@ -38,6 +38,7 @@ export const updateCourse = async (
       "estimatedPrice",
       "thumbnail",
       "category",
+      "subCategory",
       "level",
       "language",
       "tags",

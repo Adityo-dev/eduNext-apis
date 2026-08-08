@@ -29,6 +29,7 @@ export const getAllCoursesAdmin = async (
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
         { category: { $regex: search, $options: "i" } },
+        { subCategory: { $regex: search, $options: "i" } },
       ];
     }
 
