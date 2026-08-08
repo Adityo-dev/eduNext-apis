@@ -1179,6 +1179,7 @@ paths:
                 - description
                 - price
                 - category
+                - subCategory
               properties:
                 title:
                   type: string
@@ -1201,6 +1202,9 @@ paths:
                 category:
                   type: string
                   example: "Web Development"
+                subCategory:
+                  type: string
+                  example: "Frontend Frameworks"
                 level:
                   type: string
                   enum: [Beginner, Intermediate, Advanced]
@@ -1280,6 +1284,11 @@ paths:
           schema:
             type: string
         - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: subCategory
           in: query
           required: false
           schema:
@@ -1368,6 +1377,7 @@ paths:
                             slug: { type: string }
                             thumbnail: { type: string }
                             category: { type: string }
+                            subCategory: { type: string }
                             level: { type: string }
                             language: { type: string }
                             rating: { type: number }
@@ -1422,6 +1432,7 @@ paths:
                             slug: { type: string }
                             thumbnail: { type: string }
                             category: { type: string }
+                            subCategory: { type: string }
                             level: { type: string }
                             language: { type: string }
                             rating: { type: number }
@@ -1935,6 +1946,8 @@ paths:
                 thumbnail:
                   type: string
                 category:
+                  type: string
+                subCategory:
                   type: string
                 level:
                   type: string
