@@ -6,6 +6,7 @@ import { config } from "../../config/config.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 import AuthModel from "../models/authModel.js";
 import OtpModel from "../models/otpModel.js";
+import { sendAdminNotification } from "../../notification/services/notificationService.js";
 
 const JWT_SECRET = config.jwtSecret || "edunext_secret_key_2026";
 const BCRYPT_ROUNDS = config.bcryptRounds || 10;
@@ -142,6 +143,13 @@ export const verifyOtp = async (
     await OtpModel.deleteOne({ _id: otpRecord._id });
 
     const token = generateToken(user._id as unknown as string, user.role);
+
+    // Notification to admin
+    sendAdminNotification(
+      "New User Registered",
+      `A new user (${user.fullName}) just verified their account.`,
+      "user_registered",
+    ).catch(console.error);
 
     res.status(200).json({
       success: true,

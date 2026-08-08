@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { PaymentModel } from "../models/payment.model.js";
 import { WithdrawalModel } from "../models/withdrawal.model.js";
+import {
+  sendAdminNotification,
+  sendNotification,
+} from "../../notification/services/notificationService.js";
 
 // ─── 1. Instructor — request withdrawal of the full available balance ──────
 export const requestWithdrawal = async (req: Request, res: Response) => {
@@ -52,6 +56,12 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
       { _id: { $in: availablePayments.map((p) => p._id) } },
       { payoutStatus: "withdrawal_pending" },
     );
+
+    sendAdminNotification(
+      "Withdrawal Request",
+      `An instructor has requested a withdrawal of $${amount}.`,
+      "withdrawal_request"
+    ).catch(console.error);
 
     return res.status(201).json({
       success: true,
@@ -138,6 +148,15 @@ export const processWithdrawal = async (req: Request, res: Response) => {
     withdrawal.processedBy = adminId as any;
     withdrawal.adminNote = adminNote || "";
     await withdrawal.save();
+
+    if (action === "approve") {
+      sendNotification(
+        withdrawal.instructor.toString(),
+        "Withdrawal Processed",
+        `Your withdrawal request of $${withdrawal.amount} has been approved and processed.`,
+        "withdrawal_processed"
+      ).catch(console.error);
+    }
 
     return res.status(200).json({
       success: true,

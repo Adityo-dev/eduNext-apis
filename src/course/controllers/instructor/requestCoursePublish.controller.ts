@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import CourseModel from "../../models/courseModel.js";
+import { sendAdminNotification } from "../../../notification/services/notificationService.js";
 
 const sendResponse = (
   res: Response,
@@ -41,6 +42,14 @@ export const requestCoursePublish = async (
 
     course.status = "pending";
     await course.save();
+
+    await course.populate("instructor", "fullName");
+
+    sendAdminNotification(
+      "New Course Submitted",
+      `${course.title} by ${(course.instructor as any)?.fullName || "an instructor"} is pending review.`,
+      "course_submitted",
+    ).catch(console.error);
 
     sendResponse(
       res,

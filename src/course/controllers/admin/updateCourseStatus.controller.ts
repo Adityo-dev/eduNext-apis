@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import CourseModel from "../../models/courseModel.js";
+import { sendNotification } from "../../../notification/services/notificationService.js";
 
 const sendResponse = (
   res: Response,
@@ -107,6 +108,15 @@ export const updateCourseStatus = async (
 
     if (!updatedCourse) {
       return next(createHttpError(404, "Failed to update course"));
+    }
+
+    if (status === "published" && course.status === "pending") {
+      sendNotification(
+        (updatedCourse.instructor as any)._id.toString(),
+        "Course Approved!",
+        `Your course "${updatedCourse.title}" has been approved and is now live.`,
+        "course_approved",
+      ).catch(console.error);
     }
 
     sendResponse(

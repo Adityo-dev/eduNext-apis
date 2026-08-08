@@ -3,6 +3,10 @@ import createHttpError from "http-errors";
 import { getIo } from "../../config/socket.js";
 import TicketMessageModel from "../models/ticketMessageModel.js";
 import TicketModel from "../models/ticketModel.js";
+import {
+  sendAdminNotification,
+  sendNotification,
+} from "../../notification/services/notificationService.js";
 
 // Create a new ticket
 export const createTicket = async (
@@ -58,6 +62,15 @@ export const createTicket = async (
     const io = getIo();
     io.emit("newTicketCreated", newTicket);
 
+    // Notification to Admins
+    if (targetRole === "admin") {
+      sendAdminNotification(
+        "New Support Ticket",
+        `A new ticket (${title}) was opened by ${senderRole}.`,
+        "support_ticket",
+      ).catch(console.error);
+    }
+
     res.status(201).json({
       success: true,
       message: "Support ticket created successfully.",
@@ -89,10 +102,7 @@ export const getTickets = async (
     } else if (userRole === "instructor") {
       // Instructors can see tickets targeted to "instructor" (or specifically assigned to them) OR if they created them
       query = {
-        $or: [
-          { targetRole: "instructor" }, // Depending on privacy, this might need to check 'assignedTo' specifically
-          { senderId: userId },
-        ],
+        $or: [{ targetRole: "instructor" }, { senderId: userId }],
       };
     } else {
       // Students can only see their own tickets
@@ -266,6 +276,16 @@ export const updateTicketStatus = async (
     // Emit socket event for status update
     const io = getIo();
     io.to(id as string).emit("ticketStatusUpdated", { ticketId: id, status });
+
+    // Notification to user when resolved
+    if (status === "resolved") {
+      sendNotification(
+        ticket.senderId.toString(),
+        "Support Ticket Resolved",
+        `Your ticket "${ticket.title}" has been resolved by the admin team.`,
+        "support_ticket",
+      ).catch(console.error);
+    }
 
     res.status(200).json({
       success: true,

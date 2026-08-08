@@ -8,6 +8,7 @@ import CourseModel from "../../course/models/courseModel.js";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
 import { PaymentModel } from "../models/payment.model.js";
 import { sslcommerzService } from "../services/sslcommerz.service.js";
+import { sendNotification } from "../../notification/services/notificationService.js";
 
 const REFUND_WINDOW_DAYS = 7;
 const DEFAULT_COMMISSION_RATE = 10;
@@ -159,9 +160,38 @@ async function finalizeSuccessfulPayment(tranId: string, valId: string) {
   payment.enrollment = enrollment._id;
   await payment.save();
 
-  await CourseModel.findByIdAndUpdate(payment.course, {
-    $inc: { enrolledCount: 1 },
-  });
+  const course = await CourseModel.findByIdAndUpdate(
+    payment.course,
+    { $inc: { enrolledCount: 1 } },
+    { new: true }
+  ).populate("instructor", "_id");
+
+  if (course) {
+    // Notify Student
+    sendNotification(
+      payment.student.toString(),
+      "Course Enrollment Confirmed",
+      `You have successfully enrolled in "${course.title}". Happy learning!`,
+      "enrollment"
+    ).catch(console.error);
+
+    // Notify Instructor
+    if (course.instructor) {
+      sendNotification(
+        (course.instructor as any)._id.toString(),
+        "New Course Sale!",
+        `Someone just bought "${course.title}".`,
+        "course_sale"
+      ).catch(console.error);
+
+      sendNotification(
+        (course.instructor as any)._id.toString(),
+        "New Student Enrolled",
+        `A new student has enrolled in your course "${course.title}".`,
+        "enrollment"
+      ).catch(console.error);
+    }
+  }
 
   return { ok: true, payment };
 }

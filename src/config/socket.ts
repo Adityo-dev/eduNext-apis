@@ -20,6 +20,12 @@ export const initSocket = (server: HttpServer) => {
       console.log(`Socket ${socket.id} joined ticket room: ${ticketId}`);
     });
 
+    // Join a specific room for user notifications
+    socket.on("joinUserRoom", (userId: string) => {
+      socket.join(userId);
+      console.log(`Socket ${socket.id} joined user room: ${userId}`);
+    });
+
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}`);
     });
