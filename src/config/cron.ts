@@ -1,7 +1,9 @@
+import { startLiveSessionCron } from "../liveSession/cron/liveSessionCron.js";
+
 export const initAllCronJobs = (): void => {
   console.log("⏰ Initializing Background Services...");
 
-  //   startLiveSessionCron();
+  startLiveSessionCron();
 
   console.log("✅ All Background Cron Jobs Loaded Successfully.");
 };

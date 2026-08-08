@@ -9,11 +9,9 @@ export const startLiveSessionCron = (): void => {
     async () => {
       try {
         const now = new Date();
-        const twentyFourHoursAgo = new Date(
-          now.getTime() - 24 * 60 * 60 * 1000,
-        );
+        const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
         await LiveSessionModel.updateMany(
-          { startTime: { $lte: twentyFourHoursAgo }, status: "live" },
+          { startTime: { $lte: twelveHoursAgo }, status: "live" },
           { $set: { status: "completed" } },
         );
 
