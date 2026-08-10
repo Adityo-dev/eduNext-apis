@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -1252,18 +1252,57 @@ paths:
                             title:
                               type: string
                               example: "Installation & Setup"
+                            description:
+                              type: string
+                              example: "A brief overview of installation."
                             duration:
                               type: string
                               example: "08:45"
                             videoUrl:
                               type: string
                               example: "https://vimeo.com/xyz123"
+                            references:
+                              type: string
+                              example: "<p>Check out the <a href=\"https://reactjs.org\">Official Docs</a></p>"
                             isFree:
                               type: boolean
                               example: true
                             order:
                               type: number
                               example: 1
+                            quizzes:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  title:
+                                    type: string
+                                    example: "Quiz 1"
+                                  passMark:
+                                    type: number
+                                    example: 80
+                                  questions:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        questionText:
+                                          type: string
+                                          example: "What is Next.js?"
+                                        reason:
+                                          type: string
+                                          example: "Next.js is a React framework."
+                                        options:
+                                          type: array
+                                          items:
+                                            type: object
+                                            properties:
+                                              text:
+                                                type: string
+                                                example: "A React framework"
+                                              isCorrect:
+                                                type: boolean
+                                                example: true
       responses:
         201:
           description: Course created successfully as a draft
@@ -1987,14 +2026,45 @@ paths:
                           properties:
                             title:
                               type: string
+                            description:
+                              type: string
                             duration:
                               type: string
                             videoUrl:
+                              type: string
+                            references:
                               type: string
                             isFree:
                               type: boolean
                             order:
                               type: number
+                            quizzes:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  title:
+                                    type: string
+                                  passMark:
+                                    type: number
+                                  questions:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        questionText:
+                                          type: string
+                                        reason:
+                                          type: string
+                                        options:
+                                          type: array
+                                          items:
+                                            type: object
+                                            properties:
+                                              text:
+                                                type: string
+                                              isCorrect:
+                                                type: boolean
       responses:
         200:
           description: Course updated / Publish request submitted successfully
@@ -4280,6 +4350,57 @@ paths:
           description: Unauthorized
         "404":
           description: Course or lesson not found
+
+  /progress/{courseId}/lesson/{lessonId}/quiz/{quizId}/submit:
+    post:
+      tags: [Progress]
+      summary: Submit a quiz and evaluate score
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: courseId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: lessonId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: quizId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      questionId:
+                        type: string
+                      optionId:
+                        type: string
+      responses:
+        "200":
+          description: Quiz submitted successfully
+        "400":
+          description: Invalid answers array
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not enrolled in this course
+        "404":
+          description: Lesson or Quiz not found
 
   /progress/{courseId}:
     get:

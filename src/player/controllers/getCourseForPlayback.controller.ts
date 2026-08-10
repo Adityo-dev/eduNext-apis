@@ -89,7 +89,22 @@ export const getCourseForPlayback = async (
           totalDuration: course.totalDuration,
           lessonsCount: course.lessonsCount,
           hasCertificate: course.hasCertificate,
-          sections: course.sections,
+          sections: (() => {
+            const sectionsObj = course.sections.map((sec: any) => sec.toObject());
+            sectionsObj.forEach((section: any) => {
+              section.lessons?.forEach((lesson: any) => {
+                lesson.quizzes?.forEach((quiz: any) => {
+                  quiz.questions?.forEach((question: any) => {
+                    delete question.reason;
+                    question.options?.forEach((option: any) => {
+                      delete option.isCorrect;
+                    });
+                  });
+                });
+              });
+            });
+            return sectionsObj;
+          })(),
         },
         progress: {
           completedLessons,

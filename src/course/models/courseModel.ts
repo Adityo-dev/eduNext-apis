@@ -2,14 +2,44 @@ import crypto from "crypto";
 import { Schema, model } from "mongoose";
 import type { ICourseDocument } from "../types/courseType.js";
 
+// ─── Quiz Schemas ─
+const optionSchema = new Schema(
+  {
+    text: { type: String, required: true },
+    isCorrect: { type: Boolean, required: true, default: false },
+  },
+  { _id: true },
+);
+
+const questionSchema = new Schema(
+  {
+    questionText: { type: String, required: true },
+    options: [optionSchema],
+    reason: { type: String },
+  },
+  { _id: true },
+);
+
+const quizSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    passMark: { type: Number, required: true },
+    questions: [questionSchema],
+  },
+  { _id: true },
+);
+
 // ─── Lesson Schema ─
 const lessonSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
+    description: { type: String },
     duration: { type: String, default: "00:00" },
     videoUrl: { type: String },
+    references: { type: String },
     isFree: { type: Boolean, default: false },
     order: { type: Number, required: true },
+    quizzes: [quizSchema],
   },
   { _id: true },
 );

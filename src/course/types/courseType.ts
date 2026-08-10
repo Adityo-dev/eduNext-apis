@@ -1,12 +1,33 @@
 import { Document, Types } from "mongoose";
 
+// ─── Quiz Interfaces
+export interface IOption {
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface IQuestion {
+  questionText: string;
+  options: IOption[];
+  reason?: string;
+}
+
+export interface IQuiz {
+  title: string;
+  passMark: number;
+  questions: IQuestion[];
+}
+
 // ─── Lesson Interface
 export interface ILesson {
   title: string;
+  description?: string;
   duration: string;
   videoUrl?: string;
+  references?: string;
   isFree: boolean;
   order: number;
+  quizzes?: IQuiz[];
 }
 
 // ─── Section Interface
