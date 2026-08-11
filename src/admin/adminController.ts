@@ -63,6 +63,7 @@ export const getAllUsers = async (
     // Search by name or email
     if (search) {
       filter.$or = [
+        { fullName: { $regex: search, $options: "i" } },
         { firstName: { $regex: search, $options: "i" } },
         { lastName: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
@@ -135,29 +136,63 @@ export const updateUserStatus = async (
       : "EduNext - Account Reactivated";
 
     let emailHtml = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2>Hello ${user.firstName},</h2>
+      <div style="background-color: ${isSuspended ? "#FEF2F2" : "#F0FDF4"}; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid ${isSuspended ? "#FECACA" : "#BBF7D0"}; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+          
+          <div style="text-align: center; margin-bottom: 24px;">
+            <span style="font-size: 42px;">${isSuspended ? "🚫" : "✅"}</span>
+          </div>
+
+          <h2 style="color: ${isSuspended ? "#DC2626" : "#166534"}; text-align: center; margin: 0 0 8px 0; font-size: 22px;">
+            Account ${isSuspended ? "Suspended" : "Reactivated"}
+          </h2>
+
+          <p style="font-size: 15px; color: #374151; line-height: 1.6;">
+            Hello ${user.fullName || user.firstName},
+          </p>
     `;
 
     if (isSuspended) {
       emailHtml += `
-        <p>We are writing to inform you that your EduNext account has been <strong>suspended</strong> by the administration.</p>
-        <p><strong>Reason:</strong></p>
-        <blockquote style="border-left: 4px solid #f44336; padding-left: 10px; margin-left: 0; color: #555;">
-          ${reason}
-        </blockquote>
-        <p>During this period, you will not be able to log in or access our services.</p>
-        <p>If you believe this is a mistake, please contact our support team immediately for assistance.</p>
+          <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+            We regret to inform you that your EduNext account has been <strong style="color: #DC2626;">suspended</strong> by the administration.
+          </p>
+
+          <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;">
+            <p style="margin: 0; font-size: 13px; color: #991B1B; font-weight: 600;">Reason:</p>
+            <p style="margin: 6px 0 0 0; font-size: 14px; color: #7F1D1D;">${reason}</p>
+          </div>
+
+          <p style="font-size: 14px; color: #6B7280; line-height: 1.6;">
+            During this period, you will not be able to log in or access platform services. If you believe this is a mistake, please contact our support team.
+          </p>
       `;
     } else {
       emailHtml += `
-        <p>Good news! Your EduNext account has been <strong>reactivated</strong> by the administration.</p>
-        <p>You can now log in and continue using all our platform's features and services.</p>
+          <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+            Great news! Your EduNext account has been <strong style="color: #166534;">reactivated</strong> by the administration. 🎉
+          </p>
+
+          <p style="font-size: 14px; color: #6B7280; line-height: 1.6;">
+            You can now log in and continue using all platform features and services.
+          </p>
+
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="https://edunext-six.vercel.app" 
+               style="background-color: #166534; color: white; padding: 14px 32px; text-decoration: none; font-weight: 600; border-radius: 10px; display: inline-block; font-size: 15px;">
+              Go to Dashboard →
+            </a>
+          </div>
       `;
     }
 
     emailHtml += `
-        <p>Regards,<br><strong>EduNext Admin Team</strong></p>
+          <div style="border-top: 1px solid #E2E8F0; margin-top: 28px; padding-top: 16px; text-align: center;">
+            <p style="font-size: 12px; color: #CBD5E1; margin: 0;">
+              © ${new Date().getFullYear()} EduNext · Admin Team
+            </p>
+          </div>
+        </div>
       </div>
     `;
 
@@ -311,31 +346,63 @@ export const approveInstructor = async (
     const emailSubject = `EduNext - Your Badge Request Has Been ${statusText}`;
 
     let emailHtml = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2>Hello ${instructor.firstName},</h2>
-        <p>We are writing to inform you that your request for the <strong>${badgeName.toUpperCase()}</strong> badge on EduNext has been <strong>${statusText.toLowerCase()}</strong> by the administration.</p>
+      <div style="background-color: ${isApproved ? "#F0FDF4" : "#FEF2F2"}; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid ${isApproved ? "#BBF7D0" : "#FECACA"}; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+          
+          <div style="text-align: center; margin-bottom: 24px;">
+            <span style="font-size: 42px;">${isApproved ? "🏅" : "📋"}</span>
+          </div>
+
+          <h2 style="color: ${isApproved ? "#166534" : "#DC2626"}; text-align: center; margin: 0 0 8px 0; font-size: 22px;">
+            Badge Request ${statusText}
+          </h2>
+
+          <p style="font-size: 15px; color: #374151; line-height: 1.6;">
+            Hello ${instructor.fullName || instructor.firstName},
+          </p>
+
+          <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+            Your request for the <strong style="color: ${isApproved ? "#166534" : "#DC2626"};">${badgeName.toUpperCase()}</strong> badge has been <strong>${statusText.toLowerCase()}</strong>.
+          </p>
     `;
 
     if (isApproved) {
       emailHtml += `
-        <p>Congratulations! Your profile now displays the ${badgeName.toUpperCase()} badge. Keep up the great work!</p>
+          <div style="background-color: #F0FDF4; border-radius: 10px; padding: 16px; text-align: center; margin: 20px 0;">
+            <p style="margin: 0; font-size: 15px; color: #166534; font-weight: 600;">
+              🎉 Congratulations! Your profile now displays the ${badgeName.toUpperCase()} badge.
+            </p>
+          </div>
+
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="https://edunext-six.vercel.app" 
+               style="background-color: #166534; color: white; padding: 14px 32px; text-decoration: none; font-weight: 600; border-radius: 10px; display: inline-block; font-size: 15px;">
+              View Your Profile →
+            </a>
+          </div>
       `;
     } else {
       emailHtml += `
-        <p>Unfortunately, your profile does not meet all the requirements for this badge at this time. Please update your profile and try again later.</p>
+          <p style="font-size: 14px; color: #6B7280; line-height: 1.6;">
+            Unfortunately, your profile does not meet all the requirements for this badge at this time. Please update your profile and try again later.
+          </p>
       `;
     }
 
     emailHtml += `
-        <p>If you have any questions, please contact our support team.</p>
-        <p>Regards,<br><strong>EduNext Admin Team</strong></p>
+          <div style="border-top: 1px solid #E2E8F0; margin-top: 28px; padding-top: 16px; text-align: center;">
+            <p style="font-size: 12px; color: #CBD5E1; margin: 0;">
+              © ${new Date().getFullYear()} EduNext · Admin Team
+            </p>
+          </div>
+        </div>
       </div>
     `;
 
     try {
       await sendEmail({
         email: instructor.email,
-        subject: emailSubject,
+        subject: `${isApproved ? "🏅" : "📋"} Badge Request ${statusText} — EduNext`,
         html: emailHtml,
       });
     } catch (emailError) {
@@ -407,21 +474,45 @@ export const cancelBadge = async (
     await instructor.save();
 
     // Send email notification to instructor
-    const emailSubject = "EduNext - Your Instructor Badge Has Been Cancelled";
+    const emailSubject = "⚠️ Badge Cancelled — EduNext";
     const emailHtml = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2>Hello ${instructor.firstName},</h2>
-        <p>We are writing to inform you that your <strong>${oldBadge.toUpperCase()}</strong> badge on EduNext has been cancelled by the administration.</p>
-        <p><strong>Reason:</strong></p>
-        <blockquote style="border-left: 4px solid #f44336; padding-left: 10px; margin-left: 0; color: #555;">
-          ${cancelReason}
-        </blockquote>
-        <p>If you believe this is a mistake or if you have any questions, please contact our support team.</p>
-        <p>Regards,<br><strong>EduNext Admin Team</strong></p>
+      <div style="background-color: #FEF2F2; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid #FECACA; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+          
+          <div style="text-align: center; margin-bottom: 24px;">
+            <span style="font-size: 42px;">⚠️</span>
+          </div>
+
+          <h2 style="color: #DC2626; text-align: center; margin: 0 0 8px 0; font-size: 22px;">
+            Badge Cancelled
+          </h2>
+
+          <p style="font-size: 15px; color: #374151; line-height: 1.6;">
+            Hello ${instructor.fullName || instructor.firstName},
+          </p>
+
+          <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+            Your <strong style="color: #DC2626;">${oldBadge.toUpperCase()}</strong> badge on EduNext has been cancelled by the administration.
+          </p>
+
+          <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;">
+            <p style="margin: 0; font-size: 13px; color: #991B1B; font-weight: 600;">Reason:</p>
+            <p style="margin: 6px 0 0 0; font-size: 14px; color: #7F1D1D;">${cancelReason}</p>
+          </div>
+
+          <p style="font-size: 14px; color: #6B7280; line-height: 1.6;">
+            If you believe this is a mistake, please contact our support team for assistance.
+          </p>
+
+          <div style="border-top: 1px solid #FECACA; margin-top: 28px; padding-top: 16px; text-align: center;">
+            <p style="font-size: 12px; color: #CBD5E1; margin: 0;">
+              © ${new Date().getFullYear()} EduNext · Admin Team
+            </p>
+          </div>
+        </div>
       </div>
     `;
 
-    // Try to send email, but don't fail the request if it fails
     try {
       await sendEmail({
         email: instructor.email,
@@ -467,5 +558,3 @@ export const deleteUser = async (
     message: "User account has been permanently deleted from EduNext",
   });
 };
-
-

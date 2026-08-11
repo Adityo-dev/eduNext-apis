@@ -21,14 +21,35 @@ const sendOtpEmail = async (
   subject: string = "Verify your EduNext Account",
 ) => {
   const emailHtml = `
-    <div style="background-color: #F9FAFB; padding: 40px 10px; font-family: sans-serif;">
-      <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 30px; border: 1px solid #E5E7EB;">
-        <h2 style="color: #4F46E5; text-align: center;">EduNext Platform</h2>
-        <p style="font-size: 16px; color: #374151; text-align: center;">Your secure One-Time Password (OTP) is:</p>
-        <div style="background-color: #F3F4F6; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4F46E5; border-radius: 8px;">
+    <div style="background-color: #F0F4F8; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+        
+        <div style="text-align: center; margin-bottom: 24px;">
+          <span style="font-size: 42px;">🔐</span>
+        </div>
+
+        <h2 style="color: #1E40AF; text-align: center; margin: 0 0 8px 0; font-size: 22px;">
+          Verify Your Identity
+        </h2>
+
+        <p style="text-align: center; color: #64748B; font-size: 14px; margin: 0 0 28px 0;">
+          Use the code below to verify your EduNext account
+        </p>
+
+        <div style="background: linear-gradient(135deg, #EEF2FF, #E0E7FF); padding: 20px; text-align: center; font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1E40AF; border-radius: 12px; border: 2px dashed #818CF8;">
           ${otp}
         </div>
-        <p style="font-size: 12px; color: #6B7280; text-align: center; margin-top: 20px;">This code expires in 10 minutes. Do not share it with anyone.</p>
+
+        <p style="font-size: 13px; color: #94A3B8; text-align: center; margin-top: 24px; line-height: 1.5;">
+          ⏱️ This code expires in <strong>10 minutes</strong>.<br/>
+          If you didn't request this, you can safely ignore this email.
+        </p>
+
+        <div style="border-top: 1px solid #E2E8F0; margin-top: 28px; padding-top: 16px; text-align: center;">
+          <p style="font-size: 12px; color: #CBD5E1; margin: 0;">
+            © ${new Date().getFullYear()} EduNext · Secure Verification System
+          </p>
+        </div>
       </div>
     </div>
   `;

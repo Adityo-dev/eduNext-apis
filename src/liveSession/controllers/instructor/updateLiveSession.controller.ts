@@ -64,21 +64,49 @@ export const updateLiveSession = async (
     if (isJustGoingLive) {
       const enrollments = await EnrollmentModel.find({
         course: session.course,
-      }).populate("student", "email firstName");
+      }).populate("student", "email firstName fullName");
 
-      const instructorName = instructor?.firstName || "Instructor";
+      const instructorName =
+        instructor?.fullName || instructor?.firstName || "Instructor";
 
       for (const enrollment of enrollments) {
         const student = enrollment.student as any;
         if (student?.email) {
           const emailHtml = `
-          <div style="background-color: #F9FAFB; padding: 40px 10px; font-family: sans-serif;">
-            <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 30px; border: 1px solid #E5E7EB;">
-              <h2 style="color: #10B981; text-align: center;">🟢 Class is Live Now!</h2>
-              <p style="font-size: 16px; color: #374151;">Hello ${student.firstName || "Student"},</p>
-              <p style="font-size: 15px; color: #4B5563; line-height: 1.5;">Your instructor <strong>${instructorName}</strong> has just started the live session <strong>"${session.title}"</strong>.</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${session.meetingLink}" style="background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">Join Now</a>
+          <div style="background-color: #ECFDF5; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid #A7F3D0; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+              
+              <div style="text-align: center; margin-bottom: 24px;">
+                <span style="font-size: 42px;">🟢</span>
+              </div>
+
+              <h2 style="color: #059669; text-align: center; margin: 0 0 8px 0; font-size: 22px;">
+                Class is Live Now!
+              </h2>
+
+              <p style="text-align: center; color: #64748B; font-size: 14px; margin: 0 0 24px 0;">
+                Your instructor just started the session
+              </p>
+
+              <p style="font-size: 15px; color: #374151; line-height: 1.6;">
+                Hello ${student.fullName || student.firstName || "Student"},
+              </p>
+
+              <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+                Your instructor <strong>${instructorName}</strong> has just started the live session <strong style="color: #059669;">"${session.title}"</strong>.
+              </p>
+
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${session.meetingLink}" 
+                   style="background-color: #059669; color: white; padding: 14px 32px; text-decoration: none; font-weight: 600; border-radius: 10px; display: inline-block; font-size: 15px;">
+                  Join Now →
+                </a>
+              </div>
+
+              <div style="border-top: 1px solid #A7F3D0; margin-top: 28px; padding-top: 16px; text-align: center;">
+                <p style="font-size: 12px; color: #CBD5E1; margin: 0;">
+                  © ${new Date().getFullYear()} EduNext · Live Learning
+                </p>
               </div>
             </div>
           </div>

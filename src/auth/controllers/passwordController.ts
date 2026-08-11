@@ -29,10 +29,42 @@ export const forgotPassword = async (
     const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
     await OtpModel.create({ email, otp: resetOtp });
 
-    const htmlContent = `<p>You requested a password reset. Use this OTP to recover your account: <strong>${resetOtp}</strong></p>`;
+    const htmlContent = `
+    <div style="background-color: #FFF7ED; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 36px; border: 1px solid #FED7AA; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+        
+        <div style="text-align: center; margin-bottom: 24px;">
+          <span style="font-size: 42px;">🔑</span>
+        </div>
+
+        <h2 style="color: #C2410C; text-align: center; margin: 0 0 8px 0; font-size: 22px;">
+          Password Recovery
+        </h2>
+
+        <p style="text-align: center; color: #64748B; font-size: 14px; margin: 0 0 28px 0;">
+          Use the code below to reset your EduNext password
+        </p>
+
+        <div style="background: linear-gradient(135deg, #FFF7ED, #FFEDD5); padding: 20px; text-align: center; font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #C2410C; border-radius: 12px; border: 2px dashed #FB923C;">
+          ${resetOtp}
+        </div>
+
+        <p style="font-size: 13px; color: #94A3B8; text-align: center; margin-top: 24px; line-height: 1.5;">
+          ⏱️ This code expires in <strong>10 minutes</strong>.<br/>
+          If you didn't request a password reset, please ignore this email.
+        </p>
+
+        <div style="border-top: 1px solid #FED7AA; margin-top: 28px; padding-top: 16px; text-align: center;">
+          <p style="font-size: 12px; color: #CBD5E1; margin: 0;">
+            © ${new Date().getFullYear()} EduNext · Account Security
+          </p>
+        </div>
+      </div>
+    </div>
+    `;
     sendEmail({
       email,
-      subject: "Password Reset Recovery Code",
+      subject: "🔑 Password Reset Recovery Code — EduNext",
       html: htmlContent,
     }).catch((err) => console.error("Reset email trigger failure:", err));
 
@@ -58,10 +90,14 @@ export const verifyResetOtp = async (
 
     const otpRecord = await OtpModel.findOne({ email, otp });
     if (!otpRecord)
-      return next(createHttpError(400, "The recovery OTP code is wrong or expired."));
+      return next(
+        createHttpError(400, "The recovery OTP code is wrong or expired."),
+      );
 
     // Generate a temporary reset token valid for 15 minutes
-    const resetToken = jwt.sign({ email }, config.jwtSecret as string, { expiresIn: "15m" });
+    const resetToken = jwt.sign({ email }, config.jwtSecret as string, {
+      expiresIn: "15m",
+    });
 
     // Delete the OTP as it has been verified
     await OtpModel.deleteOne({ _id: otpRecord._id });
@@ -103,7 +139,12 @@ export const resetPassword = async (
     try {
       decoded = jwt.verify(resetToken, config.jwtSecret as string);
     } catch (err) {
-      return next(createHttpError(401, "Invalid or expired reset token. Please request a new OTP."));
+      return next(
+        createHttpError(
+          401,
+          "Invalid or expired reset token. Please request a new OTP.",
+        ),
+      );
     }
 
     const email = decoded.email;
@@ -147,7 +188,7 @@ export const changePassword = async (
     if (!user) return next(createHttpError(404, "User session not found."));
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
-    
+
     if (!isMatch)
       return next(
         createHttpError(401, "Your current password statement is incorrect."),
