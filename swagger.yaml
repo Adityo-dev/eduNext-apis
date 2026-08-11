@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 security:
   - bearerAuth: []
@@ -734,7 +734,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Student stats fetched successfully
           content:
             application/json:
@@ -786,7 +786,7 @@ paths:
                           thisWeek:
                             type: string
                             example: "4h"
-        '401':
+        "401":
           description: Unauthorized
 
   /overview/instructor/welcome:
@@ -2562,6 +2562,92 @@ paths:
           description: Not enrolled in this course
         "404":
           description: Lesson or Quiz not found
+
+  /progress/student/achievements:
+    get:
+      summary: Get Student Achievements
+      tags:
+        - Progress
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Achievements fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Student achievements fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "streak_7"
+                        title:
+                          type: string
+                          example: "7-Day Streak"
+                        description:
+                          type: string
+                          example: "Complete at least one lesson per day for 7 consecutive days."
+                        isUnlocked:
+                          type: boolean
+                          example: true
+                        icon:
+                          type: string
+                          example: "🔥"
+        "401":
+          description: Unauthorized
+
+  /progress/student/weekly-goal:
+    get:
+      summary: Get Student Weekly Goal Banner
+      tags:
+        - Progress
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Weekly goal fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Weekly goal fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      lessonsCompletedThisWeek:
+                        type: number
+                        example: 2
+                      weeklyGoal:
+                        type: number
+                        example: 5
+                      percentile:
+                        type: number
+                        example: 15
+                      percentileText:
+                        type: string
+                        example: "You are in the top 15% of learners this week!"
+                      progressText:
+                        type: string
+                        example: "Keep it up — 3 more lessons to hit your weekly goal."
+        "401":
+          description: Unauthorized
 
   /progress/{courseId}:
     get:

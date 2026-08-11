@@ -8,6 +8,8 @@ import { submitQuiz } from "../controllers/submitQuiz.controller.js";
 import { getStudentOverallProgress } from "../controllers/getStudentOverallProgress.controller.js";
 import { getStudentSummaryCards } from "../controllers/getStudentSummaryCards.controller.js";
 import { getStudentWeeklyActivity } from "../controllers/getStudentWeeklyActivity.controller.js";
+import { getStudentAchievements } from "../controllers/getStudentAchievements.controller.js";
+import { getStudentWeeklyGoal } from "../controllers/getStudentWeeklyGoal.controller.js";
 
 const progressRouter = Router();
 
@@ -18,6 +20,8 @@ progressRouter.use(authenticate);
 progressRouter.get("/student/overall", getStudentOverallProgress);
 progressRouter.get("/student/summary-cards", getStudentSummaryCards);
 progressRouter.get("/student/weekly-activity", getStudentWeeklyActivity);
+progressRouter.get("/student/achievements", getStudentAchievements);
+progressRouter.get("/student/weekly-goal", getStudentWeeklyGoal);
 
 // Mark a lesson as complete
 progressRouter.post("/:courseId/lesson/:lessonId/complete", markLessonComplete);
