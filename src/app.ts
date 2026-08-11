@@ -18,6 +18,7 @@ import { paymentRoutes } from "./payment/routes/payment.routes.js";
 import { withdrawalRoutes } from "./payment/routes/withdrawal.routes.js";
 import progressRouter from "./progress/routes/progressRoutes.js";
 import analyticsRouter from "./analytics/routes/analyticsRoutes.js";
+import overviewRouter from "./overview/routes/overviewRoutes.js";
 import playerRouter from "./player/routes/playerRoutes.js";
 import categoryRouter from "./category/routes/categoryRoutes.js";
 import ticketRouter from "./ticket/routes/ticketRoutes.js";
@@ -56,6 +57,9 @@ app.use("/api/v1/courses", courseRouter);
 
 // Analytics routes ->
 app.use("/api/v1/analytics", analyticsRouter);
+
+// Overview routes ->
+app.use("/api/v1/overview", overviewRouter);
 
 // Player routes ->
 app.use("/api/v1/player", playerRouter);

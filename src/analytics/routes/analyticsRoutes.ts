@@ -8,6 +8,7 @@ import { getInstructorRevenueOverview } from "../controllers/instructor/getInstr
 const analyticsRouter = Router();
 
 // ─── Instructor Analytics Routes
+
 analyticsRouter.get(
   "/instructor/stats",
   authenticate,

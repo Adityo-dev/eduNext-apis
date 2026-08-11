@@ -69,7 +69,9 @@ export const getCourseForPlayback = async (
       student: userId,
     });
 
-    const completedLessons = progress ? progress.completedLessons : [];
+    const completedLessons = progress
+      ? progress.completedLessons.map((l: any) => (l.lessonId ? l.lessonId : l))
+      : [];
     const isCourseCompleted = progress ? progress.isCourseCompleted : false;
     const completedLessonsCount = completedLessons.length;
     const totalLessons = course.lessonsCount || 0;
@@ -90,7 +92,9 @@ export const getCourseForPlayback = async (
           lessonsCount: course.lessonsCount,
           hasCertificate: course.hasCertificate,
           sections: (() => {
-            const sectionsObj = course.sections.map((sec: any) => sec.toObject());
+            const sectionsObj = course.sections.map((sec: any) =>
+              sec.toObject(),
+            );
             sectionsObj.forEach((section: any) => {
               section.lessons?.forEach((lesson: any) => {
                 lesson.quizzes?.forEach((quiz: any) => {

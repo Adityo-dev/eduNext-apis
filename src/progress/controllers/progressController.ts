@@ -63,15 +63,19 @@ export const markLessonComplete = async (
       progress = await ProgressModel.create({
         student: studentId,
         course: courseId,
-        completedLessons: [lessonId],
+        completedLessons: [{ lessonId, completedAt: new Date() }],
       });
     } else {
       // Add lesson if not already completed
       const lessonAlreadyCompleted = progress.completedLessons.some(
-        (id: any) => id.toString() === lessonId,
+        (l: any) =>
+          (l.lessonId ? l.lessonId.toString() : l.toString()) === lessonId,
       );
       if (!lessonAlreadyCompleted) {
-        progress.completedLessons.push(lessonId as any);
+        progress.completedLessons.push({
+          lessonId: lessonId as any,
+          completedAt: new Date(),
+        } as any);
       }
     }
 
@@ -142,7 +146,11 @@ export const getCourseProgress = async (
         completedLessonsCount,
         percentage,
         isCourseCompleted: progress ? progress.isCourseCompleted : false,
-        completedLessons: progress ? progress.completedLessons : [],
+        completedLessons: progress
+          ? progress.completedLessons.map((l: any) =>
+              l.lessonId ? l.lessonId : l,
+            )
+          : [],
       },
     });
   } catch (error) {

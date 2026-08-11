@@ -5,7 +5,6 @@ import {
   getInstructorStudentStats,
   getMyBasicStats,
   getMyEnrolledCourses,
-  getMyStats,
 } from "./enrollmentController.js";
 
 const enrollmentRouter = Router();
@@ -15,8 +14,6 @@ enrollmentRouter.use(authenticate);
 enrollmentRouter.get("/my-courses", getMyEnrolledCourses);
 
 enrollmentRouter.get("/my-basic-stats", getMyBasicStats);
-
-enrollmentRouter.get("/my-course-stats", getMyStats);
 
 enrollmentRouter.get(
   "/instructor/students/stats",

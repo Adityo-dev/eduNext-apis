@@ -130,10 +130,10 @@ export const updateUserStatus = async (
 
     // Send email notification about account status change
     const isSuspended = status === "suspended";
-    const emailSubject = isSuspended 
-      ? "EduNext - Account Suspended" 
+    const emailSubject = isSuspended
+      ? "EduNext - Account Suspended"
       : "EduNext - Account Reactivated";
-      
+
     let emailHtml = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2>Hello ${user.firstName},</h2>
@@ -269,9 +269,7 @@ export const approveInstructor = async (
 
     if (!action || !["approve", "reject"].includes(action)) {
       res.status(400);
-      throw new Error(
-        "Please provide a valid action: 'approve' or 'reject'",
-      );
+      throw new Error("Please provide a valid action: 'approve' or 'reject'");
     }
 
     const instructor = await AuthModel.findById(id);
@@ -292,9 +290,7 @@ export const approveInstructor = async (
       instructor.badgeRequest.status !== "pending"
     ) {
       res.status(400);
-      throw new Error(
-        "This instructor does not have a pending badge request",
-      );
+      throw new Error("This instructor does not have a pending badge request");
     }
 
     if (action === "approve") {
@@ -313,7 +309,7 @@ export const approveInstructor = async (
     const statusText = isApproved ? "APPROVED" : "REJECTED";
     const badgeName = instructor.badgeRequest?.requestedBadge || "badge";
     const emailSubject = `EduNext - Your Badge Request Has Been ${statusText}`;
-    
+
     let emailHtml = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2>Hello ${instructor.firstName},</h2>
@@ -343,7 +339,10 @@ export const approveInstructor = async (
         html: emailHtml,
       });
     } catch (emailError) {
-      console.error("Failed to send badge approval/rejection email:", emailError);
+      console.error(
+        "Failed to send badge approval/rejection email:",
+        emailError,
+      );
     }
 
     res.status(200).json({
@@ -361,7 +360,6 @@ export const approveInstructor = async (
     next(error);
   }
 };
-
 
 // 6. Cancel an Instructor's Badge (Admin Only)
 export const cancelBadge = async (
@@ -392,7 +390,9 @@ export const cancelBadge = async (
 
     if (instructor.badge === "none") {
       res.status(400);
-      throw new Error("This instructor does not have any active badge to cancel");
+      throw new Error(
+        "This instructor does not have any active badge to cancel",
+      );
     }
 
     const oldBadge = instructor.badge;
@@ -434,7 +434,8 @@ export const cancelBadge = async (
 
     res.status(200).json({
       success: true,
-      message: "Instructor badge has been cancelled successfully, and notification sent.",
+      message:
+        "Instructor badge has been cancelled successfully, and notification sent.",
       data: {
         _id: instructor._id,
         fullName: instructor.fullName,
@@ -467,101 +468,4 @@ export const deleteUser = async (
   });
 };
 
-// 10. Get Admin Dashboard Overview Stats
-export const getOverviewStats = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const now = new Date();
-    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [
-      totalUsers,
-      newUsersThisMonth,
-      totalCourses,
-      newCoursesThisMonth,
-      revenueStats,
-      currentMonthRevenueStats
-    ] = await Promise.all([
-      AuthModel.countDocuments(),
-      AuthModel.countDocuments({ createdAt: { $gte: startOfCurrentMonth } }),
-      CourseModel.countDocuments(),
-      CourseModel.countDocuments({ createdAt: { $gte: startOfCurrentMonth } }),
-      PaymentModel.aggregate([
-        { $match: { status: "paid" } },
-        {
-          $group: {
-            _id: null,
-            totalRevenue: { $sum: "$amount" },
-            totalCommission: { $sum: "$commissionAmount" }
-          }
-        }
-      ]),
-      PaymentModel.aggregate([
-        { $match: { status: "paid", paidAt: { $gte: startOfCurrentMonth } } },
-        {
-          $group: {
-            _id: null,
-            newRevenueThisMonth: { $sum: "$amount" }
-          }
-        }
-      ])
-    ]);
-
-    const totalRevenue = revenueStats[0]?.totalRevenue || 0;
-    const totalCommission = revenueStats[0]?.totalCommission || 0;
-    const newRevenueThisMonth = currentMonthRevenueStats[0]?.newRevenueThisMonth || 0;
-
-    res.status(200).json({
-      success: true,
-      message: "Overview stats fetched successfully",
-      data: {
-        totalUsers,
-        newUsersThisMonth,
-        totalCourses,
-        newCoursesThisMonth,
-        totalRevenue,
-        newRevenueThisMonth,
-        totalCommission,
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// 11. Get Admin Quick Action Stats
-export const getQuickActionStats = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const [
-      pendingBadgeRequests,
-      pendingWithdrawals,
-      pendingReviews,
-      pendingCourses
-    ] = await Promise.all([
-      AuthModel.countDocuments({ role: "instructor", "badgeRequest.status": "pending" }),
-      WithdrawalModel.countDocuments({ status: "pending" }),
-      ReviewModel.countDocuments({ status: "pending" }),
-      CourseModel.countDocuments({ status: "pending" }),
-    ]);
-
-    res.status(200).json({
-      success: true,
-      message: "Quick action stats fetched successfully",
-      data: {
-        pendingBadgeRequests,
-        pendingWithdrawals,
-        pendingReviews,
-        pendingCourses,
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
