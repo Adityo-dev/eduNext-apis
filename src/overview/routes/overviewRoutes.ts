@@ -15,7 +15,7 @@ import { getStudentCourseStats } from "../student/getStudentCourseStats.controll
 
 const overviewRouter = Router();
 
-// ─── Student Overview Routes
+//  Student Overview Routes
 overviewRouter.get(
   "/student/course-stats",
   authenticate,
@@ -40,22 +40,22 @@ overviewRouter.get(
 //  Admin Overview Routes
 overviewRouter.get(
   "/admin/welcome",
-  // authenticate,
-  // authorize(["admin"]),
+  authenticate,
+  authorize(["admin"]),
   getAdminWelcome,
 );
 
 overviewRouter.get(
   "/admin/stats",
-  // authenticate,
-  // authorize(["admin"]),
+  authenticate,
+  authorize(["admin"]),
   getAdminOverviewStats,
 );
 
 overviewRouter.get(
   "/admin/quick-actions",
-  // authenticate,
-  // authorize(["admin"]),
+  authenticate,
+  authorize(["admin"]),
   getQuickActionStats,
 );
 
