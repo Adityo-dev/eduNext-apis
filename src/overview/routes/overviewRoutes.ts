@@ -11,10 +11,18 @@ import { getAdminOverviewStats } from "../admin/getAdminOverviewStats.controller
 import { getQuickActionStats } from "../admin/getQuickActionStats.controller.js";
 
 // Student Overview Controllers
+import { getStudentCourseStats } from "../student/getStudentCourseStats.controller.js";
 
 const overviewRouter = Router();
 
-// ─── Instructor Overview Routes ───
+// ─── Student Overview Routes
+overviewRouter.get(
+  "/student/course-stats",
+  authenticate,
+  getStudentCourseStats,
+);
+
+//  Instructor Overview Routes
 overviewRouter.get(
   "/instructor/welcome",
   authenticate,
@@ -29,7 +37,7 @@ overviewRouter.get(
   getInstructorOverviewStatus,
 );
 
-// ─── Admin Overview Routes ───
+//  Admin Overview Routes
 overviewRouter.get(
   "/admin/welcome",
   // authenticate,

@@ -66,6 +66,17 @@ export const markLessonComplete = async (
         completedLessons: [{ lessonId, completedAt: new Date() }],
       });
     } else {
+      // Migrate old string/ObjectId elements to the new object format
+      progress.completedLessons = progress.completedLessons.map((l: any) => {
+        if (!l.lessonId) {
+          return {
+            lessonId: l._id || l.toString(),
+            completedAt: new Date()
+          } as any;
+        }
+        return l;
+      });
+
       // Add lesson if not already completed
       const lessonAlreadyCompleted = progress.completedLessons.some(
         (l: any) =>
