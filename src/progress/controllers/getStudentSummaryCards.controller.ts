@@ -100,10 +100,15 @@ export const getStudentSummaryCards = async (
         : 0;
 
     const hrs = Math.floor(totalSecondsLearned / 3600);
-    const totalHoursString = `${hrs}h`;
+    const mins = Math.floor((totalSecondsLearned % 3600) / 60);
+    const totalHoursString = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
 
     const thisWeekHrs = Math.floor(thisWeekSecondsLearned / 3600);
-    const thisWeekHoursString = `${thisWeekHrs}h this week`;
+    const thisWeekMins = Math.floor((thisWeekSecondsLearned % 3600) / 60);
+    const thisWeekHoursString =
+      thisWeekHrs > 0
+        ? `${thisWeekHrs}h ${thisWeekMins}m this week`
+        : `${thisWeekMins}m this week`;
 
     const inProgressCourses = totalEnrolled - completedCoursesCount;
 
