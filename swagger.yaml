@@ -4,18 +4,15 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: http://localhost:5000/api/v1
-    description: Local Development Server
   - url: https://edunext-apis.onrender.com/api/v1
     description: Production Server (Render)
-
-
+  - url: http://localhost:5000/api/v1
+    description: Local Development Server
 
 security:
   - bearerAuth: []
 
 components:
-
   schemas:
     Category:
       type: object
@@ -87,7 +84,23 @@ components:
         message: { type: string }
         type:
           type: string
-          enum: [course_sale, review, course_approved, enrollment, withdrawal_processed, instructor_application, withdrawal_request, course_submitted, support_ticket, user_registered, revenue_milestone, live_session, certificate, lesson]
+          enum:
+            [
+              course_sale,
+              review,
+              course_approved,
+              enrollment,
+              withdrawal_processed,
+              instructor_application,
+              withdrawal_request,
+              course_submitted,
+              support_ticket,
+              user_registered,
+              revenue_milestone,
+              live_session,
+              certificate,
+              lesson,
+            ]
         isRead: { type: boolean }
         link: { type: string }
         createdAt: { type: string, format: date-time }
@@ -99,9 +112,7 @@ components:
       bearerFormat: JWT
       description: Enter your JWT token here (Without 'Bearer ' prefix).
 
-
 paths:
-
   /auth/signup:
     post:
       summary: Register a new user (Student/Instructor)
@@ -503,7 +514,6 @@ paths:
           description: Current password statement is incorrect
         404:
           description: User session not found
-
 
   /auth/profile:
     get:
@@ -970,7 +980,6 @@ paths:
                       pendingReviews: { type: number }
                       pendingCourses: { type: number }
 
-
   /admin/user-stats:
     get:
       summary: Get user management stats cards data (Admin Only)
@@ -1217,7 +1226,7 @@ paths:
             type: boolean
           description: If true, returns only main categories and populates their subCategories.
       responses:
-        '200':
+        "200":
           description: Categories fetched successfully
     post:
       summary: Create a new category
@@ -1250,7 +1259,7 @@ paths:
                   type: number
                   example: 1
       responses:
-        '201':
+        "201":
           description: Category created successfully
 
   /categories/reorder:
@@ -1284,7 +1293,7 @@ paths:
                         type: number
                         example: 1
       responses:
-        '200':
+        "200":
           description: Categories reordered successfully
 
   /categories/{id}:
@@ -1299,9 +1308,9 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Category fetched successfully
-        '404':
+        "404":
           description: Category not found
     patch:
       summary: Update a category
@@ -1335,9 +1344,9 @@ paths:
                 order:
                   type: number
       responses:
-        '200':
+        "200":
           description: Category updated successfully
-        '404':
+        "404":
           description: Category not found
     delete:
       summary: Delete a category
@@ -1352,9 +1361,9 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Category deleted successfully
-        '404':
+        "404":
           description: Category not found
 
   /categories/{id}/subcategories:
@@ -1369,9 +1378,9 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Subcategories fetched successfully
-        '404':
+        "404":
           description: Main category not found
 
   /courses:
@@ -1475,7 +1484,7 @@ paths:
                               example: "https://vimeo.com/xyz123"
                             references:
                               type: string
-                              example: "<p>Check out the <a href=\"https://reactjs.org\">Official Docs</a></p>"
+                              example: '<p>Check out the <a href="https://reactjs.org">Official Docs</a></p>'
                             isFree:
                               type: boolean
                               example: true
@@ -1657,7 +1666,7 @@ paths:
         - Course Management
       security: []
       responses:
-        '200':
+        "200":
           description: Top rated courses fetched successfully
           content:
             application/json:
@@ -2369,7 +2378,6 @@ paths:
         404:
           description: Course not found
 
-
   /enrollments/my-courses:
     get:
       summary: Get student's enrolled courses with progress
@@ -2454,7 +2462,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Successfully fetched overall progress
 
   /progress/student/summary-cards:
@@ -2465,7 +2473,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Successfully fetched summary cards
 
   /progress/student/weekly-activity:
@@ -2476,7 +2484,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Successfully fetched weekly activity
 
   /progress/{courseId}/lesson/{lessonId}/complete:
@@ -2574,7 +2582,6 @@ paths:
           description: Unauthorized
         "404":
           description: Course not found
-
 
   /enrollments/instructor/students/stats:
     get:
@@ -3082,8 +3089,6 @@ paths:
         404:
           description: Live session not found
 
-
-
   /admin/instructors/badge-requests:
     get:
       summary: Get all pending instructor badge requests (Admin)
@@ -3172,7 +3177,6 @@ paths:
           description: Unauthorized – token required
         403:
           description: Only admins can access this endpoint
-
 
   /admin/instructors/{id}:
     get:
@@ -3710,13 +3714,13 @@ paths:
                   type: string
                   example: "65f8a1b2c3d4e5f6a7b8c9d0"
       responses:
-        '201':
+        "201":
           description: Course added to wishlist successfully
-        '200':
+        "200":
           description: Course is already in your wishlist
-        '400':
+        "400":
           description: Course ID is required
-        '404':
+        "404":
           description: Course not found
     get:
       summary: Get the authenticated user's wishlist
@@ -3738,7 +3742,7 @@ paths:
             type: integer
             default: 10
       responses:
-        '200':
+        "200":
           description: Wishlist fetched successfully
 
   /wishlists/{courseId}:
@@ -3757,9 +3761,9 @@ paths:
             type: string
             example: "65f8a1b2c3d4e5f6a7b8c9d0"
       responses:
-        '200':
+        "200":
           description: Course removed from wishlist successfully
-        '404':
+        "404":
           description: Course not found in wishlist
 
   /commission/stats:
@@ -3770,7 +3774,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Commission stats fetched successfully
           content:
             application/json:
@@ -3795,11 +3799,11 @@ paths:
                       totalRevenue:
                         type: number
                         example: 248500
-        '401':
+        "401":
           description: Unauthorized
-        '403':
+        "403":
           description: Forbidden (Admin only)
-        '500':
+        "500":
           description: Internal server error
 
   /commission/current:
@@ -3810,7 +3814,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Current platform commission rate fetched successfully
           content:
             application/json:
@@ -3829,11 +3833,11 @@ paths:
                       commissionRate:
                         type: number
                         example: 20
-        '401':
+        "401":
           description: Unauthorized
-        '403':
+        "403":
           description: Forbidden (Instructor only)
-        '500':
+        "500":
           description: Internal server error
 
   /commission:
@@ -3844,7 +3848,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Commission rate fetched successfully
           content:
             application/json:
@@ -3881,11 +3885,11 @@ paths:
                               type: string
                               format: date-time
                               example: "2026-07-13T14:52:45.000Z"
-        '401':
+        "401":
           description: Unauthorized
-        '403':
+        "403":
           description: Forbidden (Admin only)
-        '500':
+        "500":
           description: Internal server error
     put:
       summary: Update the platform commission rate (Admin only)
@@ -3907,7 +3911,7 @@ paths:
                   description: New commission rate (between 5 and 50)
                   example: 20
       responses:
-        '200':
+        "200":
           description: Commission rate updated and history logged successfully!
           content:
             application/json:
@@ -3944,13 +3948,13 @@ paths:
                               type: string
                               format: date-time
                               example: "2026-07-13T14:52:45.000Z"
-        '400':
+        "400":
           description: Validation error (rate not between 5-50% or identical to current rate)
-        '401':
+        "401":
           description: Unauthorized
-        '403':
+        "403":
           description: Forbidden (Admin only)
-        '500':
+        "500":
           description: Internal server error
 
   /payment/initiate/{courseId}:
@@ -4141,7 +4145,7 @@ paths:
                       payments:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Payment'
+                          $ref: "#/components/schemas/Payment"
                       pagination:
                         type: object
                         properties:
@@ -4288,7 +4292,6 @@ paths:
         "200":
           description: Withdrawal processed
 
-
   # ─── PUBLIC ROUTES
   /reviews/course/{courseId}:
     get:
@@ -4303,7 +4306,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
@@ -4311,7 +4314,11 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: Course reviews fetched successfully }
+                  message:
+                    {
+                      type: string,
+                      example: Course reviews fetched successfully,
+                    }
                   data:
                     type: object
                     properties:
@@ -4323,19 +4330,19 @@ paths:
                           starDistribution:
                             type: object
                             properties:
-                              '1': { type: integer, example: 0 }
-                              '2': { type: integer, example: 0 }
-                              '3': { type: integer, example: 0 }
-                              '4': { type: integer, example: 0 }
-                              '5': { type: integer, example: 1 }
+                              "1": { type: integer, example: 0 }
+                              "2": { type: integer, example: 0 }
+                              "3": { type: integer, example: 0 }
+                              "4": { type: integer, example: 0 }
+                              "5": { type: integer, example: 1 }
                           starPercentage:
                             type: object
                             properties:
-                              '1': { type: integer, example: 0 }
-                              '2': { type: integer, example: 0 }
-                              '3': { type: integer, example: 0 }
-                              '4': { type: integer, example: 0 }
-                              '5': { type: integer, example: 100 }
+                              "1": { type: integer, example: 0 }
+                              "2": { type: integer, example: 0 }
+                              "3": { type: integer, example: 0 }
+                              "4": { type: integer, example: 0 }
+                              "5": { type: integer, example: 100 }
                       total: { type: integer, example: 1 }
                       reviews:
                         type: array
@@ -4362,7 +4369,7 @@ paths:
                 rating: { type: number, minimum: 1, maximum: 5 }
                 comment: { type: string }
       responses:
-        '201':
+        "201":
           description: Review submitted successfully
 
   /reviews/student/stats:
@@ -4373,7 +4380,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Success
           content:
             application/json:
@@ -4381,7 +4388,11 @@ paths:
                 type: object
                 properties:
                   success: { type: boolean, example: true }
-                  message: { type: string, example: Student review stats fetched successfully }
+                  message:
+                    {
+                      type: string,
+                      example: Student review stats fetched successfully,
+                    }
                   data:
                     type: object
                     properties:
@@ -4404,7 +4415,7 @@ paths:
           in: query
           schema: { type: integer, default: 10 }
       responses:
-        '200':
+        "200":
           description: Success
 
   /reviews/student/unreviewed-courses:
@@ -4422,7 +4433,7 @@ paths:
           in: query
           schema: { type: integer, default: 10 }
       responses:
-        '200':
+        "200":
           description: Success
 
   /reviews/student/{reviewId}:
@@ -4446,7 +4457,7 @@ paths:
                 rating: { type: number, minimum: 1, maximum: 5 }
                 comment: { type: string }
       responses:
-        '200':
+        "200":
           description: Success
 
   # ─── INSTRUCTOR ROUTES
@@ -4458,7 +4469,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Success
 
   /reviews/instructor/reviews:
@@ -4485,7 +4496,7 @@ paths:
           in: query
           schema: { type: integer, default: 10, maximum: 50 }
       responses:
-        '200':
+        "200":
           description: List of reviews fetched successfully
 
   # ─── ADMIN ROUTES
@@ -4497,7 +4508,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Stats fetched successfully
 
   /reviews/admin:
@@ -4523,7 +4534,7 @@ paths:
           in: query
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Reviews fetched successfully
 
   /reviews/admin/{reviewId}/publish:
@@ -4539,7 +4550,7 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Success
 
   /reviews/admin/{reviewId}/reject:
@@ -4564,7 +4575,7 @@ paths:
               properties:
                 rejectionReason: { type: string }
       responses:
-        '200':
+        "200":
           description: Success
 
   /reviews/admin/{reviewId}:
@@ -4580,9 +4591,8 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Success
-
 
   /tickets:
     post:
@@ -4633,7 +4643,7 @@ paths:
                   description: "The initial message/description of the ticket"
                   example: "I completed payment for Web Development course but cannot access the videos."
       responses:
-        '201':
+        "201":
           description: Ticket created successfully
     get:
       summary: Get list of tickets
@@ -4648,7 +4658,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: List of tickets
 
   /tickets/{id}:
@@ -4670,7 +4680,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Ticket details and array of messages
 
   /tickets/{id}/messages:
@@ -4704,7 +4714,7 @@ paths:
                   type: string
                   example: "We are checking your payment status. Please wait."
       responses:
-        '201':
+        "201":
           description: Reply added successfully
 
   /tickets/{id}/status:
@@ -4738,7 +4748,7 @@ paths:
                   enum: [open, resolved, closed]
                   example: "resolved"
       responses:
-        '200':
+        "200":
           description: Status updated successfully
 
   /notifications:
@@ -4775,7 +4785,7 @@ paths:
             enum: [all, unread]
             default: all
       responses:
-        '200':
+        "200":
           description: Successfully retrieved notifications
           content:
             application/json:
@@ -4789,7 +4799,7 @@ paths:
                       notifications:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Notification'
+                          $ref: "#/components/schemas/Notification"
                       unreadCount: { type: integer, example: 5 }
 
   /notifications/read-all:
@@ -4800,7 +4810,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Successfully marked all as read
 
   /notifications/all:
@@ -4811,7 +4821,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Successfully cleared all notifications
 
   /notifications/{id}/read:
@@ -4828,7 +4838,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Successfully marked notification as read
 
   /notifications/{id}:
@@ -4845,5 +4855,5 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Successfully deleted notification
