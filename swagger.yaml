@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 
 
@@ -101,6 +101,7 @@ components:
 
 
 paths:
+
   /auth/signup:
     post:
       summary: Register a new user (Student/Instructor)
@@ -2445,6 +2446,39 @@ paths:
         401:
           description: Unauthorized
 
+  /progress/student/overall:
+    get:
+      tags: [Progress]
+      summary: Get Student Overall Progress
+      description: Get overall progress percentage, lessons done, quizzes passed, and courses done.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched overall progress
+
+  /progress/student/summary-cards:
+    get:
+      tags: [Progress]
+      summary: Get Student Summary Cards
+      description: Get summary data for lessons completed, hours learned, quiz average, and certificates.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched summary cards
+
+  /progress/student/weekly-activity:
+    get:
+      tags: [Progress]
+      summary: Get Student Weekly Activity
+      description: Get hours learned per day for the current week (Monday to Sunday).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched weekly activity
+
   /progress/{courseId}/lesson/{lessonId}/complete:
     post:
       tags: [Progress]
@@ -3049,114 +3083,6 @@ paths:
           description: Live session not found
 
 
-
-  /admin/users/{id}/status:
-    patch:
-      summary: Suspend or activate a user account
-      description: Admin can activate or suspend any user account by providing the user ID and desired status.
-      tags:
-        - Admin - User Management
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "65f8a1b2c3d4e5f6a7b8c9d0"
-          description: The MongoDB ObjectId of the user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - status
-              properties:
-                status:
-                  type: string
-                  enum: [active, suspended]
-                  example: suspended
-                  description: The new account status to apply
-                reason:
-                  type: string
-                  example: "Violation of terms of service"
-                  description: Mandatory if status is 'suspended'. The reason will be sent to the user via email.
-      responses:
-        200:
-          description: User status updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: User account has been suspended successfully
-                  data:
-                    type: object
-                    properties:
-                      _id:
-                        type: string
-                      fullName:
-                        type: string
-                        example: Aditto Dev
-                      email:
-                        type: string
-                        example: aditto@example.com
-                      isSuspended:
-                        type: boolean
-                        example: true
-        400:
-          description: Invalid status value provided
-        401:
-          description: Unauthorized – token required
-        403:
-          description: Only admins can access this endpoint
-        404:
-          description: User not found
-
-  /admin/users/{id}:
-    delete:
-      summary: Permanently delete a user account
-      description: Permanently removes a user from the EduNext platform. This action is irreversible. Admin only.
-      tags:
-        - Admin - User Management
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "65f8a1b2c3d4e5f6a7b8c9d0"
-          description: The MongoDB ObjectId of the user to delete
-      responses:
-        200:
-          description: User account deleted permanently
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: User account has been permanently deleted from EduNext
-        401:
-          description: Unauthorized – token required
-        403:
-          description: Only admins can access this endpoint
-        404:
-          description: User not found
 
   /admin/instructors/badge-requests:
     get:

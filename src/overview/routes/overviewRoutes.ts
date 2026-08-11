@@ -11,7 +11,6 @@ import { getAdminOverviewStats } from "../admin/getAdminOverviewStats.controller
 import { getQuickActionStats } from "../admin/getQuickActionStats.controller.js";
 
 // Student Overview Controllers
-import { getStudentCourseStats } from "../student/getStudentCourseStats.controller.js";
 
 const overviewRouter = Router();
 
@@ -50,14 +49,6 @@ overviewRouter.get(
   // authenticate,
   // authorize(["admin"]),
   getQuickActionStats,
-);
-
-// ─── Student Overview Routes ───
-overviewRouter.get(
-  "/student/course-stats",
-  // authenticate,
-  // authorize(["student"]),
-  getStudentCourseStats,
 );
 
 export default overviewRouter;

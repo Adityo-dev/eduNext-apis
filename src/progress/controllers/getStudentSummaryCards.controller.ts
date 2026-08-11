@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
-import { ProgressModel } from "../../progress/models/progressModel.js";
+import { ProgressModel } from "../models/progressModel.js";
 import CourseModel from "../../course/models/courseModel.js";
 
-export const getStudentCourseStats = async (
+export const getStudentSummaryCards = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -11,49 +11,56 @@ export const getStudentCourseStats = async (
   try {
     const studentId = (req as any).user?._id || (req as any).user?.id;
 
-    // Total Enrolled
-    const totalEnrolled = await EnrollmentModel.countDocuments({
-      student: studentId,
-    });
+    // 1. Fetch Enrollments
+    const enrollments = await EnrollmentModel.find({ student: studentId });
+    const totalEnrolled = enrollments.length;
 
-    // Enrolled This Month
-    const startOfMonth = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      1,
-    );
-    const enrolledThisMonth = await EnrollmentModel.countDocuments({
-      student: studentId,
-      createdAt: { $gte: startOfMonth },
-    });
-
-    // Fetch Progresses
+    // 2. Fetch Progresses
     const progresses = await ProgressModel.find({ student: studentId });
-
-    let completed = 0;
     const courseIds = progresses.map((p) => p.course);
 
-    // Fetch related courses to calculate hours learned
+    // 3. Fetch Courses
     const courses = await CourseModel.find({ _id: { $in: courseIds } });
     const courseMap = new Map();
     courses.forEach((c) => courseMap.set(c._id.toString(), c));
 
+    let completedLessonsCount = 0;
+    let totalLessonsCount = 0;
+
     let totalSecondsLearned = 0;
     let thisWeekSecondsLearned = 0;
+
+    let totalQuizScores = 0;
+    let totalQuizzesTaken = 0;
+
+    let completedCoursesCount = 0;
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     progresses.forEach((p) => {
+      // Completed Courses (Certificates)
       if (p.isCourseCompleted) {
-        completed++;
+        completedCoursesCount++;
+      }
+
+      // Quiz Scores
+      if (p.quizScores && p.quizScores.length > 0) {
+        p.quizScores.forEach((q) => {
+          totalQuizScores += q.score;
+          totalQuizzesTaken++;
+        });
       }
 
       const course = courseMap.get(p.course.toString());
-      if (course && p.completedLessons && p.completedLessons.length > 0) {
-        course.sections.forEach((section: any) => {
-          if (section.lessons) {
-            section.lessons.forEach((lesson: any) => {
-              // Find if this lesson is completed
+      if (course) {
+        totalLessonsCount += course.lessonsCount || 0;
+
+        if (p.completedLessons && p.completedLessons.length > 0) {
+          completedLessonsCount += p.completedLessons.length;
+
+          course.sections?.forEach((section: any) => {
+            section.lessons?.forEach((lesson: any) => {
               const completedItem = p.completedLessons.find(
                 (l: any) =>
                   (l.lessonId ? l.lessonId.toString() : l.toString()) ===
@@ -73,7 +80,6 @@ export const getStudentCourseStats = async (
 
                 totalSecondsLearned += seconds;
 
-                // Check if completed this week
                 if (
                   completedItem.completedAt &&
                   new Date(completedItem.completedAt) >= sevenDaysAgo
@@ -82,45 +88,44 @@ export const getStudentCourseStats = async (
                 }
               }
             });
-          }
-        });
+          });
+        }
       }
     });
 
-    const completionRate =
-      totalEnrolled > 0 ? Math.round((completed / totalEnrolled) * 100) : 0;
-    const certificates = completed;
+    // Formatting output
+    const quizAverage =
+      totalQuizzesTaken > 0
+        ? Math.round(totalQuizScores / totalQuizzesTaken)
+        : 0;
 
     const hrs = Math.floor(totalSecondsLearned / 3600);
-    const mins = Math.floor((totalSecondsLearned % 3600) / 60);
-    const totalHoursString = hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+    const totalHoursString = `${hrs}h`;
 
     const thisWeekHrs = Math.floor(thisWeekSecondsLearned / 3600);
-    const thisWeekMins = Math.floor((thisWeekSecondsLearned % 3600) / 60);
-    const thisWeekHoursString =
-      thisWeekHrs > 0 ? `${thisWeekHrs}h ${thisWeekMins}m` : `${thisWeekMins}m`;
+    const thisWeekHoursString = `${thisWeekHrs}h this week`;
 
-    const inProgress = totalEnrolled - completed;
+    const inProgressCourses = totalEnrolled - completedCoursesCount;
 
     res.status(200).json({
       success: true,
-      message: "Student stats fetched successfully",
+      message: "Student summary cards fetched successfully",
       data: {
-        enrolledCourses: {
-          total: totalEnrolled,
-          thisMonth: enrolledThisMonth,
-        },
-        completed: {
-          total: completed,
-          completionRate: completionRate,
-        },
-        certificates: {
-          total: certificates,
-          text: "Download anytime",
+        lessonsCompleted: {
+          value: completedLessonsCount,
+          subtitle: `out of ${totalLessonsCount} total`,
         },
         hoursLearned: {
-          total: totalHoursString,
-          thisWeek: thisWeekHoursString,
+          value: totalHoursString,
+          subtitle: thisWeekHoursString,
+        },
+        quizAverage: {
+          value: `${quizAverage}%`,
+          subtitle: "Based on overall scores",
+        },
+        certificates: {
+          value: completedCoursesCount,
+          subtitle: `${inProgressCourses} more in progress`,
         },
       },
     });
