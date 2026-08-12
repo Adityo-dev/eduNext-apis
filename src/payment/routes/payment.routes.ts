@@ -13,6 +13,7 @@ import {
   paymentSuccess,
   processRefund,
   requestRefund,
+  getAdminTransactions,
 } from "../controllers/payment.controller.js";
 
 const router = Router();
@@ -57,6 +58,13 @@ router.get(
   authenticate,
   authorize(["admin"]),
   getAdminRevenueOverview,
+);
+
+router.get(
+  "/admin/transactions",
+  authenticate,
+  authorize(["admin"]),
+  getAdminTransactions,
 );
 
 router.get(

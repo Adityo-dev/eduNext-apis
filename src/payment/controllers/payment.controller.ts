@@ -689,3 +689,87 @@ export const getAdminRevenueOverview = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+ 
+
+// ─── 13. Admin — Get All Transactions (Paginated & Searchable) ────────────────
+export const getAdminTransactions = async (req: Request, res: Response) => {
+  try {
+    const {
+      page = "1",
+      limit = "10",
+      search,
+      status,
+      paymentMethod,
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.min(50, parseInt(limit as string, 10));
+    const skip = (pageNum - 1) * limitNum;
+
+    let filter: any = {};
+
+    if (status) {
+      filter.status = status;
+    }
+    if (paymentMethod) {
+      filter.paymentMethod = paymentMethod;
+    }
+
+    if (search && (search as string).trim()) {
+      const searchRegex = new RegExp((search as string).trim(), "i");
+
+      // Find matching users (student or instructor by name/email)
+      const users = await AuthModel.find({
+        $or: [
+          { fullName: searchRegex },
+          { firstName: searchRegex },
+          { lastName: searchRegex },
+          { email: searchRegex },
+        ],
+      }).select("_id");
+      const userIds = users.map((u) => u._id);
+
+      // Find matching courses by title
+      const courses = await CourseModel.find({ title: searchRegex }).select(
+        "_id",
+      );
+      const courseIds = courses.map((c) => c._id);
+
+      const searchOr: any[] = [{ tranId: searchRegex }];
+      if (userIds.length > 0) {
+        searchOr.push({ student: { $in: userIds } });
+        searchOr.push({ instructor: { $in: userIds } });
+      }
+      if (courseIds.length > 0) {
+        searchOr.push({ course: { $in: courseIds } });
+      }
+
+      filter = { ...filter, $or: searchOr };
+    }
+
+    const total = await PaymentModel.countDocuments(filter);
+    const payments = await PaymentModel.find(filter)
+      .populate("student", "firstName lastName fullName email")
+      .populate("course", "title")
+      .populate("instructor", "firstName lastName fullName")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin transactions fetched successfully",
+      data: {
+        payments,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

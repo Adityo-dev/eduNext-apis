@@ -4316,6 +4316,67 @@ paths:
                           limit: { type: integer }
                           totalPages: { type: integer }
 
+  /payment/admin/transactions:
+    get:
+      tags: [Payment]
+      summary: Admin — Get all transactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by transaction ID, student name/email, or course title
+        - in: query
+          name: status
+          schema:
+            type: string
+          description: Filter by payment status (e.g., paid, failed)
+        - in: query
+          name: paymentMethod
+          schema:
+            type: string
+          description: Filter by payment method
+      responses:
+        "200":
+          description: Admin transactions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      payments:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Payment"
+                      pagination:
+                        type: object
+                        properties:
+                          total: { type: integer }
+                          page: { type: integer }
+                          limit: { type: integer }
+                          totalPages: { type: integer }
+
   /payment/admin/revenue-overview:
     get:
       tags: [Payment]
