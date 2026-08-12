@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import CourseModel from "../../course/models/courseModel.js";
-import { ReviewModel } from "../../review/models/reviewModel.js";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
+import { ReviewModel } from "../../review/models/reviewModel.js";
 
 const sendResponse = (
   res: Response,
@@ -22,7 +22,7 @@ export const getInstructorWelcome = async (
   try {
     const user = (req as any).user;
     const instructorId = user?._id || user?.id;
-    const name = user?.name || "Instructor";
+    const name = user?.fullName || user?.firstName || "Instructor";
     const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
 
     const now = new Date();

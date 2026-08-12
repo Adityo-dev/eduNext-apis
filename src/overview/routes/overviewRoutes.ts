@@ -11,11 +11,14 @@ import { getAdminOverviewStats } from "../admin/getAdminOverviewStats.controller
 import { getQuickActionStats } from "../admin/getQuickActionStats.controller.js";
 
 // Student Overview Controllers
+import { getStudentWelcome } from "../student/getStudentWelcome.controller.js";
 import { getStudentCourseStats } from "../student/getStudentCourseStats.controller.js";
 
 const overviewRouter = Router();
 
 //  Student Overview Routes
+overviewRouter.get("/student/welcome", authenticate, getStudentWelcome);
+
 overviewRouter.get(
   "/student/course-stats",
   authenticate,

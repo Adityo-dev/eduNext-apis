@@ -122,6 +122,17 @@ export const getMyEnrolledCourses = async (
           : 0;
       const isCourseCompleted = progress ? progress.isCourseCompleted : false;
 
+      const quizScores = progress?.quizScores || [];
+      const averageQuizScore =
+        quizScores.length > 0
+          ? Math.round(
+              quizScores.reduce(
+                (acc: number, curr: any) => acc + curr.score,
+                0,
+              ) / quizScores.length,
+            )
+          : 0;
+
       return {
         enrollmentId: e._id,
         enrolledAt: e.createdAt,
@@ -148,6 +159,7 @@ export const getMyEnrolledCourses = async (
           isCourseCompleted,
           status: isCourseCompleted ? "Completed" : "In Progress",
           lastActivityAt: progress?.updatedAt || e.createdAt,
+          averageQuizScore,
         },
       };
     });

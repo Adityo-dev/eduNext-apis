@@ -726,6 +726,62 @@ paths:
         500:
           description: Image upload failed
 
+  /overview/student/welcome:
+    get:
+      summary: Get student welcome dashboard data
+      tags:
+        - Dashboard Overview
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Student welcome data fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Student welcome data fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "Sumaiya Akter"
+                      motivationalMessage:
+                        type: string
+                        example: "You have 3 courses in progress. Keep going!"
+                      inProgressCount:
+                        type: number
+                        example: 3
+                      currentStreak:
+                        type: number
+                        example: 7
+                      thisWeekHours:
+                        type: number
+                        example: 4
+                      thisWeekTimeText:
+                        type: string
+                        example: "4h"
+                      resumeCourse:
+                        type: object
+                        nullable: true
+                        properties:
+                          courseId:
+                            type: string
+                            example: "60d5ec49f1b2c8001f3e5f2a"
+                          title:
+                            type: string
+                            example: "Complete Web Development Bootcamp"
+                          thumbnail:
+                            type: string
+                            example: "https://example.com/thumbnail.jpg"
+
   /overview/student/course-stats:
     get:
       summary: Get student's course statistics (total, in progress, completed, certificates)
@@ -2380,7 +2436,7 @@ paths:
 
   /enrollments/my-courses:
     get:
-      summary: Get student's enrolled courses with progress
+      summary: Get student's enrolled courses with progress (includes averageQuizScore in progress object)
       tags:
         - Course Enrollment
       security:
@@ -2480,12 +2536,31 @@ paths:
     get:
       tags: [Progress]
       summary: Get Student Weekly Activity
-      description: Get hours learned per day for the current week (Monday to Sunday).
+      description: Get hours learned per day for the current week (Monday to Sunday). Response includes `currentStreak` for the 7-Day streak achievement, and daily data includes `minutes` and `timeText`.
       security:
         - bearerAuth: []
       responses:
         "200":
           description: Successfully fetched weekly activity
+
+  /progress/student/quiz-history:
+    get:
+      tags: [Progress]
+      summary: Get Student Quiz History
+      description: Fetch the quiz history of the authenticated student. If courseId is provided, returns detailed quizzes for that course. Otherwise, returns a grouped summary by course.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: courseId
+          schema:
+            type: string
+          description: Filter quizzes by specific course ID. If omitted, grouped course summaries are returned.
+      responses:
+        "200":
+          description: Successfully fetched quiz history
+        "401":
+          description: Unauthorized
 
   /progress/{courseId}/lesson/{lessonId}/complete:
     post:

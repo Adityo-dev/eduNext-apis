@@ -78,16 +78,72 @@ export const getStudentWeeklyActivity = async (
       }
     });
 
-    // Format hours to 1 decimal place max (e.g. 2.5)
-    const formattedStats = weekStats.map((stat) => ({
-      day: stat.day,
-      hours: Math.round(stat.hours * 10) / 10,
-    }));
+    // Format hours and add minutes + timeText for better frontend display
+    const formattedStats = weekStats.map((stat) => {
+      const totalMins = Math.round(stat.hours * 60);
+      const h = Math.floor(totalMins / 60);
+      const m = totalMins % 60;
+
+      let text = "0m";
+      if (h > 0 && m > 0) text = `${h}h ${m}m`;
+      else if (h > 0) text = `${h}h`;
+      else if (m > 0) text = `${m}m`;
+
+      return {
+        day: stat.day,
+        hours: Math.round(stat.hours * 10) / 10,
+        minutes: totalMins,
+        timeText: text,
+      };
+    });
+
+    // ─── Calculate Current Streak ───
+    const uniqueDates = new Set<string>();
+    progresses.forEach((p) => {
+      if (p.completedLessons && p.completedLessons.length > 0) {
+        p.completedLessons.forEach((cl: any) => {
+          if (cl.completedAt) {
+            const dateStr = new Date(cl.completedAt)
+              .toISOString()
+              .split("T")[0];
+            if (dateStr) uniqueDates.add(dateStr);
+          }
+        });
+      }
+    });
+
+    let currentStreak = 0;
+    const todayDate = new Date();
+    const todayStrStr = todayDate.toISOString().split("T")[0];
+
+    let checkDateObj = new Date(todayDate);
+    let checkDateStrStr = checkDateObj.toISOString().split("T")[0];
+
+    // Check if streak is alive today
+    if (todayStrStr && uniqueDates.has(todayStrStr)) {
+      while (checkDateStrStr && uniqueDates.has(checkDateStrStr)) {
+        currentStreak++;
+        checkDateObj.setDate(checkDateObj.getDate() - 1);
+        checkDateStrStr = checkDateObj.toISOString().split("T")[0];
+      }
+    } else {
+      // Check if streak was alive yesterday (meaning it can still be continued today)
+      checkDateObj.setDate(checkDateObj.getDate() - 1);
+      checkDateStrStr = checkDateObj.toISOString().split("T")[0];
+      if (checkDateStrStr && uniqueDates.has(checkDateStrStr)) {
+        while (checkDateStrStr && uniqueDates.has(checkDateStrStr)) {
+          currentStreak++;
+          checkDateObj.setDate(checkDateObj.getDate() - 1);
+          checkDateStrStr = checkDateObj.toISOString().split("T")[0];
+        }
+      }
+    }
 
     res.status(200).json({
       success: true,
       message: "Student weekly activity fetched successfully",
       data: formattedStats,
+      currentStreak: currentStreak,
     });
   } catch (error) {
     next(error);

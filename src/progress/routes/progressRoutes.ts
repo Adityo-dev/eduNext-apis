@@ -10,6 +10,7 @@ import { getStudentSummaryCards } from "../controllers/getStudentSummaryCards.co
 import { getStudentWeeklyActivity } from "../controllers/getStudentWeeklyActivity.controller.js";
 import { getStudentAchievements } from "../controllers/getStudentAchievements.controller.js";
 import { getStudentWeeklyGoal } from "../controllers/getStudentWeeklyGoal.controller.js";
+import { getQuizHistory } from "../controllers/getQuizHistory.controller.js";
 
 const progressRouter = Router();
 
@@ -22,6 +23,7 @@ progressRouter.get("/student/summary-cards", getStudentSummaryCards);
 progressRouter.get("/student/weekly-activity", getStudentWeeklyActivity);
 progressRouter.get("/student/achievements", getStudentAchievements);
 progressRouter.get("/student/weekly-goal", getStudentWeeklyGoal);
+progressRouter.get("/student/quiz-history", getQuizHistory);
 
 // Mark a lesson as complete
 progressRouter.post("/:courseId/lesson/:lessonId/complete", markLessonComplete);
