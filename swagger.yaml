@@ -38,6 +38,7 @@ components:
         amount: { type: number }
         commissionRate: { type: number }
         commissionAmount: { type: number }
+        paymentMethod: { type: string }
         instructorEarning: { type: number }
         status:
           type: string

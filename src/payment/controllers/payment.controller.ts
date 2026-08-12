@@ -147,6 +147,7 @@ async function finalizeSuccessfulPayment(tranId: string, valId: string) {
 
   payment.valId = valId;
   payment.bankTranId = validation.bank_tran_id;
+  payment.paymentMethod = validation.card_type;
   payment.status = "paid";
   payment.payoutStatus = "available";
   payment.paidAt = new Date();
@@ -163,7 +164,7 @@ async function finalizeSuccessfulPayment(tranId: string, valId: string) {
   const course = await CourseModel.findByIdAndUpdate(
     payment.course,
     { $inc: { enrolledCount: 1 } },
-    { new: true }
+    { new: true },
   ).populate("instructor", "_id");
 
   if (course) {
@@ -172,7 +173,7 @@ async function finalizeSuccessfulPayment(tranId: string, valId: string) {
       payment.student.toString(),
       "Course Enrollment Confirmed",
       `You have successfully enrolled in "${course.title}". Happy learning!`,
-      "enrollment"
+      "enrollment",
     ).catch(console.error);
 
     // Notify Instructor
@@ -181,14 +182,14 @@ async function finalizeSuccessfulPayment(tranId: string, valId: string) {
         (course.instructor as any)._id.toString(),
         "New Course Sale!",
         `Someone just bought "${course.title}".`,
-        "course_sale"
+        "course_sale",
       ).catch(console.error);
 
       sendNotification(
         (course.instructor as any)._id.toString(),
         "New Student Enrolled",
         `A new student has enrolled in your course "${course.title}".`,
-        "enrollment"
+        "enrollment",
       ).catch(console.error);
     }
   }

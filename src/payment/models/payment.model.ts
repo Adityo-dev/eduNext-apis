@@ -32,6 +32,7 @@ const paymentSchema = new Schema<IPayment>(
 
     amount: { type: Number, required: true, min: 0 },
     currency: { type: String, default: "BDT" },
+    paymentMethod: { type: String },
 
     commissionRate: { type: Number, required: true },
     commissionAmount: { type: Number, required: true },

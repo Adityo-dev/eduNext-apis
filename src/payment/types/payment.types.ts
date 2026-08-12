@@ -41,6 +41,7 @@ export interface IPayment extends Document {
 
   amount: number;
   currency: string;
+  paymentMethod?: string;
 
   commissionRate: number;
   commissionAmount: number;
