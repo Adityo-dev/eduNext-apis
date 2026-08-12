@@ -22,7 +22,10 @@ export const getAdminWelcome = async (
 ): Promise<void> => {
   try {
     const user = (req as any).user;
-    const name = user?.name || "Admin";
+    const adminId = user?._id || user?.id;
+    const adminDoc =
+      await AuthModel.findById(adminId).select("fullName firstName");
+    const name = adminDoc?.fullName || adminDoc?.firstName || "Admin";
 
     const [
       totalUsers,
@@ -59,7 +62,7 @@ export const getAdminWelcome = async (
       pendingCourses;
 
     sendResponse(res, 200, true, "Admin welcome data fetched successfully", {
-      name,
+      adminName: name,
       totalUsers,
       totalCommission,
       totalActions,

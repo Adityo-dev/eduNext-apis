@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import CourseModel from "../../course/models/courseModel.js";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
 import { ReviewModel } from "../../review/models/reviewModel.js";
+import AuthModel from "../../auth/models/authModel.js";
 
 const sendResponse = (
   res: Response,
@@ -22,8 +23,10 @@ export const getInstructorWelcome = async (
   try {
     const user = (req as any).user;
     const instructorId = user?._id || user?.id;
-    const name = user?.fullName || user?.firstName || "Instructor";
     const instructorObjectId = new mongoose.Types.ObjectId(instructorId);
+
+    const instructorDoc = await AuthModel.findById(instructorId).select("fullName firstName");
+    const name = instructorDoc?.fullName || instructorDoc?.firstName || "Instructor";
 
     const now = new Date();
     const startOfToday = new Date(
@@ -75,7 +78,7 @@ export const getInstructorWelcome = async (
       true,
       "Instructor welcome data fetched successfully",
       {
-        name,
+        instructorName: name,
         activeCourses,
         pendingCourses,
         newEnrollmentsToday,

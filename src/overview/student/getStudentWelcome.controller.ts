@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import CourseModel from "../../course/models/courseModel.js";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
 import { ProgressModel } from "../../progress/models/progressModel.js";
+import AuthModel from "../../auth/models/authModel.js";
 
 const sendResponse = (
   res: Response,
@@ -22,8 +23,11 @@ export const getStudentWelcome = async (
   try {
     const user = (req as any).user;
     const studentId = user?._id || user?.id;
-    const name = user?.fullName || user?.firstName || "Student";
     const studentObjectId = new mongoose.Types.ObjectId(studentId);
+
+    const studentDoc =
+      await AuthModel.findById(studentId).select("fullName firstName");
+    const name = studentDoc?.fullName || studentDoc?.firstName || "Student";
 
     // 1. In Progress Courses Count
     const totalEnrolled = await EnrollmentModel.countDocuments({
@@ -171,7 +175,7 @@ export const getStudentWelcome = async (
     }
 
     sendResponse(res, 200, true, "Student welcome data fetched successfully", {
-      name,
+      studentName: name,
       motivationalMessage,
       inProgressCount,
       currentStreak,

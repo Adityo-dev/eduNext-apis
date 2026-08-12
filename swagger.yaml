@@ -750,9 +750,9 @@ paths:
                   data:
                     type: object
                     properties:
-                      name:
+                      studentName:
                         type: string
-                        example: "Sumaiya Akter"
+                        example: "Aditto Dve"
                       motivationalMessage:
                         type: string
                         example: "You have 3 courses in progress. Keep going!"
@@ -869,7 +869,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      name:
+                      instructorName:
                         type: string
                         example: "Md. Rafiqul Islam"
                       activeCourses:
@@ -967,7 +967,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      name:
+                      adminName:
                         type: string
                         example: "Admin"
                       totalUsers:
