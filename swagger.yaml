@@ -4,10 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for EduNext E-Learning Marketplace Platform - Developed by Aditto Dev
 servers:
-  - url: https://edunext-apis.onrender.com/api/v1
-    description: Production Server (Render)
   - url: http://localhost:5000/api/v1
     description: Local Development Server
+  - url: https://edunext-apis.onrender.com/api/v1
+    description: Production Server (Render)
 
 security:
   - bearerAuth: []
@@ -71,7 +71,9 @@ components:
         status:
           type: string
           enum: [pending, approved, rejected]
-        accountInfo: { type: string }
+        payoutDetails:
+          type: object
+        adminTransactionId: { type: string }
         adminNote: { type: string }
         requestedAt: { type: string, format: date-time }
         processedAt: { type: string, format: date-time }
@@ -4447,6 +4449,37 @@ paths:
                             revenue:
                               type: number
 
+  /auth/instructor/payout-settings:
+    get:
+      tags: [Withdrawal]
+      summary: Instructor — get payout settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payout settings fetched successfully
+    put:
+      tags: [Withdrawal]
+      summary: Instructor — update payout settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method]
+              properties:
+                method: { type: string, enum: [bank, bkash, nagad] }
+                bankName: { type: string }
+                accountName: { type: string }
+                accountNumber: { type: string }
+                routingNumber: { type: string }
+                branch: { type: string }
+                mobileNumber: { type: string }
+      responses:
+        "200":
+          description: Payout settings updated successfully
   /withdrawal:
     post:
       tags: [Withdrawal]
@@ -4458,8 +4491,9 @@ paths:
           application/json:
             schema:
               type: object
+              required: [amount]
               properties:
-                accountInfo: { type: string, example: "bKash: 017xxxxxxxx" }
+                amount: { type: number, example: 100 }
       responses:
         "201":
           description: Withdrawal request created
@@ -4511,6 +4545,8 @@ paths:
               properties:
                 action: { type: string, enum: [approve, reject] }
                 adminNote: { type: string }
+                adminTransactionId:
+                  { type: string, description: "Required if action is approve" }
       responses:
         "200":
           description: Withdrawal processed

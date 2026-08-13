@@ -1,16 +1,38 @@
 import type { Request, Response } from "express";
 import { PaymentModel } from "../models/payment.model.js";
 import { WithdrawalModel } from "../models/withdrawal.model.js";
+import AuthModel from "../../auth/models/authModel.js";
 import {
   sendAdminNotification,
   sendNotification,
 } from "../../notification/services/notificationService.js";
 
-// ─── 1. Instructor — request withdrawal of the full available balance ──────
+//  1. Instructor — request withdrawal of a specific amount
 export const requestWithdrawal = async (req: Request, res: Response) => {
   try {
     const instructorId = req.user?.id;
-    const { accountInfo } = req.body;
+    const { amount } = req.body;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid withdrawal amount",
+      });
+    }
+
+    const instructor =
+      await AuthModel.findById(instructorId).select("payoutSettings");
+    if (
+      !instructor ||
+      !instructor.payoutSettings ||
+      !instructor.payoutSettings.method
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "You must set up your payout settings in your profile before requesting a withdrawal.",
+      });
+    }
 
     const existingPending = await WithdrawalModel.findOne({
       instructor: instructorId,
@@ -19,53 +41,69 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
     if (existingPending) {
       return res.status(400).json({
         success: false,
-        message: "You already have a pending withdrawal request",
+        message:
+          "You already have a pending withdrawal request. Please wait for it to be processed.",
       });
     }
 
+    // Dynamic Balance Calculation
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const availablePayments = await PaymentModel.find({
+    const allPayments = await PaymentModel.find({
       instructor: instructorId,
       status: "paid",
-      payoutStatus: "available",
-      paidAt: { $lte: sevenDaysAgo },
     });
 
-    const amount = availablePayments.reduce(
-      (sum, p) => sum + p.instructorEarning,
-      0,
-    );
+    let totalEarned = 0;
+    let holding = 0;
 
-    if (availablePayments.length === 0 || amount <= 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "No available balance to withdraw" });
+    allPayments.forEach((p) => {
+      totalEarned += p.instructorEarning;
+      if (!p.paidAt || p.paidAt > sevenDaysAgo) {
+        holding += p.instructorEarning;
+      }
+    });
+
+    const withdrawals = await WithdrawalModel.find({
+      instructor: instructorId,
+    });
+    let withdrawn = 0;
+    let pendingWithdrawal = 0;
+
+    withdrawals.forEach((w) => {
+      if (w.status === "approved") {
+        withdrawn += w.amount;
+      } else if (w.status === "pending") {
+        pendingWithdrawal += w.amount;
+      }
+    });
+
+    const available = totalEarned - holding - withdrawn - pendingWithdrawal;
+
+    if (amount > available) {
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient available balance. You can withdraw up to $${available}.`,
+      });
     }
 
     const withdrawal = await WithdrawalModel.create({
       instructor: instructorId,
       amount,
-      payments: availablePayments.map((p) => p._id),
       status: "pending",
-      accountInfo: accountInfo || "",
+      payoutDetails: instructor.payoutSettings,
     });
-
-    await PaymentModel.updateMany(
-      { _id: { $in: availablePayments.map((p) => p._id) } },
-      { payoutStatus: "withdrawal_pending" },
-    );
 
     sendAdminNotification(
       "Withdrawal Request",
       `An instructor has requested a withdrawal of $${amount}.`,
-      "withdrawal_request"
+      "withdrawal_request",
     ).catch(console.error);
 
     return res.status(201).json({
       success: true,
-      message: "Withdrawal request submitted",
+      message: "Withdrawal request submitted successfully",
       data: withdrawal,
     });
   } catch (error: any) {
@@ -73,7 +111,7 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
   }
 };
 
-// ─── 2. Instructor — list own withdrawal requests ───────────────────────────
+//  2. Instructor — list own withdrawal requests
 export const getMyWithdrawals = async (req: Request, res: Response) => {
   try {
     const instructorId = req.user?.id;
@@ -86,7 +124,7 @@ export const getMyWithdrawals = async (req: Request, res: Response) => {
   }
 };
 
-// ─── 3. Admin — list withdrawal requests (optionally filter by status) ─────
+//  3. Admin — list withdrawal requests (optionally filter by status)
 export const getWithdrawals = async (req: Request, res: Response) => {
   try {
     const status = req.query.status as string | undefined;
@@ -100,14 +138,15 @@ export const getWithdrawals = async (req: Request, res: Response) => {
   }
 };
 
-// ─── 4. Admin — approve or reject a withdrawal request ──────────────────────
+//  4. Admin — approve or reject a withdrawal request
 export const processWithdrawal = async (req: Request, res: Response) => {
   try {
     const adminId = req.user?.id;
     const { withdrawalId } = req.params;
-    const { action, adminNote } = req.body as {
+    const { action, adminNote, adminTransactionId } = req.body as {
       action: "approve" | "reject";
       adminNote?: string;
+      adminTransactionId?: string;
     };
 
     if (!["approve", "reject"].includes(action)) {
@@ -131,16 +170,11 @@ export const processWithdrawal = async (req: Request, res: Response) => {
     }
 
     if (action === "approve") {
-      await PaymentModel.updateMany(
-        { _id: { $in: withdrawal.payments } },
-        { payoutStatus: "withdrawn" },
-      );
       withdrawal.status = "approved";
+      if (adminTransactionId) {
+        withdrawal.adminTransactionId = adminTransactionId;
+      }
     } else {
-      await PaymentModel.updateMany(
-        { _id: { $in: withdrawal.payments } },
-        { payoutStatus: "available" },
-      );
       withdrawal.status = "rejected";
     }
 
@@ -154,7 +188,7 @@ export const processWithdrawal = async (req: Request, res: Response) => {
         withdrawal.instructor.toString(),
         "Withdrawal Processed",
         `Your withdrawal request of $${withdrawal.amount} has been approved and processed.`,
-        "withdrawal_processed"
+        "withdrawal_processed",
       ).catch(console.error);
     }
 

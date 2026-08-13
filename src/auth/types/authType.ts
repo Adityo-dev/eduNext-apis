@@ -4,6 +4,16 @@ export type UserRole = "student" | "instructor" | "admin";
 export type BadgeType = "none" | "bronze" | "silver" | "blue";
 export type RequestStatus = "none" | "pending" | "approved" | "rejected";
 
+export interface IPayoutSettings {
+  method: "bank" | "bkash" | "nagad";
+  bankName?: string;
+  accountName?: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  branch?: string;
+  mobileNumber?: string;
+}
+
 export interface IUser {
   firstName: string;
   lastName: string;
@@ -27,6 +37,7 @@ export interface IUser {
   };
   isEmailVerified: boolean;
   isSuspended: boolean;
+  payoutSettings?: IPayoutSettings;
   createdAt: Date;
   updatedAt: Date;
 }

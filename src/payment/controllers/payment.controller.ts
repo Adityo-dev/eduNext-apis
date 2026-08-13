@@ -7,6 +7,7 @@ import { GlobalSettingModel } from "../../commissionRate/models/commissionRate.m
 import CourseModel from "../../course/models/courseModel.js";
 import { EnrollmentModel } from "../../enrollment/enrollmentModel.js";
 import { PaymentModel } from "../models/payment.model.js";
+import { WithdrawalModel } from "../models/withdrawal.model.js";
 import { sslcommerzService } from "../services/sslcommerz.service.js";
 import { sendNotification } from "../../notification/services/notificationService.js";
 
@@ -462,7 +463,6 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
       filter.course = courseId;
     }
     if (status) {
-      // If client requests a specific status, override the default
       filter.status = status;
     }
 
@@ -481,9 +481,6 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     let totalEarned = 0;
-    let available = 0;
-    let pendingWithdrawal = 0;
-    let withdrawn = 0;
     let holding = 0;
     let totalRefunded = 0;
 
@@ -492,19 +489,27 @@ export const getInstructorEarnings = async (req: Request, res: Response) => {
         totalRefunded += p.instructorEarning;
       } else {
         totalEarned += p.instructorEarning;
-        if (p.payoutStatus === "available") {
-          if (p.paidAt && p.paidAt <= sevenDaysAgo) {
-            available += p.instructorEarning;
-          } else {
-            holding += p.instructorEarning;
-          }
-        } else if (p.payoutStatus === "withdrawal_pending") {
-          pendingWithdrawal += p.instructorEarning;
-        } else if (p.payoutStatus === "withdrawn") {
-          withdrawn += p.instructorEarning;
+        if (!p.paidAt || p.paidAt > sevenDaysAgo) {
+          holding += p.instructorEarning;
         }
       }
     });
+
+    const withdrawals = await WithdrawalModel.find({
+      instructor: instructorId,
+    });
+    let withdrawn = 0;
+    let pendingWithdrawal = 0;
+
+    withdrawals.forEach((w) => {
+      if (w.status === "approved") {
+        withdrawn += w.amount;
+      } else if (w.status === "pending") {
+        pendingWithdrawal += w.amount;
+      }
+    });
+
+    const available = totalEarned - holding - withdrawn - pendingWithdrawal;
 
     return res.status(200).json({
       success: true,
@@ -689,7 +694,6 @@ export const getAdminRevenueOverview = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
- 
 
 // ─── 13. Admin — Get All Transactions (Paginated & Searchable) ────────────────
 export const getAdminTransactions = async (req: Request, res: Response) => {
@@ -773,3 +777,5 @@ export const getAdminTransactions = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ─── 13. Admin — Get All Transactions (Paginated & Searchable) ──────────────

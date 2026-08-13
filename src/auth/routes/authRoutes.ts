@@ -35,4 +35,10 @@ authRouter.patch("/profile-update", authenticate, updateProfile);
 authRouter.post("/request-badge", authenticate, requestBadge);
 authRouter.patch("/change-password", authenticate, changePassword);
 
+import { getPayoutSettings, updatePayoutSettings } from "../controllers/payoutSettings.controller.js";
+import { authorize } from "../../middlewares/auth.middleware.js";
+
+authRouter.get("/instructor/payout-settings", authenticate, authorize(["instructor"]), getPayoutSettings);
+authRouter.put("/instructor/payout-settings", authenticate, authorize(["instructor"]), updatePayoutSettings);
+
 export default authRouter;

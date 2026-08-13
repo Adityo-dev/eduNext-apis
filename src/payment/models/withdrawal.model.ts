@@ -5,13 +5,13 @@ const withdrawalSchema = new Schema<IWithdrawal>(
   {
     instructor: { type: Schema.Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required: true, min: 0 },
-    payments: [{ type: Schema.Types.ObjectId, ref: "Payment" }],
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-    accountInfo: { type: String },
+    payoutDetails: { type: Object },
+    adminTransactionId: { type: String },
     adminNote: { type: String },
     requestedAt: { type: Date, default: Date.now },
     processedAt: { type: Date },

@@ -97,6 +97,15 @@ const authSchema = new Schema<IUserDocument>(
       type: Boolean,
       default: false,
     },
+    payoutSettings: {
+      method: { type: String, enum: ["bank", "bkash", "nagad"] },
+      bankName: { type: String },
+      accountName: { type: String },
+      accountNumber: { type: String },
+      routingNumber: { type: String },
+      branch: { type: String },
+      mobileNumber: { type: String },
+    },
   },
   {
     timestamps: true,
