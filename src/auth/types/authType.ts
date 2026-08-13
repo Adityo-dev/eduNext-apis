@@ -5,13 +5,19 @@ export type BadgeType = "none" | "bronze" | "silver" | "blue";
 export type RequestStatus = "none" | "pending" | "approved" | "rejected";
 
 export interface IPayoutSettings {
-  method: "bank" | "bkash" | "nagad";
-  bankName?: string;
-  accountName?: string;
-  accountNumber?: string;
-  routingNumber?: string;
-  branch?: string;
-  mobileNumber?: string;
+  bank?: {
+    bankName?: string;
+    accountName?: string;
+    accountNumber?: string;
+    routingNumber?: string;
+    branch?: string;
+  };
+  bkash?: {
+    mobileNumber?: string;
+  };
+  nagad?: {
+    mobileNumber?: string;
+  };
 }
 
 export interface IUser {

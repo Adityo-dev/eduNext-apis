@@ -11,7 +11,7 @@ import {
 export const requestWithdrawal = async (req: Request, res: Response) => {
   try {
     const instructorId = req.user?.id;
-    const { amount } = req.body;
+    const { amount, method } = req.body;
 
     if (!amount || amount <= 0) {
       return res.status(400).json({
@@ -20,17 +20,26 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
       });
     }
 
-    const instructor =
-      await AuthModel.findById(instructorId).select("payoutSettings");
-    if (
-      !instructor ||
-      !instructor.payoutSettings ||
-      !instructor.payoutSettings.method
-    ) {
+    if (!method || !["bank", "bkash", "nagad"].includes(method)) {
       return res.status(400).json({
         success: false,
-        message:
-          "You must set up your payout settings in your profile before requesting a withdrawal.",
+        message: "Please select a valid withdrawal method (bank, bkash, nagad)",
+      });
+    }
+
+    const instructor =
+      await AuthModel.findById(instructorId).select("payoutSettings");
+
+    // Check if the selected method actually has data saved in the profile
+    const selectedPayoutData =
+      instructor?.payoutSettings?.[
+        method as keyof typeof instructor.payoutSettings
+      ];
+
+    if (!instructor || !instructor.payoutSettings || !selectedPayoutData) {
+      return res.status(400).json({
+        success: false,
+        message: `You must set up your ${method} details in your payout settings before requesting a withdrawal.`,
       });
     }
 
@@ -92,7 +101,10 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
       instructor: instructorId,
       amount,
       status: "pending",
-      payoutDetails: instructor.payoutSettings,
+      payoutDetails: {
+        method,
+        ...selectedPayoutData,
+      },
     });
 
     sendAdminNotification(

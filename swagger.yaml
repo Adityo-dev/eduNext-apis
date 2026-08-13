@@ -4468,15 +4468,23 @@ paths:
           application/json:
             schema:
               type: object
-              required: [method]
               properties:
-                method: { type: string, enum: [bank, bkash, nagad] }
-                bankName: { type: string }
-                accountName: { type: string }
-                accountNumber: { type: string }
-                routingNumber: { type: string }
-                branch: { type: string }
-                mobileNumber: { type: string }
+                bank:
+                  type: object
+                  properties:
+                    bankName: { type: string }
+                    accountName: { type: string }
+                    accountNumber: { type: string }
+                    routingNumber: { type: string }
+                    branch: { type: string }
+                bkash:
+                  type: object
+                  properties:
+                    mobileNumber: { type: string }
+                nagad:
+                  type: object
+                  properties:
+                    mobileNumber: { type: string }
       responses:
         "200":
           description: Payout settings updated successfully
@@ -4491,9 +4499,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [amount]
+              required: [amount, method]
               properties:
                 amount: { type: number, example: 100 }
+                method:
+                  { type: string, enum: [bank, bkash, nagad], example: bkash }
       responses:
         "201":
           description: Withdrawal request created

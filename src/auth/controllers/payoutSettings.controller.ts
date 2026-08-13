@@ -4,9 +4,8 @@ import AuthModel from "../models/authModel.js";
 export const getPayoutSettings = async (req: Request, res: Response) => {
   try {
     const instructorId = req.user?.id;
-    const instructor = await AuthModel.findById(instructorId).select(
-      "payoutSettings",
-    );
+    const instructor =
+      await AuthModel.findById(instructorId).select("payoutSettings");
 
     if (!instructor) {
       return res
@@ -29,10 +28,34 @@ export const updatePayoutSettings = async (req: Request, res: Response) => {
     const instructorId = req.user?.id;
     const payoutSettings = req.body;
 
-    if (!payoutSettings || !payoutSettings.method) {
+    if (!payoutSettings || Object.keys(payoutSettings).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Payout method is required",
+        message: "Payout settings data is required",
+      });
+    }
+
+    const bdMobileRegex = /^01[3-9]\d{8}$/;
+
+    if (
+      payoutSettings.bkash?.mobileNumber &&
+      !bdMobileRegex.test(payoutSettings.bkash.mobileNumber)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid bKash mobile number. Must be a valid 11-digit Bangladeshi number (e.g., 01712345678).",
+      });
+    }
+
+    if (
+      payoutSettings.nagad?.mobileNumber &&
+      !bdMobileRegex.test(payoutSettings.nagad.mobileNumber)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid Nagad mobile number. Must be a valid 11-digit Bangladeshi number (e.g., 01712345678).",
       });
     }
 
