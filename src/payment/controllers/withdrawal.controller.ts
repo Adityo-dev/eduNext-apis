@@ -127,10 +127,30 @@ export const requestWithdrawal = async (req: Request, res: Response) => {
 export const getMyWithdrawals = async (req: Request, res: Response) => {
   try {
     const instructorId = req.user?.id;
-    const withdrawals = await WithdrawalModel.find({
-      instructor: instructorId,
-    }).sort({ createdAt: -1 });
-    return res.status(200).json({ success: true, data: withdrawals });
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
+    const skip = (page - 1) * limit;
+
+    const [withdrawals, total] = await Promise.all([
+      WithdrawalModel.find({ instructor: instructorId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      WithdrawalModel.countDocuments({ instructor: instructorId }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        withdrawals,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -140,11 +160,65 @@ export const getMyWithdrawals = async (req: Request, res: Response) => {
 export const getWithdrawals = async (req: Request, res: Response) => {
   try {
     const status = req.query.status as string | undefined;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
+    const skip = (page - 1) * limit;
+
     const filter: any = status ? { status } : {};
-    const withdrawals = await WithdrawalModel.find(filter)
-      .populate("instructor", "fullName email phone")
-      .sort({ createdAt: -1 });
-    return res.status(200).json({ success: true, data: withdrawals });
+
+    const [withdrawals, totalCount, statsData] = await Promise.all([
+      WithdrawalModel.find(filter)
+        .populate("instructor", "fullName email phone")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      WithdrawalModel.countDocuments(filter),
+      WithdrawalModel.aggregate([
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+            totalAmount: { $sum: "$amount" },
+          },
+        },
+      ]),
+    ]);
+
+    let totalPendingRequests = 0;
+    let totalPendingAmount = 0;
+    let totalApproved = 0;
+    let totalRejected = 0;
+
+    statsData.forEach((stat) => {
+      if (stat._id === "pending") {
+        totalPendingRequests = stat.count;
+        totalPendingAmount = stat.totalAmount;
+      } else if (stat._id === "approved") {
+        totalApproved = stat.count;
+      } else if (stat._id === "rejected") {
+        totalRejected = stat.count;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Withdrawals fetched successfully",
+      data: {
+        stats: {
+          totalPendingRequests,
+          totalPendingAmount,
+          totalApproved,
+          totalRejected,
+        },
+        withdrawals,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      },
+    });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -198,8 +272,15 @@ export const processWithdrawal = async (req: Request, res: Response) => {
     if (action === "approve") {
       sendNotification(
         withdrawal.instructor.toString(),
-        "Withdrawal Processed",
-        `Your withdrawal request of $${withdrawal.amount} has been approved and processed.`,
+        "Withdrawal Approved",
+        `Your withdrawal request of ৳${withdrawal.amount} has been approved and processed. ${adminTransactionId ? `TrxID: ${adminTransactionId}. ` : ""}${adminNote ? `Note from Admin: ${adminNote}` : ""}`.trim(),
+        "withdrawal_processed",
+      ).catch(console.error);
+    } else {
+      sendNotification(
+        withdrawal.instructor.toString(),
+        "Withdrawal Rejected",
+        `Your withdrawal request of ৳${withdrawal.amount} has been rejected. ${adminNote ? `Reason: ${adminNote}` : "Please contact support."}`,
         "withdrawal_processed",
       ).catch(console.error);
     }

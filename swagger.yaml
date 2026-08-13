@@ -4516,13 +4516,52 @@ paths:
         - bearerAuth: []
       parameters:
         - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+        - in: query
           name: status
           schema:
             type: string
             enum: [pending, approved, rejected]
       responses:
         "200":
-          description: List of withdrawal requests
+          description: List of withdrawal requests with stats and pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      stats:
+                        type: object
+                        properties:
+                          totalPendingRequests: { type: number }
+                          totalPendingAmount: { type: number }
+                          totalApproved: { type: number }
+                          totalRejected: { type: number }
+                      withdrawals:
+                        type: array
+                        items: { type: object }
+                      pagination:
+                        type: object
+                        properties:
+                          total: { type: number }
+                          page: { type: number }
+                          limit: { type: number }
+                          totalPages: { type: number }
 
   /withdrawal/my-requests:
     get:
@@ -4530,9 +4569,41 @@ paths:
       summary: Instructor — list own withdrawal requests
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
       responses:
         "200":
-          description: List of own withdrawal requests
+          description: List of own withdrawal requests with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      withdrawals:
+                        type: array
+                        items: { type: object }
+                      pagination:
+                        type: object
+                        properties:
+                          total: { type: number }
+                          page: { type: number }
+                          limit: { type: number }
+                          totalPages: { type: number }
 
   /withdrawal/{withdrawalId}/process:
     put:
