@@ -166,22 +166,44 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 
     const filter: any = status ? { status } : {};
 
-    const [withdrawals, totalCount, statsData] = await Promise.all([
+    const [withdrawals, totalCount] = await Promise.all([
       WithdrawalModel.find(filter)
         .populate("instructor", "fullName email phone")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
       WithdrawalModel.countDocuments(filter),
-      WithdrawalModel.aggregate([
-        {
-          $group: {
-            _id: "$status",
-            count: { $sum: 1 },
-            totalAmount: { $sum: "$amount" },
-          },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Withdrawals fetched successfully",
+      data: {
+        withdrawals,
+        pagination: {
+          total: totalCount,
+          page,
+          limit,
+          totalPages: Math.ceil(totalCount / limit),
         },
-      ]),
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//  3.5 Admin — get withdrawal stats
+export const getWithdrawalStats = async (req: Request, res: Response) => {
+  try {
+    const statsData = await WithdrawalModel.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          totalAmount: { $sum: "$amount" },
+        },
+      },
     ]);
 
     let totalPendingRequests = 0;
@@ -202,21 +224,12 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Withdrawals fetched successfully",
+      message: "Withdrawal stats fetched successfully",
       data: {
-        stats: {
-          totalPendingRequests,
-          totalPendingAmount,
-          totalApproved,
-          totalRejected,
-        },
-        withdrawals,
-        pagination: {
-          total: totalCount,
-          page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+        totalPendingRequests,
+        totalPendingAmount,
+        totalApproved,
+        totalRejected,
       },
     });
   } catch (error: any) {

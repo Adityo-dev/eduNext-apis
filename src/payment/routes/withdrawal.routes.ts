@@ -3,6 +3,7 @@ import { authenticate, authorize } from "../../middlewares/auth.middleware.js";
 import {
   getMyWithdrawals,
   getWithdrawals,
+  getWithdrawalStats,
   processWithdrawal,
   requestWithdrawal,
 } from "../controllers/withdrawal.controller.js";
@@ -17,6 +18,8 @@ router.get(
   authorize(["instructor"]),
   getMyWithdrawals,
 );
+
+router.get("/stats", authenticate, authorize(["admin"]), getWithdrawalStats);
 
 router.get("/", authenticate, authorize(["admin"]), getWithdrawals);
 
