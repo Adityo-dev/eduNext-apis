@@ -4,6 +4,7 @@ import {
   getMyWithdrawals,
   getWithdrawals,
   getWithdrawalStats,
+  getAvailableBalance,
   processWithdrawal,
   requestWithdrawal,
 } from "../controllers/withdrawal.controller.js";
@@ -17,6 +18,13 @@ router.get(
   authenticate,
   authorize(["instructor"]),
   getMyWithdrawals,
+);
+
+router.get(
+  "/available-balance",
+  authenticate,
+  authorize(["instructor"]),
+  getAvailableBalance,
 );
 
 router.get("/stats", authenticate, authorize(["admin"]), getWithdrawalStats);

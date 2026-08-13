@@ -156,6 +156,69 @@ export const getMyWithdrawals = async (req: Request, res: Response) => {
   }
 };
 
+//  2.5 Instructor — get available balance and last withdrawal info
+export const getAvailableBalance = async (req: Request, res: Response) => {
+  try {
+    const instructorId = req.user?.id;
+
+    // Calculate Available Balance
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const allPayments = await PaymentModel.find({
+      instructor: instructorId,
+      status: "paid",
+    });
+
+    let totalEarned = 0;
+    let holding = 0;
+
+    allPayments.forEach((p) => {
+      totalEarned += p.instructorEarning;
+      if (!p.paidAt || p.paidAt > sevenDaysAgo) {
+        holding += p.instructorEarning;
+      }
+    });
+
+    const withdrawals = await WithdrawalModel.find({
+      instructor: instructorId,
+    }).sort({ createdAt: -1 });
+
+    let withdrawn = 0;
+    let pendingWithdrawal = 0;
+
+    withdrawals.forEach((w) => {
+      if (w.status === "approved") {
+        withdrawn += w.amount;
+      } else if (w.status === "pending") {
+        pendingWithdrawal += w.amount;
+      }
+    });
+
+    const availableBalance =
+      totalEarned - holding - withdrawn - pendingWithdrawal;
+
+    const lastWithdrawal = withdrawals.length > 0 ? withdrawals[0] : null;
+
+    return res.status(200).json({
+      success: true,
+      message: "Balance fetched successfully",
+      data: {
+        availableBalance,
+        lastWithdrawal: lastWithdrawal
+          ? {
+              amount: lastWithdrawal.amount,
+              status: lastWithdrawal.status,
+              date: lastWithdrawal.createdAt,
+            }
+          : null,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 //  3. Admin — list withdrawal requests (optionally filter by status)
 export const getWithdrawals = async (req: Request, res: Response) => {
   try {
@@ -168,7 +231,7 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 
     const [withdrawals, totalCount] = await Promise.all([
       WithdrawalModel.find(filter)
-        .populate("instructor", "fullName email phone")
+        .populate("instructor", "fullName email phone image")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),

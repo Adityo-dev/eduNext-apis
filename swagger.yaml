@@ -4580,6 +4580,34 @@ paths:
                           limit: { type: number }
                           totalPages: { type: number }
 
+  /withdrawal/available-balance:
+    get:
+      tags: [Withdrawal]
+      summary: Instructor — get available balance and last withdrawal info
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Balance fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      availableBalance: { type: number }
+                      lastWithdrawal:
+                        type: object
+                        nullable: true
+                        properties:
+                          amount: { type: number }
+                          status: { type: string }
+                          date: { type: string, format: date-time }
+
   /withdrawal/my-requests:
     get:
       tags: [Withdrawal]
