@@ -9,8 +9,7 @@ import { sendEmail } from "../../utils/sendEmail.js";
  *
  * Logic:
  * 1. Find all students who have completed lessons.
- * 2. For each student, check the last 7 days of lesson completions.
- * 3. If they have a 5 or 6 day consecutive streak (but NOT 7 — that means they already earned the badge),
+ * 2. If they have an active streak (i.e., completed a lesson yesterday),
  *    AND they did NOT complete any lesson TODAY, send them a motivational email.
  */
 
@@ -49,7 +48,6 @@ export const startStreakReminderCron = (): void => {
           });
         });
 
-        // Check each student for a 5-6 day streak ending yesterday
         const studentsToNotify: string[] = [];
 
         for (const [studentId, dateSet] of studentDatesMap.entries()) {
@@ -58,24 +56,12 @@ export const startStreakReminderCron = (): void => {
             continue;
           }
 
-          // Check consecutive days going backwards from yesterday
-          let streakCount = 0;
-          for (let d = 1; d <= 7; d++) {
-            const checkDate = new Date(now);
-            checkDate.setDate(checkDate.getDate() - d);
-            const checkDateStr = checkDate
-              .toISOString()
-              .split("T")[0] as string;
+          // Check if they were active yesterday (meaning their streak is still alive and at risk today)
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split("T")[0] as string;
 
-            if (dateSet.has(checkDateStr)) {
-              streakCount++;
-            } else {
-              break; // Streak broken
-            }
-          }
-
-          // Only notify if streak is 5 or 6 days (close to 7-Day badge)
-          if (streakCount >= 5 && streakCount < 7) {
+          if (dateSet.has(yesterdayStr)) {
             studentsToNotify.push(studentId);
           }
         }
@@ -99,23 +85,68 @@ export const startStreakReminderCron = (): void => {
 
           if (!studentEmail) continue;
 
-          // Find their current streak
+          // Find their current full streak (going backwards from yesterday)
           const dateSet = studentDatesMap.get(student._id.toString());
           let streakDays = 0;
-          for (let d = 1; d <= 7; d++) {
-            const checkDate = new Date(now);
-            checkDate.setDate(checkDate.getDate() - d);
-            const checkDateStr = checkDate
-              .toISOString()
-              .split("T")[0] as string;
-            if (dateSet?.has(checkDateStr)) {
-              streakDays++;
-            } else {
-              break;
-            }
+          let checkDate = new Date(now);
+          checkDate.setDate(checkDate.getDate() - 1);
+          let checkDateStr = checkDate.toISOString().split("T")[0] as string;
+
+          while (dateSet?.has(checkDateStr)) {
+            streakDays++;
+            checkDate.setDate(checkDate.getDate() - 1);
+            checkDateStr = checkDate.toISOString().split("T")[0] as string;
           }
 
-          const daysRemaining = 7 - streakDays;
+          const isCloseToBadge = streakDays === 5 || streakDays === 6;
+          
+          let dynamicContent = "";
+          let subjectStr = "";
+
+          if (isCloseToBadge) {
+            const daysRemaining = 7 - streakDays;
+            subjectStr = `🔥 ${streakDays}-Day Streak! Don't stop now, ${studentName}!`;
+            dynamicContent = `
+              <p style="text-align: center; color: #4B5563; font-size: 15px; margin: 0 0 24px 0;">
+                You're so close to the <strong>7-Day Streak</strong> badge! 🏅
+              </p>
+              <p style="font-size: 15px; color: #374151; line-height: 1.6;">
+                Hey ${studentName},
+              </p>
+              <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+                You've been on an amazing <strong style="color: #166534;">${streakDays}-day learning streak</strong>! 
+                Just <strong style="color: #DC2626;">${daysRemaining} more day${daysRemaining > 1 ? "s" : ""}</strong> 
+                and you'll unlock the exclusive <strong>🔥 7-Day Streak</strong> achievement badge.
+              </p>
+              <div style="background-color: #F0FDF4; border-radius: 10px; padding: 16px; text-align: center; margin-top: 20px;">
+                <p style="margin: 0; font-size: 13px; color: #6B7280;">
+                  Your current streak: <strong style="color: #166534;">${streakDays} / 7 days</strong>
+                </p>
+                <div style="background-color: #E5E7EB; border-radius: 999px; height: 8px; margin-top: 10px; overflow: hidden;">
+                  <div style="background-color: #22C55E; height: 100%; width: ${Math.round((streakDays / 7) * 100)}%; border-radius: 999px;"></div>
+                </div>
+              </div>
+            `;
+          } else {
+            subjectStr = `⚠️ Your ${streakDays}-Day Streak is in Danger!`;
+            dynamicContent = `
+              <p style="text-align: center; color: #4B5563; font-size: 15px; margin: 0 0 24px 0;">
+                Don't break the chain! 🔗
+              </p>
+              <p style="font-size: 15px; color: #374151; line-height: 1.6;">
+                Hey ${studentName},
+              </p>
+              <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
+                You've built up an impressive <strong style="color: #166534;">${streakDays}-day streak</strong>! 
+                It takes a lot of dedication to learn every day. Don't let your hard work reset to zero!
+              </p>
+              <div style="background-color: #F0FDF4; border-radius: 10px; padding: 16px; text-align: center; margin-top: 20px;">
+                <p style="margin: 0; font-size: 16px; color: #166534; font-weight: bold;">
+                  🔥 ${streakDays} Days Strong!
+                </p>
+              </div>
+            `;
+          }
 
           const emailHtml = `
           <div style="background-color: #F0FDF4; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
@@ -129,22 +160,10 @@ export const startStreakReminderCron = (): void => {
                 Don't Break Your Streak!
               </h2>
 
-              <p style="text-align: center; color: #4B5563; font-size: 15px; margin: 0 0 24px 0;">
-                You're so close to the <strong>7-Day Streak</strong> badge! 🏅
-              </p>
+              ${dynamicContent}
 
-              <p style="font-size: 15px; color: #374151; line-height: 1.6;">
-                Hey ${studentName},
-              </p>
-
-              <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
-                You've been on an amazing <strong style="color: #166534;">${streakDays}-day learning streak</strong>! 
-                Just <strong style="color: #DC2626;">${daysRemaining} more day${daysRemaining > 1 ? "s" : ""}</strong> 
-                and you'll unlock the exclusive <strong>🔥 7-Day Streak</strong> achievement badge.
-              </p>
-
-              <p style="font-size: 15px; color: #4B5563; line-height: 1.6;">
-                Don't let your hard work go to waste — complete just one lesson today to keep the streak alive!
+              <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin-top: 20px;">
+                Complete just one quick lesson before midnight to keep your streak alive!
               </p>
 
               <div style="text-align: center; margin: 28px 0;">
@@ -154,17 +173,8 @@ export const startStreakReminderCron = (): void => {
                 </a>
               </div>
 
-              <div style="background-color: #F0FDF4; border-radius: 10px; padding: 16px; text-align: center; margin-top: 20px;">
-                <p style="margin: 0; font-size: 13px; color: #6B7280;">
-                  Your current streak: <strong style="color: #166534;">${streakDays} / 7 days</strong>
-                </p>
-                <div style="background-color: #E5E7EB; border-radius: 999px; height: 8px; margin-top: 10px; overflow: hidden;">
-                  <div style="background-color: #22C55E; height: 100%; width: ${Math.round((streakDays / 7) * 100)}%; border-radius: 999px;"></div>
-                </div>
-              </div>
-
               <p style="font-size: 12px; color: #9CA3AF; text-align: center; margin-top: 24px;">
-                You're receiving this because you're close to earning an achievement on EduNext.
+                You're receiving this because your learning streak is at risk on EduNext.
               </p>
             </div>
           </div>
@@ -172,7 +182,7 @@ export const startStreakReminderCron = (): void => {
 
           sendEmail({
             email: studentEmail,
-            subject: `🔥 ${streakDays}-Day Streak! Don't stop now, ${studentName}!`,
+            subject: subjectStr,
             html: emailHtml,
           }).catch((err) =>
             console.error(
@@ -195,6 +205,6 @@ export const startStreakReminderCron = (): void => {
     },
     {
       timezone: "Asia/Dhaka",
-    },
+    }
   );
 };
