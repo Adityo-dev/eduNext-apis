@@ -1793,7 +1793,59 @@ paths:
       responses:
         200:
           description: Top rated courses fetched successfully
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Top rated courses fetched successfully"
+                  data:
+                    type: object
+                    properties:
+                      courses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id: { type: string }
+                            title: { type: string }
+                            slug: { type: string }
+                            thumbnail: { type: string }
+                            category: { type: string }
+                            subCategory: { type: string }
+                            level: { type: string }
+                            language: { type: string }
+                            rating: { type: number }
+                            enrolledCount: { type: number }
+                            totalDuration: { type: string }
+                            price: { type: number }
+                            estimatedPrice: { type: number }
+                            instructor:
+                              type: object
+                              properties:
+                                _id: { type: string }
+                                fullName: { type: string }
+                                avatar: { type: string }
+                      pagination:
+                        type: object
+                        properties:
+                          totalCourses:
+                            type: number
+                            example: 4
+                          totalPages:
+                            type: number
+                            example: 1
+                          currentPage:
+                            type: number
+                            example: 1
+                          limit:
+                            type: number
+                            example: 12
   /courses/admin/courses:
     get:
       summary: Get all courses for admin dashboard (Admin Only)
