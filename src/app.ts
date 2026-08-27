@@ -23,6 +23,7 @@ import playerRouter from "./player/routes/playerRoutes.js";
 import categoryRouter from "./category/routes/categoryRoutes.js";
 import ticketRouter from "./ticket/routes/ticketRoutes.js";
 import notificationRouter from "./notification/routes/notificationRoutes.js";
+import contactRouter from "./contact/routes/contactRoutes.js";
 const app = express();
 
 // Load Swagger YAML file
@@ -102,6 +103,9 @@ app.use("/api/v1/tickets", ticketRouter);
 
 // Notification routes ->
 app.use("/api/v1/notifications", notificationRouter);
+
+// Contact routes ->
+app.use("/api/v1/contact", contactRouter);
 
 // Global Error Handler ->
 app.use(globalErrorHandler);

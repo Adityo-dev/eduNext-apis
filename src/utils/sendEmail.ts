@@ -4,6 +4,7 @@ interface EmailOptions {
   email: string;
   subject: string;
   html: string;
+  replyTo?: { email: string; name?: string };
 }
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
@@ -45,6 +46,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
         to: [{ email: options.email }],
         subject: options.subject,
         htmlContent: options.html,
+        ...(options.replyTo && { replyTo: options.replyTo }),
       }),
     });
 
