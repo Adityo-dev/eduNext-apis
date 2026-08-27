@@ -1873,6 +1873,59 @@ paths:
           description: Unauthorized - Invalid or missing token
         403:
           description: Forbidden - Admin access required
+  /courses/{slug}/related:
+    get:
+      summary: Get related courses for a given course (Public)
+      tags:
+        - Course Management
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The slug of the current course
+      responses:
+        "200":
+          description: Related courses fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Related courses fetched successfully
+                  data:
+                    type: object
+                    properties:
+                      courses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id: { type: string }
+                            title: { type: string }
+                            slug: { type: string }
+                            thumbnail: { type: string }
+                            category: { type: string }
+                            subCategory: { type: string }
+                            level: { type: string }
+                            language: { type: string }
+                            rating: { type: number }
+                            enrolledCount: { type: number }
+                            totalDuration: { type: string }
+                            price: { type: number }
+                            estimatedPrice: { type: number }
+                            instructor:
+                              type: object
+                              properties:
+                                _id: { type: string }
+                                fullName: { type: string }
+                                avatar: { type: string }
 
   /courses/{slug}:
     get:

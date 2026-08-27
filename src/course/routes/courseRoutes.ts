@@ -17,6 +17,7 @@ import { updateCourse } from "../controllers/instructor/updateCourse.controller.
 import { getAllCourses } from "../controllers/public/getAllCourses.controller.js";
 import { getCourseBySlug } from "../controllers/public/getCourseBySlug.controller.js";
 import { getTopRatedCourses } from "../controllers/public/getTopRatedCourses.controller.js";
+import { getRelatedCourses } from "../controllers/public/getRelatedCourses.controller.js";
 import { deleteCourse } from "../controllers/shared/deleteCourse.controller.js";
 
 const courseRouter = Router();
@@ -24,6 +25,7 @@ const courseRouter = Router();
 // ─── Public Routes
 courseRouter.get("/", getAllCourses);
 courseRouter.get("/top-rated", getTopRatedCourses);
+courseRouter.get("/:slug/related", getRelatedCourses);
 courseRouter.get("/:slug", optionalAuthenticate, getCourseBySlug);
 
 // ─── Instructor Course Management Routes
